@@ -1,0 +1,70 @@
+#!/usr/bin/env python2
+# RenderChan
+#
+#       renderchan
+#
+# Copyright (c) 2014, Konstantin Dmitriev <ksee.zelgadis@gmail.com>
+#
+
+import os
+import sys
+import string
+import locale
+import gettext
+
+localedir = ""
+
+
+def _prepend_env_path(name, value):
+    os.environ[name] = os.pathsep.join(value +
+            os.environ.get(name, "").split(os.pathsep))
+
+
+def jump_through_hoops():
+    os.environ["JUMP_THROUGH_HOOPS"] = "1"
+    os.execv(sys.argv[0], sys.argv)
+
+
+# Check if we're in development or installed version and set paths properly
+def _in_devel():
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.exists(os.path.join(root_dir, '.git'))
+
+
+def _configure_python_path():
+    global localedir
+    dir = os.path.dirname(os.path.abspath(__file__))
+    root = None
+    if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
+        root = os.path.dirname(dir)
+        localedir = os.path.join(root, 'locale')
+
+    if not root in sys.path:
+        sys.path.insert(0, root)
+
+    # Added for i18n
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+        locale.bindtextdomain('renderchan', localedir)
+        locale.textdomain('renderchan')
+    except:
+        print "Couldn't set locale."
+    try:
+        gettext.bindtextdomain('renderchan', localedir)
+        gettext.textdomain('renderchan')
+    except:
+        print "Couldn't set the gettext domain. Translations will not work."
+
+def _start_renderchan():
+    import renderchan.cli as cli
+
+    # Start the real application, with given arguments.
+    sys.exit(cli.main(sys.argv))
+
+
+if __name__ == "__main__":
+    try:
+        _configure_python_path()
+        _start_renderchan()
+    except KeyboardInterrupt:
+        print "\tRenderChan stopped by user with KeyboardInterrupt!"
