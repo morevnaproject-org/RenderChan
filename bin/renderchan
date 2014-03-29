@@ -63,6 +63,10 @@ def _start_renderchan():
 
 
 if __name__ == "__main__":
+
+    # FIXME: Puli installation path
+    sys.path.insert(0, "/mnt/data/zelgadis/sources/OpenRenderManagement/Puli/src/")
+
     try:
         _configure_python_path()
         _start_renderchan()

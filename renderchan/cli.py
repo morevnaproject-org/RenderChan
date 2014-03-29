@@ -1,12 +1,10 @@
 __author__ = 'Konstantin Dmitriev'
 
-import os
-import sys
-
 from gettext import gettext as _
 from optparse import OptionParser
 
 from renderchan.core import RenderChan
+from renderchan.file import RenderChanFile
 
 
 def process_args():
@@ -28,4 +26,8 @@ def process_args():
 def main(argv):
     options, args = process_args()
 
-    app = RenderChan()
+    renderchan = RenderChan()
+
+    # FIXME: Hardcoded sample file path
+    taskfile = RenderChanFile("/home/zelgadis/projects/renderchan/1-professions/020/scene-2.blend")
+    renderchan.submit(taskfile)
