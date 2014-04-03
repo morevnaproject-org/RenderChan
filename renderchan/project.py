@@ -2,7 +2,7 @@ __author__ = 'zelgadis'
 
 import os.path
 
-class RenderChanProjectList():
+class RenderChanProjectManager():
     def __init__(self):
         self.list = {}
 

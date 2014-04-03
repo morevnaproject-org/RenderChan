@@ -2,7 +2,8 @@ __author__ = 'Konstantin Dmitriev'
 
 import sys
 from renderchan.file import RenderChanFile
-from renderchan.project import RenderChanProjectList
+from renderchan.project import RenderChanProjectManager
+from renderchan.module import RenderChanModuleManager
 from puliclient import Task, Graph
 
 class RenderChan():
@@ -12,8 +13,8 @@ class RenderChan():
         self.puliPort = 8004
 
         print "RenderChan initialized."
-        self.projects = RenderChanProjectList()
-        self.modules = {}
+        self.projects = RenderChanProjectManager()
+        self.modules = RenderChanModuleManager()
 
     def submit(self, taskfile):
 
