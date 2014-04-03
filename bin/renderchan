@@ -15,22 +15,6 @@ import gettext
 localedir = ""
 
 
-def _prepend_env_path(name, value):
-    os.environ[name] = os.pathsep.join(value +
-            os.environ.get(name, "").split(os.pathsep))
-
-
-def jump_through_hoops():
-    os.environ["JUMP_THROUGH_HOOPS"] = "1"
-    os.execv(sys.argv[0], sys.argv)
-
-
-# Check if we're in development or installed version and set paths properly
-def _in_devel():
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.exists(os.path.join(root_dir, '.git'))
-
-
 def _configure_python_path():
     global localedir
     dir = os.path.dirname(os.path.abspath(__file__))
