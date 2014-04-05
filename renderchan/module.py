@@ -1,6 +1,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from importlib import import_module
+import os
 
 class RenderChanModuleManager():
     def __init__(self):
@@ -35,10 +36,49 @@ class RenderChanModuleManager():
 
 class RenderChanModule():
     def __init__(self):
-        pass
+        self.conf = {}
+        self.conf['binary']="foo"
+
+        self.active=False
+
+        self.checkRequirements()
+
+    def __is_exe(self, fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    def __which(self, program):
+        fpath, fname = os.path.split(program)
+        if fpath:
+            if self.__is_exe(program):
+                return program
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                path = path.strip('"')
+                exe_file = os.path.join(path, program)
+                if self.__is_exe(exe_file):
+                    return exe_file
+
+        return None
+
+    def getConfiguration(self):
+        return self.conf
+
+    def setConfiguration(self, conf):
+        for key,value in conf.items():
+            if not self.conf.has_key(key):
+                print "Module %s doesn't accept configuration key '%s': No such entry." % (self.__class__.__name__, key)
+                continue
+            if not type(self.conf[key]).__name__ == type(conf[key]).__name__:
+                print "Module %s doesn't accept configuration value for key '%s': Wrong type." % (self.__class__.__name__, key)
+                continue
+            self.conf[key] = conf[key]
 
     def checkRequirements(self):
-        return True
+        if self.__which(self.conf['binary']) == None:
+            self.active=False
+        else:
+            self.active=True
+        return self.active
 
     def getInputFormats(self):
         return []
