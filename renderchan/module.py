@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 from importlib import import_module
 import os
+import inspect
 
 class RenderChanModuleManager():
     def __init__(self):
@@ -12,7 +13,6 @@ class RenderChanModuleManager():
             #module = __import__(moduleName, fromlist=[cls])
             module = import_module("renderchan.contrib."+name)
         except ImportError, error:
-            traceback.print_exc()
             raise ImportError("No module '%s' on PYTHONPATH:\n%s. (%s)" % (moduleName, "\n".join(sys.path), error))
 
         cls = name.capitalize()
@@ -27,6 +27,16 @@ class RenderChanModuleManager():
             raise ImportError("%s (loaded as '%s') is not a valid %s." % (moduleClass, name, motherClassName))
 
         self.list[name] = moduleClass()
+        self.list[name].checkRequirements()
+
+    def loadAll(self):
+        dir = os.path.dirname(os.path.abspath(__file__))
+        modulesdir = os.path.join(dir, "contrib")
+        files = [ f for f in os.listdir(modulesdir) if os.path.isfile(os.path.join(modulesdir,f)) ]
+        for f in files:
+            filename, ext = os.path.splitext(f)
+            if ext==".py" and filename!='__init__':
+                self.load(filename)
 
     def get(self, name):
         if not self.list.has_key(name):
@@ -34,14 +44,19 @@ class RenderChanModuleManager():
 
         return self.list[name]
 
+    def getByExtension(self, ext):
+        for key,item in self.list.items():
+            if ext in item.getInputFormats():
+                if item.active:
+                    return item
+        return None
+
 class RenderChanModule():
     def __init__(self):
         self.conf = {}
         self.conf['binary']="foo"
 
         self.active=False
-
-        self.checkRequirements()
 
     def __is_exe(self, fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -59,6 +74,9 @@ class RenderChanModule():
                     return exe_file
 
         return None
+
+    def getName(self):
+        return os.path.splitext(os.path.basename(inspect.getfile(self.__class__)))[0]
 
     def getConfiguration(self):
         return self.conf

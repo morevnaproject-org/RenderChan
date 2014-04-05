@@ -15,6 +15,7 @@ class RenderChan():
         print "RenderChan initialized."
         self.projects = RenderChanProjectManager()
         self.modules = RenderChanModuleManager()
+        self.modules.loadAll()
 
     def submit(self, taskfile):
 
@@ -47,9 +48,9 @@ class RenderChan():
         arguments["output"]=taskfile.getRenderPath()
         arguments["profile_output"]=taskfile.getProfileRenderPath()
         arguments["format"]=taskfile.getOutputFormat()
+        arguments["module"]=taskfile.module.getName()
 
         # FIXME: Options below should be detected
-        arguments["module"]="blender"
         arguments["start"]=0
         arguments["end"]=15
         arguments["width"]=480

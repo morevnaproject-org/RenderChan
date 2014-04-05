@@ -6,10 +6,8 @@ import os
 
 class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
-        pass
-
-    def checkRequirements(self):
-        return True
+        RenderChanModule.__init__(self)
+        self.conf['binary']="blender"
 
     def getInputFormats(self):
         return ["blend"]

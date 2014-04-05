@@ -15,8 +15,9 @@ class RenderChanProjectManager():
             raise Exception
 
         # TODO: Load project cache here
+        # ...
 
-        pass
+        self.list[path]=RenderChanProject(confFile)
 
     def get(self, path):
         if not self.list.has_key(path):
@@ -25,5 +26,9 @@ class RenderChanProjectManager():
         return self.list[path]
 
 class RenderChanProject():
-    def __init__(self):
+    def __init__(self, confFile):
         pass
+
+    def getFormat(self):
+        # FIXME: Get format from project configuration
+        return "png"

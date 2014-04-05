@@ -3,12 +3,13 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 
 class RenderChanFile():
-    def __init__(self, path, modules):
+    def __init__(self, path, modules, projects):
         self.targetFormat = ""
         self.projectPath = self._findProjectRoot(path)
         #self.project = projects.get(self.projectPath)
         self.localPath = self._findLocalPath(path)
-        self.module = ""
+        self.project=projects.get(self.projectPath)
+        self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
 
         # Load Module
 
@@ -42,6 +43,15 @@ class RenderChanFile():
     def getProfileRenderPath(self):
         profile = "480x270"
         return os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.targetFormat )
+
+    def getOutputFormat(self):
+        # Check for project-defined format
+        format=self.project.getFormat()
+        # TODO: Check for .conf file for this module
+        # ...
+        # TODO: Allow module to override format
+        #self.module.overrideFormat(format)
+        return format
 
     def getDependencies(self):
         return []

@@ -28,5 +28,5 @@ def main(argv):
 
     renderchan = RenderChan()
 
-    taskfile = RenderChanFile(args[0], renderchan.modules)
+    taskfile = RenderChanFile(args[0], renderchan.modules, renderchan.projects)
     renderchan.submit(taskfile)
