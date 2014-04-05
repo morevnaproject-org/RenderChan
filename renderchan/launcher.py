@@ -40,6 +40,9 @@ def process_args():
 
     return options, args
 
+def updateCompletion(value):
+    print "Rendering: %s%" % (value*100)
+
 
 def main(argv):
     options, args = process_args()
@@ -49,5 +52,5 @@ def main(argv):
 
     options.moduleName = "blender"
     module = moduleManager.get(options.moduleName)
-    module.render(options.filename, options.outputPath, 0, 15, 480, 270, "png")
+    module.render(options.filename, options.outputPath, 0, 15, 480, 270, "png", updateCompletion)
 

@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
 from subprocess import check_call
+import os
 
 class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
@@ -19,7 +20,10 @@ class RenderChanBlenderModule(RenderChanModule):
     def getDependencies(self, filename):
         return []
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, updateCompletion):
         renderscript="/tmp/script.py"
-        commandline=["blender", "-b",filename, "-S","Scene", "-P",renderscript, "-a"]
-        check_call(commandline)
+        env=os.environ.copy()
+        env["PYTHONPATH"]=""
+        commandline=["blender", "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath, "-a"]
+        commandline=["blender", "-b",filename, "-S","Scene", "-o",outputPath, "-a"]
+        check_call(commandline, env=env)

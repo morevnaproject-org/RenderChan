@@ -28,6 +28,5 @@ def main(argv):
 
     renderchan = RenderChan()
 
-    # FIXME: Hardcoded sample file path
-    taskfile = RenderChanFile("/home/zelgadis/projects/renderchan/1-professions/020/scene-2.blend")
+    taskfile = RenderChanFile(args[0], renderchan.modules)
     renderchan.submit(taskfile)
