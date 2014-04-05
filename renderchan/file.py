@@ -3,12 +3,12 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 
 class RenderChanFile():
-    def __init__(self, path):
+    def __init__(self, path, modules):
         self.targetFormat = ""
         self.projectPath = self._findProjectRoot(path)
         #self.project = projects.get(self.projectPath)
-        self.localPath = self._findSourcePath(path)
-        self.moduleName = ""
+        self.localPath = self._findLocalPath(path)
+        self.module = ""
 
         # Load Module
 
@@ -21,8 +21,14 @@ class RenderChanFile():
                 return ""
             path = os.path.dirname(path)
 
-    def _findSourcePath(self, path):
-        return ""
+    def _findLocalPath(self, path):
+        if path.startswith(self.projectPath):
+            localpath=path[len(self.projectPath):]
+            while localpath.startswith('/'):
+                localpath=localpath[1:]
+            return localpath
+        else:
+            return path
 
     def getProjectRoot(self):
         return self.projectPath
