@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 from gettext import gettext as _
 from optparse import OptionParser
+import os.path
 
 from renderchan.core import RenderChan
 from renderchan.file import RenderChanFile
@@ -25,8 +26,9 @@ def process_args():
 
 def main(argv):
     options, args = process_args()
+    filename = os.path.abspath(args[0])
 
     renderchan = RenderChan()
 
-    taskfile = RenderChanFile(args[0], renderchan.modules, renderchan.projects)
+    taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
     renderchan.submit(taskfile)

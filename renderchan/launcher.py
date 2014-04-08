@@ -17,10 +17,10 @@ def process_args():
     parser.add_option("--height", dest="height",
             action="store",
             help=_("Output height."))
-    parser.add_option("--from", dest="from",
+    parser.add_option("--from", dest="startFrame",
             action="store",
             help=_("Start frame."))
-    parser.add_option("--to", dest="to",
+    parser.add_option("--to", dest="endFrame",
             action="store",
             help=_("End frame."))
     parser.add_option("--output", dest="outputPath",
@@ -41,7 +41,7 @@ def process_args():
     return options, args
 
 def updateCompletion(value):
-    print "Rendering: %s%" % (value*100)
+    print "Rendering: %s" % (value*100)
 
 
 def main(argv):
@@ -52,5 +52,11 @@ def main(argv):
 
     options.moduleName = "blender"
     module = moduleManager.get(options.moduleName)
-    module.render(options.filename, options.outputPath, 0, 15, 480, 270, "png", updateCompletion)
+    module.render(options.filename, options.outputPath,
+                  int(options.startFrame),
+                  int(options.endFrame),
+                  int(options.width),
+                  int(options.height),
+                  "png",
+                  updateCompletion)
 

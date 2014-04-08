@@ -4,14 +4,11 @@ import os.path
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
-        self.targetFormat = ""
         self.projectPath = self._findProjectRoot(path)
         #self.project = projects.get(self.projectPath)
         self.localPath = self._findLocalPath(path)
         self.project=projects.get(self.projectPath)
         self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
-
-        # Load Module
 
 
     def _findProjectRoot(self, path):
@@ -38,19 +35,29 @@ class RenderChanFile():
         return os.path.join(self.projectPath, self.localPath)
 
     def getRenderPath(self):
-        return os.path.join(self.projectPath, "render", self.localPath+"."+self.targetFormat )
+        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getOutputFormat() )
+        #if self.getOutputFormat() in RenderChanFile.imageExtensions:
+        #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
+        return path
 
     def getProfileRenderPath(self):
+        # FIXME: Hardcoded profile
         profile = "480x270"
-        return os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.targetFormat )
+        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getOutputFormat() )
+        #if self.getOutputFormat() in RenderChanFile.imageExtensions:
+        #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
+        return path
 
     def getOutputFormat(self):
         # Check for project-defined format
         format=self.project.getFormat()
-        # TODO: Check for .conf file for this module
-        # ...
-        # TODO: Allow module to override format
-        #self.module.overrideFormat(format)
+        # Check for .conf file for this module
+        if os.path.exists(self.getPath() + ".conf"):
+            # TODO: parse configuration
+            pass
+        # Allow module to override format
+        if not format in self.module.getOutputFormats():
+            format=self.module.getOutputFormats()[0]
         return format
 
     def getDependencies(self):

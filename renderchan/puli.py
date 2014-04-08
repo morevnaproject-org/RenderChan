@@ -82,8 +82,8 @@ class RenderChanRunner(CommandRunner):
         module = moduleManager.get(arguments["module"])
         module.render(arguments["filename"],
                       arguments["output"],
-                      arguments["start"],
-                      arguments["end"],
+                      int(arguments["start"]),
+                      int(arguments["end"]),
                       arguments["width"],
                       arguments["height"],
                       arguments["format"],

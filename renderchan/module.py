@@ -52,6 +52,7 @@ class RenderChanModuleManager():
         return None
 
 class RenderChanModule():
+    imageExtensions = ['png','exr']
     def __init__(self):
         self.conf = {}
         self.conf['binary']="foo"
