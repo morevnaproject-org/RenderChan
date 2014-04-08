@@ -49,15 +49,13 @@ class RenderChan():
         arguments["profile_output"]=taskfile.getProfileRenderPath()
         arguments["format"]=taskfile.getOutputFormat()
         arguments["module"]=taskfile.module.getName()
+        arguments["packetSize"]=taskfile.module.getPacketSize()
 
         # FIXME: Options below should be detected
         arguments["start"]=0
         arguments["end"]=15
         arguments["width"]=480
         arguments["height"]=270
-
-        # FIXME: Packet size should be defined by module
-        arguments["packetSize"]=10
 
         # Then add a new task to the graph
         graph.addNewTask( name, runner=runner, arguments=arguments, decomposer=decomposer )

@@ -10,6 +10,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         self.conf['binary']="blender"
+        self.conf["packetSize"]=10
 
     def getInputFormats(self):
         return ["blend"]

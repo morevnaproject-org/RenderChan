@@ -56,6 +56,7 @@ class RenderChanModule():
     def __init__(self):
         self.conf = {}
         self.conf['binary']="foo"
+        self.conf["packetSize"]=20
 
         self.active=False
 
@@ -107,6 +108,9 @@ class RenderChanModule():
 
     def getDependencies(self, filename):
         return []
+
+    def getPacketSize(self):
+        return self.conf["packetSize"]
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format):
         pass
