@@ -56,9 +56,27 @@ class RenderChan():
         arguments["end"]=15
         arguments["width"]=480
         arguments["height"]=270
+        arguments["dependencies"]=[]
 
-        # Then add a new task to the graph
-        graph.addNewTask( name, runner=runner, arguments=arguments, decomposer=decomposer )
+        # Add rendering task to the graph
+        graph.addNewTask( name="Render: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
+
+
+        # Now we will add a task which composes results and places it into valid destination
+
+        arguments = {}
+        arguments["output"]=taskfile.getRenderPath()
+        arguments["profile_output"]=taskfile.getProfileRenderPath()
+        arguments["packetSize"]=taskfile.module.getPacketSize()
+        # FIXME: Options below should be detected
+        arguments["start"]=0
+        arguments["end"]=15
+
+         # Add rendering task to the graph
+        runner = "renderchan.puli.RenderChanPostRunner"
+        decomposer = "renderchan.puli.RenderChanPostDecomposer"
+        graph.addNewTask( name="Post: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
+
         # Finally submit the graph to the server
         graph.submit(self.puliServer, self.puliPort)
 
