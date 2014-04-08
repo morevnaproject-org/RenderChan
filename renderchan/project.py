@@ -31,4 +31,4 @@ class RenderChanProject():
 
     def getFormat(self):
         # FIXME: Get format from project configuration
-        return "png"
+        return "avi"
