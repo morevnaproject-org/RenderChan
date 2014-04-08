@@ -21,7 +21,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def getDependencies(self, filename):
         return []
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, compatVersion, updateCompletion):
 
         comp = 0.0
         updateCompletion(comp)
@@ -44,7 +44,10 @@ class RenderChanBlenderModule(RenderChanModule):
         f.close()
 
         if format in RenderChanModule.imageExtensions:
-            outputPath=os.path.join(outputPath, "file")+".####"
+            if compatVersion<1:
+                outputPath=os.path.join(outputPath, "file")+".####"
+            else:
+                outputPath=os.path.join(outputPath, "file")+".#####"
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""

@@ -9,6 +9,7 @@ class RenderChanFile():
         self.localPath = self._findLocalPath(path)
         self.project=projects.get(self.projectPath)
         self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
+        self.module.conf["compatVersion"]=self.project.version
 
 
     def _findProjectRoot(self, path):

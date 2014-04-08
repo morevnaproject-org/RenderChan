@@ -58,5 +58,6 @@ def main(argv):
                   int(options.width),
                   int(options.height),
                   "png",
+                  module.conf["compatVersion"],
                   updateCompletion)
 

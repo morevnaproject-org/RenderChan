@@ -27,7 +27,10 @@ class RenderChanProjectManager():
 
 class RenderChanProject():
     def __init__(self, confFile):
-        pass
+        if os.path.basename(confFile) == "remake.conf":
+            self.version = 0
+        else:
+            self.version = 1
 
     def getFormat(self):
         # FIXME: Get format from project configuration

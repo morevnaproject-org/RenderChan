@@ -134,6 +134,7 @@ class RenderChanRunner(CommandRunner):
                       arguments["width"],
                       arguments["height"],
                       arguments["format"],
+                      module.conf["compatVersion"],
                       updateCompletion)
 
         updateCompletion(1)
