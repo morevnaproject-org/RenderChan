@@ -38,7 +38,7 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[HEIGHT]", str(height))\
            .replace("params[CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
-           .replace("params[FORMAT]", format)
+           .replace("params[FORMAT]", '"'+format+'"')
         f = open(renderscript,'w')
         f.write(script)
         f.close()
@@ -48,7 +48,9 @@ class RenderChanBlenderModule(RenderChanModule):
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
-        # TODO: AVI H264 export
+        print '===================================================='
+        print '  Output Path: %s' % outputPath
+        print '===================================================='
         commandline=["blender", "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath,
                      "-s",str(startFrame), "-e",str(endFrame), "-a"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)

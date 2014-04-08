@@ -53,8 +53,14 @@ def main():
     rend.use_placeholder = False
     rend.use_overwrite = True
 
-    # TODO: We should force format here
-    # rend.file_format = $BLENDERFORMAT
+    # Force format here
+    if params[FORMAT] == "png":
+        rend.image_settings.file_format = "PNG"
+    elif params[FORMAT] == "avi":
+        rend.image_settings.file_format = "H264"
+        rend.ffmpeg.format = "H264"
+        rend.ffmpeg.use_lossless_output=True
+        rend.ffmpeg.audio_codec="AAC"
 
     # Update .blend file if permitted and we have width or height changed
     if update and ( size_x != rend.resolution_x or size_y != rend.resolution_y or fps != rend.fps ):
