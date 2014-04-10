@@ -3,52 +3,21 @@ __author__ = 'Konstantin Dmitriev'
 
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
 from renderchan.module import RenderChanModuleManager
-import os, shutil
+from renderchan.utils import copytree
+import os
 import subprocess
-
-def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
-    names = os.listdir(src)
-    if ignore is not None:
-        ignored_names = ignore(src, names)
-    else:
-        ignored_names = set()
-
-    os.makedirs(dst)
-    errors = []
-    for name in names:
-        if name in ignored_names:
-            continue
-        srcname = os.path.join(src, name)
-        dstname = os.path.join(dst, name)
-        try:
-            if symlinks and os.path.islink(srcname):
-                linkto = os.readlink(srcname)
-                os.symlink(linkto, dstname)
-            elif os.path.isdir(srcname):
-                copytree(srcname, dstname, symlinks, hardlinks, ignore)
-            elif hardlinks:
-                os.link(srcname, dstname)
-            else:
-                shutil.copy2(srcname, dstname)
-            # XXX What about devices, sockets etc.?
-        except (IOError, os.error) as why:
-            errors.append((srcname, dstname, str(why)))
-        # catch the Error from the recursive copytree so that we can
-        # continue with other files
-        except shutil.Error as err:
-            errors.extend(err.args[0])
-
-    if errors:
-        raise shutil.Error(errors)
 
 class RenderChanDecomposer(TaskDecomposer):
    def __init__(self, task):
        self.task = task
        self.task.runner = "renderchan.puli.RenderChanRunner"
 
-       # The decompose method will split the task from start to end in packet_size and call the addCommand method below for each chunk
-       self.decompose(task.arguments["start"], task.arguments["end"],
-                                    task.arguments["packetSize"], self.addCommand)
+       if task.arguments["packetSize"]!=0:
+           # The decompose method will split the task from start to end in packet_size and call the addCommand method below for each chunk
+           self.decompose(task.arguments["start"], task.arguments["end"],
+                                        task.arguments["packetSize"], self.addCommand)
+       else:
+           self.addCommand(task.arguments["start"], task.arguments["end"])
 
 
    def decompose(self, start, end, packetSize, callback, framesList=""):
@@ -124,6 +93,9 @@ class RenderChanRunner(CommandRunner):
         print 'Running module "%s"' % arguments["module"]
         updateCompletion(0.0)
 
+        if not os.path.exists(os.path.dirname(arguments["output"])):
+            os.makedirs(os.path.dirname(arguments["output"]))
+
         moduleManager = RenderChanModuleManager()
 
         module = moduleManager.get(arguments["module"])
@@ -134,6 +106,7 @@ class RenderChanRunner(CommandRunner):
                       arguments["width"],
                       arguments["height"],
                       arguments["format"],
+                      arguments["audioRate"],
                       module.conf["compatVersion"],
                       updateCompletion)
 
@@ -178,7 +151,7 @@ class RenderChanPostRunner(CommandRunner):
             updateCompletion(0.5)
 
         if not os.path.exists(os.path.dirname(output)):
-            os.mkdir(os.path.dirname(output))
+            os.makedirs(os.path.dirname(output))
 
         if os.path.isdir(profile_output):
             copytree(profile_output, output, hardlinks=True)

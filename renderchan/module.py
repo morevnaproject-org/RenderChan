@@ -1,6 +1,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from importlib import import_module
+from renderchan.utils import which
 import os
 import inspect
 
@@ -61,23 +62,6 @@ class RenderChanModule():
 
         self.active=False
 
-    def __is_exe(self, fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    def __which(self, program):
-        fpath, fname = os.path.split(program)
-        if fpath:
-            if self.__is_exe(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if self.__is_exe(exe_file):
-                    return exe_file
-
-        return None
-
     def getName(self):
         return os.path.splitext(os.path.basename(inspect.getfile(self.__class__)))[0]
 
@@ -95,7 +79,7 @@ class RenderChanModule():
             self.conf[key] = conf[key]
 
     def checkRequirements(self):
-        if self.__which(self.conf['binary']) == None:
+        if which(self.conf['binary']) == None:
             self.active=False
         else:
             self.active=True
@@ -113,5 +97,5 @@ class RenderChanModule():
     def getPacketSize(self):
         return self.conf["packetSize"]
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, compatVersion, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
         pass

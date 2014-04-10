@@ -21,7 +21,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def getDependencies(self, filename):
         return []
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, compatVersion, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
 
         comp = 0.0
         updateCompletion(comp)

@@ -56,6 +56,7 @@ class RenderChan():
         arguments["end"]=15
         arguments["width"]=480
         arguments["height"]=270
+        arguments["audioRate"]=48000
         arguments["dependencies"]=[]
 
         # Add rendering task to the graph
