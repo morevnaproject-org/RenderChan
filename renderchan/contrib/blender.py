@@ -54,7 +54,7 @@ class RenderChanBlenderModule(RenderChanModule):
         print '===================================================='
         print '  Output Path: %s' % outputPath
         print '===================================================='
-        commandline=["blender", "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath,
+        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath,
                      "-s",str(startFrame), "-e",str(endFrame), "-a"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         rc = None

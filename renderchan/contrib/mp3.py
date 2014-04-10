@@ -43,10 +43,10 @@ class RenderChanMp3Module(RenderChanModule):
 
         # TODO: Progress callback
 
-        commandline=["mpg123", "-w", tmpfile, filename]
+        commandline=[self.conf['binary'], "-w", tmpfile, filename]
         subprocess.check_call(commandline)
 
-        commandline=["sox", tmpfile, outputPath, "rate", "-v", audioRate]
+        commandline=[self.conf['sox_binary'], tmpfile, outputPath, "rate", "-v", audioRate]
         subprocess.check_call(commandline)
 
         os.remove(tmpfile)

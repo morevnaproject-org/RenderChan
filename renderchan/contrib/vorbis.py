@@ -43,10 +43,10 @@ class RenderChanVorbisModule(RenderChanModule):
 
         # TODO: Progress callback
 
-        commandline=["oggdec", filename, "-o",tmpfile]
+        commandline=[self.conf['binary'], filename, "-o",tmpfile]
         subprocess.check_call(commandline)
 
-        commandline=["sox", tmpfile, outputPath, "rate", "-v", audioRate]
+        commandline=[self.conf['sox_binary'], tmpfile, outputPath, "rate", "-v", audioRate]
         subprocess.check_call(commandline)
 
         os.remove(tmpfile)
