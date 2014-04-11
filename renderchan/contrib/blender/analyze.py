@@ -91,3 +91,6 @@ for f in paths:
 
 for f in outputlist:
     print("RenderChan dependency: %s" % f)
+
+print("RenderChan start: %s" % bpy.context.scene.frame_start)
+print("RenderChan end: %s" % bpy.context.scene.frame_end)

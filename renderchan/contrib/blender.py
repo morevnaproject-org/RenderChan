@@ -30,7 +30,7 @@ class RenderChanBlenderModule(RenderChanModule):
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
-        commandline=[self.conf['binary'], "-b",filename, "-P",script]
+        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",script]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         rc = None
         while rc is None:
@@ -39,9 +39,20 @@ class RenderChanBlenderModule(RenderChanModule):
                 break
             #print line,
             sys.stdout.flush()
+
             dep = dependencyPattern.search(line)
             if dep:
                 info["dependencies"].append(dep.group(1).strip())
+
+            start=startFramePattern.search(line)
+            if start:
+                info["startFrame"]=start.group(1).strip()
+
+            end=endFramePattern.search(line)
+            if end:
+                info["endFrame"]=end.group(1).strip()
+
+
             rc = out.poll()
 
         out.communicate()
