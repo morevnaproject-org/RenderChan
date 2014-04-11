@@ -26,7 +26,7 @@ class RenderChan():
         deps = taskfile.getDependencies()
 
         for path in deps:
-            dependency = RenderChanFile(path)
+            dependency = RenderChanFile(path, self.modules, self.projects)
             if path != dependency.getPath():
                 # We have a new task to render
                 self.submit(dependency)
