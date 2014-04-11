@@ -50,14 +50,14 @@ class RenderChan():
         arguments["format"]=taskfile.getOutputFormat()
         arguments["module"]=taskfile.module.getName()
         arguments["packetSize"]=taskfile.module.getPacketSize()
+        arguments["start"]=taskfile.getStartFrame()
+        arguments["end"]=taskfile.getEndFrame()
+        arguments["dependencies"]=taskfile.getDependencies()
 
         # FIXME: Options below should be detected
-        arguments["start"]=0
-        arguments["end"]=15
         arguments["width"]=480
         arguments["height"]=270
         arguments["audioRate"]=48000
-        arguments["dependencies"]=[]
 
         # Add rendering task to the graph
         taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=arguments, decomposer=decomposer )

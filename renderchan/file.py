@@ -15,7 +15,7 @@ class RenderChanFile():
 
         info=self.module.analyze(self.getPath())
         if "dependencies" in info.keys():
-            self.dependencies=set(info["dependencies"])
+            self.dependencies=list(set(info["dependencies"]))
         if "startFrame" in info.keys():
             self.startFrame=int(info["startFrame"])
         if "endFrame" in info.keys():
@@ -73,6 +73,12 @@ class RenderChanFile():
 
     def getDependencies(self):
         return self.dependencies
+
+    def getStartFrame(self):
+        return self.startFrame
+
+    def getEndFrame(self):
+        return self.endFrame
 
     def isValid(self):
         if self.projectPath != "":
