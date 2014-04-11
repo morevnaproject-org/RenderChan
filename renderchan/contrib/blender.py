@@ -18,8 +18,39 @@ class RenderChanBlenderModule(RenderChanModule):
     def getOutputFormats(self):
         return ["png","exr","avi"]
 
-    def getDependencies(self, filename):
-        return []
+    def analyze(self, filename):
+        info={"dependencies":[]}
+
+        # TODO: get start and end frames
+
+        script=os.path.join(os.path.dirname(__file__),"blender","analyze.py")
+        dependencyPattern = re.compile("RenderChan dependency: (.*)$")
+        startFramePattern = re.compile("RenderChan start: (.*)$")
+        endFramePattern = re.compile("RenderChan end: (.*)$")
+
+        env=os.environ.copy()
+        env["PYTHONPATH"]=""
+        commandline=[self.conf['binary'], "-b",filename, "-P",script]
+        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+        rc = None
+        while rc is None:
+            line = out.stdout.readline()
+            if not line:
+                break
+            #print line,
+            sys.stdout.flush()
+            dep = dependencyPattern.search(line)
+            if dep:
+                info["dependencies"].append(dep.group(1).strip())
+            rc = out.poll()
+
+        out.communicate()
+        rc = out.poll()
+
+        if rc != 0:
+            print '  Blender command failed...'
+
+        return info
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
 
@@ -49,11 +80,12 @@ class RenderChanBlenderModule(RenderChanModule):
             else:
                 outputPath=os.path.join(outputPath, "file")+".#####"
 
-        env=os.environ.copy()
-        env["PYTHONPATH"]=""
         print '===================================================='
         print '  Output Path: %s' % outputPath
         print '===================================================='
+
+        env=os.environ.copy()
+        env["PYTHONPATH"]=""
         commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath,
                      "-s",str(startFrame), "-e",str(endFrame), "-a"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
