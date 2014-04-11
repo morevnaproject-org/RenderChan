@@ -22,9 +22,6 @@ class RenderChanFlacModule(RenderChanModule):
     def getOutputFormats(self):
         return ["wav"]
 
-    def getDependencies(self, filename):
-        return []
-
     def checkRequirements(self):
         for key in ['binary','sox_binary']:
             if which(self.conf[key]) == None:
