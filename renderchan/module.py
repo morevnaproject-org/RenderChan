@@ -91,8 +91,8 @@ class RenderChanModule():
     def getOutputFormats(self):
         return []
 
-    def getDependencies(self, filename):
-        return []
+    def analyze(self, filename):
+        return {}
 
     def getPacketSize(self):
         return self.conf["packetSize"]

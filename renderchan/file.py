@@ -5,11 +5,21 @@ import os.path
 class RenderChanFile():
     def __init__(self, path, modules, projects):
         self.projectPath = self._findProjectRoot(path)
-        #self.project = projects.get(self.projectPath)
         self.localPath = self._findLocalPath(path)
         self.project=projects.get(self.projectPath)
         self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
         self.module.conf["compatVersion"]=self.project.version
+        self.dependencies=[]
+        self.startFrame=-1
+        self.endFrame=-1
+
+        info=self.module.analyze(self.getPath())
+        if "dependencies" in info.keys():
+            self.dependencies=set(info["dependencies"])
+        if "startFrame" in info.keys():
+            self.startFrame=int(info["startFrame"])
+        if "endFrame" in info.keys():
+            self.endFrame=int(info["endFrame"])
 
 
     def _findProjectRoot(self, path):
@@ -62,7 +72,7 @@ class RenderChanFile():
         return format
 
     def getDependencies(self):
-        return []
+        return self.dependencies
 
     def isValid(self):
         if self.projectPath != "":
