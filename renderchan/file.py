@@ -1,25 +1,34 @@
 __author__ = 'Konstantin Dmitriev'
 
 import os.path
+from renderchan.project import loadRenderConfig
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
-        self.project=projects.get(self.projectPath)
+        if self.projectPath!='':
+            self.project=projects.get(self.projectPath)
+        else:
+            print "Warning: File %s doesn't belong to any project." % (path)
+
         self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
-        self.module.conf["compatVersion"]=self.project.version
         self.dependencies=[]
         self.startFrame=-1
         self.endFrame=-1
+        self.params={}
 
-        info=self.module.analyze(self.getPath())
-        if "dependencies" in info.keys():
-            self.dependencies=list(set(info["dependencies"]))
-        if "startFrame" in info.keys():
-            self.startFrame=int(info["startFrame"])
-        if "endFrame" in info.keys():
-            self.endFrame=int(info["endFrame"])
+        if self.module:
+            self.module.conf["compatVersion"]=self.project.version
+            info=self.module.analyze(self.getPath())
+            if "dependencies" in info.keys():
+                self.dependencies=list(set(info["dependencies"]))
+            if "startFrame" in info.keys():
+                self.startFrame=int(info["startFrame"])
+            if "endFrame" in info.keys():
+                self.endFrame=int(info["endFrame"])
+            if os.path.exists(self.getPath()+".conf"):
+                loadRenderConfig(self.getPath()+".conf", self.params)
 
 
     def _findProjectRoot(self, path):
@@ -31,7 +40,7 @@ class RenderChanFile():
             path = os.path.dirname(path)
 
     def _findLocalPath(self, path):
-        if path.startswith(self.projectPath):
+        if self.projectPath!="" and path.startswith(self.projectPath):
             localpath=path[len(self.projectPath):]
             while localpath.startswith('/'):
                 localpath=localpath[1:]
@@ -52,8 +61,7 @@ class RenderChanFile():
         return path
 
     def getProfileRenderPath(self):
-        # FIXME: Hardcoded profile
-        profile = "480x270"
+        profile = self.project.getProfileName()
         path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getOutputFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())

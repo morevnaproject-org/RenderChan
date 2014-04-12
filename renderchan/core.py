@@ -57,7 +57,7 @@ class RenderChan():
         # FIXME: Options below should be detected
         arguments["width"]=480
         arguments["height"]=270
-        arguments["audioRate"]=48000
+        arguments["audio_rate"]=48000
 
         # Add rendering task to the graph
         taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
