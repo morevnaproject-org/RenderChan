@@ -19,7 +19,6 @@ class RenderChanFile():
         self.params={}
 
         if self.module:
-            self.module.conf["compatVersion"]=self.project.version
             info=self.module.analyze(self.getPath())
             if "dependencies" in info.keys():
                 self.dependencies=list(set(info["dependencies"]))
@@ -27,8 +26,13 @@ class RenderChanFile():
                 self.startFrame=int(info["startFrame"])
             if "endFrame" in info.keys():
                 self.endFrame=int(info["endFrame"])
+
+            # Rendering params
             if os.path.exists(self.getPath()+".conf"):
                 loadRenderConfig(self.getPath()+".conf", self.params)
+            # Check if format is supported by the module
+            if not self.getParam("format") in self.module.getOutputFormats():
+                self.params["format"]=self.module.getOutputFormats()[0]
 
 
     def _findProjectRoot(self, path):
@@ -55,29 +59,33 @@ class RenderChanFile():
         return os.path.join(self.projectPath, self.localPath)
 
     def getRenderPath(self):
-        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getOutputFormat() )
+        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getParam("format") )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
 
     def getProfileRenderPath(self):
         profile = self.project.getProfileName()
-        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getOutputFormat() )
+        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getParam("format") )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
 
-    def getOutputFormat(self):
-        # Check for project-defined format
-        format=self.project.getFormat()
-        # Check for .conf file for this module
-        if os.path.exists(self.getPath() + ".conf"):
-            # TODO: parse configuration
-            pass
-        # Allow module to override format
-        if not format in self.module.getOutputFormats():
-            format=self.module.getOutputFormats()[0]
-        return format
+    def getParams(self):
+        params=self.project.getParams().copy()
+
+        for key in self.params.keys():
+            params[key]=self.params[key]
+
+        return params
+
+    def getParam(self, param):
+        if self.params.has_key(param):
+            return self.params[param]
+        elif self.project.getParams().has_key(param):
+            return self.project.getParams()[param]
+        else:
+            return None
 
     def getDependencies(self):
         return self.dependencies

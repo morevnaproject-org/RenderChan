@@ -97,5 +97,5 @@ class RenderChanModule():
     def getPacketSize(self):
         return self.conf["packetSize"]
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
         pass

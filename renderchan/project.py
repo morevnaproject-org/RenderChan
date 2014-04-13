@@ -8,12 +8,8 @@ def loadRenderConfig(filename, targetDict):
     config = ConfigParser.SafeConfigParser()
     config.readfp(FakeSecHead(open(filename)))
 
-    for key in RenderChanProject.params.keys():
-        if config.has_option('default', key):
-            if type(RenderChanProject.params[key]) is int:
-                targetDict[key]=config.getint('default', key)
-            else:
-                targetDict[key]=config.get('default', key)
+    for key in config.options('default'):
+        targetDict[key]=config.get('default', key)
 
     return True
 
@@ -54,27 +50,27 @@ class RenderChanProjectManager():
         return self.list[path]
 
 class RenderChanProject():
-    params = {
-        'width':480,
-        'height':270,
-        'format':'png',
-        'audio_rate':48000,
-        'fps':24,
-        'blender_cycles_samples':None
-    }
     def __init__(self, confFile):
         if os.path.basename(confFile) == "remake.conf":
             self.version = 0
         else:
             self.version = 1
 
-        self.params=RenderChanProject.params.copy()
+        self.params = {
+            'width':'480',
+            'height':'270',
+            'format':'png',
+            'audio_rate':'48000',
+            'fps':'24',
+        }
         loadRenderConfig(confFile, self.params)
         pass
 
     def getFormat(self):
-        # FIXME: Get format from project configuration
         return self.params["format"]
+
+    def getParams(self):
+        return self.params
 
     def getProfileName(self):
         return "%sx%s" % (self.params["width"], self.params["height"])

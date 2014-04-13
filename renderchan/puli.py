@@ -106,9 +106,10 @@ class RenderChanRunner(CommandRunner):
                       arguments["width"],
                       arguments["height"],
                       arguments["format"],
+                      arguments["fps"],
                       arguments["audio_rate"],
-                      module.conf["compatVersion"],
-                      updateCompletion)
+                      updateCompletion,
+                      arguments)
 
         updateCompletion(1)
 

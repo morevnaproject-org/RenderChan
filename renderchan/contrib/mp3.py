@@ -30,7 +30,7 @@ class RenderChanMp3Module(RenderChanModule):
                 self.active=True
         return self.active
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)

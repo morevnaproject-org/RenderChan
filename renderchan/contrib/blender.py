@@ -63,7 +63,7 @@ class RenderChanBlenderModule(RenderChanModule):
 
         return info
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, audioRate, compatVersion, updateCompletion):
+    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)
@@ -86,7 +86,7 @@ class RenderChanBlenderModule(RenderChanModule):
         f.close()
 
         if format in RenderChanModule.imageExtensions:
-            if compatVersion<1:
+            if extraParams["projectVersion"]<1:
                 outputPath=os.path.join(outputPath, "file")+".####"
             else:
                 outputPath=os.path.join(outputPath, "file")+".#####"

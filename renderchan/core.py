@@ -43,21 +43,16 @@ class RenderChan():
         runner = "renderchan.puli.RenderChanRunner"
         decomposer = "renderchan.puli.RenderChanDecomposer"
 
-        arguments = {}
+        arguments = taskfile.getParams()
         arguments["filename"]=taskfile.getPath()
         arguments["output"]=taskfile.getRenderPath()
         arguments["profile_output"]=taskfile.getProfileRenderPath()
-        arguments["format"]=taskfile.getOutputFormat()
         arguments["module"]=taskfile.module.getName()
         arguments["packetSize"]=taskfile.module.getPacketSize()
         arguments["start"]=taskfile.getStartFrame()
         arguments["end"]=taskfile.getEndFrame()
         arguments["dependencies"]=taskfile.getDependencies()
-
-        # FIXME: Options below should be detected
-        arguments["width"]=480
-        arguments["height"]=270
-        arguments["audio_rate"]=48000
+        arguments["projectVersion"]=taskfile.project.version
 
         # Add rendering task to the graph
         taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
