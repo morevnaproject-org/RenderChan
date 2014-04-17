@@ -17,7 +17,7 @@ class RenderChanFlacModule(RenderChanModule):
         self.conf["packetSize"]=0
 
     def getInputFormats(self):
-        return ["mp3"]
+        return ["flac"]
 
     def getOutputFormats(self):
         return ["wav"]
