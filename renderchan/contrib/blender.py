@@ -21,8 +21,6 @@ class RenderChanBlenderModule(RenderChanModule):
     def analyze(self, filename):
         info={"dependencies":[]}
 
-        # TODO: get start and end frames
-
         script=os.path.join(os.path.dirname(__file__),"blender","analyze.py")
         dependencyPattern = re.compile("RenderChan dependency: (.*)$")
         startFramePattern = re.compile("RenderChan start: (.*)$")
