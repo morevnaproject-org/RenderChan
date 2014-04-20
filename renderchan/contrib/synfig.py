@@ -12,6 +12,7 @@ class RenderChanSynfigModule(RenderChanModule):
         RenderChanModule.__init__(self)
         self.conf['binary']="synfig"
         self.conf["packetSize"]=100
+        self.conf["maxNbCores"]=1
 
     def getInputFormats(self):
         return ["sif", "sifz"]
