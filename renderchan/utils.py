@@ -1,6 +1,6 @@
 __author__ = 'Konstantin Dmitriev'
 
-import os, shutil
+import os, shutil, errno
 
 def which(program):
 
@@ -27,7 +27,13 @@ def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
     else:
         ignored_names = set()
 
-    os.makedirs(dst)
+    try:
+        os.makedirs(dst)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(outputPath):
+            pass
+        else: raise
+
     errors = []
     for name in names:
         if name in ignored_names:

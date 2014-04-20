@@ -4,8 +4,9 @@ __author__ = 'Konstantin Dmitriev'
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
 from renderchan.module import RenderChanModuleManager
 from renderchan.utils import copytree
-import os
+import os, shutil
 import subprocess
+import random
 
 class RenderChanDecomposer(TaskDecomposer):
    def __init__(self, task):
@@ -155,7 +156,11 @@ class RenderChanPostRunner(CommandRunner):
             os.makedirs(os.path.dirname(output))
 
         if os.path.isdir(profile_output):
-            copytree(profile_output, output, hardlinks=True)
+            # Copy to temporary path to ensure quick switching
+            output_tmp= output+"%08d" % (random.randint(0,99999999))
+            copytree(profile_output, output_tmp, hardlinks=True)
+            shutil.rmtree(output)
+            os.rename(output_tmp, output)
         else:
             os.link(profile_output, output)
 
