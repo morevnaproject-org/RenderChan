@@ -59,6 +59,7 @@ class RenderChanModule():
         self.conf['binary']="foo"
         self.conf["packetSize"]=20
         self.conf["compatVersion"]=1
+        self.conf["maxNbCores"]=0
 
         self.active=False
 

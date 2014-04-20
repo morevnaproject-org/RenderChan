@@ -63,7 +63,8 @@ class RenderChan():
         # Add rendering task to the graph
         runner = "renderchan.puli.RenderChanPostRunner"
         decomposer = "renderchan.puli.RenderChanPostDecomposer"
-        taskPost=graph.addNewTask( name="Post: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
+        taskPost=graph.addNewTask( name="Post: "+name, runner=runner, arguments=arguments, decomposer=decomposer,
+                                   maxNbCores=taskfile.module.conf["maxNbCores"] )
 
         graph.addEdges( [
             (taskRender, taskPost)
