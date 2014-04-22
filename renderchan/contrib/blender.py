@@ -70,8 +70,9 @@ class RenderChanBlenderModule(RenderChanModule):
         updateCompletion(comp)
 
         totalFrames = endFrame - startFrame + 1
-        frameCompletionPattern = re.compile("Saved:(.*) Time: .* \(Saving: .*\)")
-        frameNumberPattern = re.compile("Fra:(.*) Mem:.*")
+        frameCompletionPattern = re.compile("Saved:(\d+) Time: .* \(Saving: .*\)")
+        frameCompletionPattern2 = re.compile("Append frame (\d+) Time: .* \(Saving: .*\)")
+        frameNumberPattern = re.compile("Fra:(\d+) Mem:.*")
 
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript="/tmp/renderchan"+os.path.basename(filename)+"-"+random_string+".py"
@@ -113,11 +114,16 @@ class RenderChanBlenderModule(RenderChanModule):
             fn = frameNumberPattern.search(line)
             if fn:
                 currentFrame = float(fn.group(1).strip())
-            else:
+            elif currentFrame is not None:
                 fcp = frameCompletionPattern.search(line)
-                if fcp and currentFrame is not None:
+                if fcp :
                     fc = float(currentFrame / 100) / float(totalFrames)
                     updateCompletion(comp + fc)
+                else:
+                    fcp = frameCompletionPattern2.search(line)
+                    if fcp:
+                        fc = float(currentFrame / 100) / float(totalFrames)
+                        updateCompletion(comp + fc)
             rc = out.poll()
 
         out.communicate()
