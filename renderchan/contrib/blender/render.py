@@ -8,13 +8,15 @@ HEIGHT = "height"
 CAMERA = "camera"
 AUDIOFILE = "audiofile"
 FORMAT = "format"
+CYCLES_SAMPLES = "cycles_samples"
 
 params = {UPDATE: False,
           WIDTH: 480,
           HEIGHT: 270,
           CAMERA: "",
           AUDIOFILE:"/tmp/renderchan-test.wav",
-          FORMAT: "png"}
+          FORMAT: "png",
+          CYCLES_SAMPLES: None}
 
 
 def main():
@@ -44,6 +46,10 @@ def main():
     rend.resolution_x = params[WIDTH]
     rend.resolution_y = params[HEIGHT]
     #rend.fps = $FPS
+
+    # Cycles
+    if params[CYCLES_SAMPLES]!=0:
+        sce.cycles.samples = params[CYCLES_SAMPLES]
 
     # OPENEXR stuff
     #rend.exr_zbuf = False

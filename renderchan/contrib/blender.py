@@ -6,11 +6,14 @@ import os, sys
 import re
 import random
 
+
 class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         self.conf['binary']="blender"
-        self.conf["packetSize"]=10
+        self.conf["packetSize"]=20
+        # Extra params
+        self.extra_params["blender_cycles_samples"]=0
 
     def getInputFormats(self):
         return ["blend"]
@@ -70,6 +73,9 @@ class RenderChanBlenderModule(RenderChanModule):
         frameCompletionPattern = re.compile("Saved:(.*) Time: .* \(Saving: .*\)")
         frameNumberPattern = re.compile("Fra:(.*) Mem:.*")
 
+        if not extraParams.has_key("blender_cycles_samples"):
+            extraParams["blender_cycles_samples"]=self.extra_params["blender_cycles_samples"]
+
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript="/tmp/renderchan"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
@@ -78,7 +84,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[HEIGHT]", str(height))\
            .replace("params[CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
-           .replace("params[FORMAT]", '"'+format+'"')
+           .replace("params[FORMAT]", '"'+format+'"')\
+           .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))
         f = open(renderscript,'w')
         f.write(script)
         f.close()

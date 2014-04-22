@@ -61,6 +61,10 @@ class RenderChanModule():
         self.conf["compatVersion"]=1
         self.conf["maxNbCores"]=0
 
+        # Extra params - additional rendering parameters. supplied through the project.conf and
+        # file-specific .conf files.
+        self.extra_params={}
+
         self.active=False
 
     def getName(self):
