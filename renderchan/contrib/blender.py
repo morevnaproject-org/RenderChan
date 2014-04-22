@@ -14,6 +14,7 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf["packetSize"]=20
         # Extra params
         self.extraParams["blender_cycles_samples"]=0
+        self.extraParams["blender_prerender_count"]=0
 
     def getInputFormats(self):
         return ["blend"]
@@ -83,7 +84,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
-           .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))
+           .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))\
+           .replace("params[PRERENDER_COUNT]",str(extraParams["blender_prerender_count"]))
         f = open(renderscript,'w')
         f.write(script)
         f.close()
