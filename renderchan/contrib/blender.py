@@ -11,7 +11,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         self.conf['binary']="blender"
-        self.conf["packetSize"]=20
+        self.conf["packetSize"]=40
         # Extra params
         self.extraParams["blender_cycles_samples"]=0
         self.extraParams["blender_prerender_count"]=0
