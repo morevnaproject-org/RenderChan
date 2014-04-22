@@ -27,12 +27,7 @@ def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
     else:
         ignored_names = set()
 
-    try:
-        os.makedirs(dst)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(outputPath):
-            pass
-        else: raise
+    mkdirs(dst)
 
     errors = []
     for name in names:
@@ -60,3 +55,12 @@ def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
 
     if errors:
         raise shutil.Error(errors)
+
+def mkdirs(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise

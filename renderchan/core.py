@@ -4,7 +4,9 @@ import sys
 from renderchan.file import RenderChanFile
 from renderchan.project import RenderChanProjectManager
 from renderchan.module import RenderChanModuleManager
+from renderchan.utils import mkdirs
 from puliclient import Task, Graph
+import os
 
 class RenderChan():
     def __init__(self):
@@ -55,6 +57,10 @@ class RenderChan():
         params["end"]=taskfile.getEndFrame()
         params["dependencies"]=taskfile.getDependencies()
         params["projectVersion"]=taskfile.project.version
+
+        # Make sure we have all directories created
+        mkdirs(os.path.dirname(params["profile_output"]))
+        mkdirs(os.path.dirname(params["output"]))
 
         # Add rendering task to the graph
         taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
