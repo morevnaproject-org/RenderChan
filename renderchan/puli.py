@@ -159,7 +159,11 @@ class RenderChanPostRunner(CommandRunner):
             # Copy to temporary path to ensure quick switching
             output_tmp= output+"%08d" % (random.randint(0,99999999))
             copytree(profile_output, output_tmp, hardlinks=True)
-            shutil.rmtree(output)
+            if os.path.exists(output):
+                if os.path.isdir(output):
+                    shutil.rmtree(output)
+                else:
+                    os.remove(output)
             os.rename(output_tmp, output)
         else:
             if os.path.exists(output):
