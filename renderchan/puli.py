@@ -76,7 +76,7 @@ class RenderChanDecomposer(TaskDecomposer):
        if args["format"]=="avi":
             # For avi files we need to give each packet different name
             args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+".avi"
-            # And also keep track of created files wihin a special list
+            # And also keep track of created files within a special list
             output_list = os.path.splitext(args["profile_output"])[0]+".txt"
             f = open(output_list,'a')
             f.write("file '%s'\n" % (args["output"]))
