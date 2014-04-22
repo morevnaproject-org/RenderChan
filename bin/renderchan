@@ -18,13 +18,17 @@ localedir = ""
 def _configure_python_path():
     global localedir
     dir = os.path.dirname(os.path.abspath(__file__))
-    root = None
     if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
         root = os.path.dirname(dir)
         localedir = os.path.join(root, 'locale')
+        if not root in sys.path:
+            sys.path.insert(0, root)
 
-    if not root in sys.path:
-        sys.path.insert(0, root)
+        pulidir = os.path.join(root, 'puli')
+        if os.path.exists(os.path.join(pulidir, 'puliclient', '__init__.py')) and not pulidir in sys.path:
+            sys.path.insert(0, pulidir)
+
+
 
     # Added for i18n
     try:
@@ -47,9 +51,6 @@ def _start_renderchan():
 
 
 if __name__ == "__main__":
-
-    # FIXME: Puli installation path
-    sys.path.insert(0, "/mnt/data/zelgadis/sources/OpenRenderManagement/Puli/src/")
 
     try:
         _configure_python_path()
