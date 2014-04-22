@@ -36,26 +36,22 @@ class RenderChan():
         # First we create a graph
         graph = Graph( 'RenderChan graph', poolName="default" )
         name = taskfile.getPath()
-        #runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
-        #arguments = {"args": "synfigstudio"}
-        #runner  = "puliclient.contrib.generic.GenericRunner"
-        #arguments = {"cmd": "blender"}
         runner = "renderchan.puli.RenderChanRunner"
         decomposer = "renderchan.puli.RenderChanDecomposer"
 
-        arguments = taskfile.getParams()
-        arguments["filename"]=taskfile.getPath()
-        arguments["output"]=taskfile.getRenderPath()
-        arguments["profile_output"]=taskfile.getProfileRenderPath()
-        arguments["module"]=taskfile.module.getName()
-        arguments["packetSize"]=taskfile.module.getPacketSize()
-        arguments["start"]=taskfile.getStartFrame()
-        arguments["end"]=taskfile.getEndFrame()
-        arguments["dependencies"]=taskfile.getDependencies()
-        arguments["projectVersion"]=taskfile.project.version
+        params = taskfile.getParams()
+        params["filename"]=taskfile.getPath()
+        params["output"]=taskfile.getRenderPath()
+        params["profile_output"]=taskfile.getProfileRenderPath()
+        params["module"]=taskfile.module.getName()
+        params["packetSize"]=taskfile.module.getPacketSize()
+        params["start"]=taskfile.getStartFrame()
+        params["end"]=taskfile.getEndFrame()
+        params["dependencies"]=taskfile.getDependencies()
+        params["projectVersion"]=taskfile.project.version
 
         # Add rendering task to the graph
-        taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=arguments, decomposer=decomposer )
+        taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
 
 
         # Now we will add a task which composes results and places it into valid destination
@@ -63,7 +59,7 @@ class RenderChan():
         # Add rendering task to the graph
         runner = "renderchan.puli.RenderChanPostRunner"
         decomposer = "renderchan.puli.RenderChanPostDecomposer"
-        taskPost=graph.addNewTask( name="Post: "+name, runner=runner, arguments=arguments, decomposer=decomposer,
+        taskPost=graph.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
                                    maxNbCores=taskfile.module.conf["maxNbCores"] )
 
         graph.addEdges( [
