@@ -9,7 +9,7 @@ from puliclient import Task, Graph
 class RenderChan():
     def __init__(self):
 
-        self.puliServer = "127.0.0.1"
+        self.puliServer = ""
         self.puliPort = 8004
 
         print "RenderChan initialized."
@@ -17,7 +17,13 @@ class RenderChan():
         self.modules = RenderChanModuleManager()
         self.modules.loadAll()
 
-    def submit(self, taskfile):
+    def setHost(self, host):
+        self.puliServer=host
+
+    def setPort(self, port):
+        self.puliPort=port
+
+    def submit(self, taskfile, useDispatcher=True):
 
         """
 
@@ -66,6 +72,19 @@ class RenderChan():
             (taskRender, taskPost)
             ] )
 
-        # Finally submit the graph to the server
-        graph.submit(self.puliServer, self.puliPort)
+        # Finally submit the graph to Puli
+
+        if self.puliServer=="":
+            server="127.0.0.1"
+            # TODO: If no server address given, then try to run our own dispatcher
+            # ...
+        else:
+            server=self.puliServer
+
+        if useDispatcher:
+            # Submit to dispatcher host
+            graph.submit(server, self.puliPort)
+        else:
+            # Local rendering
+            graph.execute()
 
