@@ -100,7 +100,7 @@ class RenderChanRunner(CommandRunner):
         moduleManager = RenderChanModuleManager()
 
         module = moduleManager.get(arguments["module"])
-        module.render(arguments["filename"],
+        module.execute(arguments["filename"],
                       arguments["output"],
                       int(arguments["start"]),
                       int(arguments["end"]),

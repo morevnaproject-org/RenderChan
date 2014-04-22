@@ -13,7 +13,7 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf['binary']="blender"
         self.conf["packetSize"]=20
         # Extra params
-        self.extra_params["blender_cycles_samples"]=0
+        self.extraParams["blender_cycles_samples"]=0
 
     def getInputFormats(self):
         return ["blend"]
@@ -72,9 +72,6 @@ class RenderChanBlenderModule(RenderChanModule):
         totalFrames = endFrame - startFrame + 1
         frameCompletionPattern = re.compile("Saved:(.*) Time: .* \(Saving: .*\)")
         frameNumberPattern = re.compile("Fra:(.*) Mem:.*")
-
-        if not extraParams.has_key("blender_cycles_samples"):
-            extraParams["blender_cycles_samples"]=self.extra_params["blender_cycles_samples"]
 
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript="/tmp/renderchan"+os.path.basename(filename)+"-"+random_string+".py"

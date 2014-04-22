@@ -63,7 +63,7 @@ class RenderChanModule():
 
         # Extra params - additional rendering parameters. supplied through the project.conf and
         # file-specific .conf files.
-        self.extra_params={}
+        self.extraParams={}
 
         self.active=False
 
@@ -101,6 +101,12 @@ class RenderChanModule():
 
     def getPacketSize(self):
         return self.conf["packetSize"]
+
+    def execute(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
+        for key in self.extraParams.keys():
+            if not extraParams.has_key(key):
+                extraParams[key]=self.extraParams[key]
+        self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
         pass
