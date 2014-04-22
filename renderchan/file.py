@@ -37,7 +37,9 @@ class RenderChanFile():
 
     def _findProjectRoot(self, path):
         while True:
-            if os.path.exists(os.path.join(path,"project.conf")) or os.path.exists(os.path.join(path,"remake.conf")):
+            if os.path.exists(os.path.join(path,"project.conf")) and not os.path.isdir(os.path.join(path,"project.conf")):
+                return path
+            if os.path.exists(os.path.join(path,"remake.conf")) and not os.path.isdir(os.path.join(path,"remake.conf")):
                 return path
             if os.path.dirname(path) == path:
                 return ""
