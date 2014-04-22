@@ -162,6 +162,14 @@ class RenderChanPostRunner(CommandRunner):
             shutil.rmtree(output)
             os.rename(output_tmp, output)
         else:
-            os.link(profile_output, output)
+            if os.path.exists(output):
+                if os.path.isdir(output):
+                    shutil.rmtree(output)
+                else:
+                    os.remove(output)
+            try:
+                os.link(profile_output, output)
+            except:
+                print "Error: file already exists"
 
         updateCompletion(1)
