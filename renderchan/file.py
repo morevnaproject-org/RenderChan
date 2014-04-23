@@ -21,6 +21,9 @@ class RenderChanFile():
         self.config={}
 
         if self.module:
+
+            self.project.registerModule(self.module)
+
             info=self.module.analyze(self.getPath())
             if "dependencies" in info.keys():
                 self.dependencies=list(set(info["dependencies"]))
