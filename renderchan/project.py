@@ -56,21 +56,26 @@ class RenderChanProject():
         else:
             self.version = 1
 
-        self.params = {
+        self.defaults = {
             'width':'480',
             'height':'270',
             'format':'png',
             'audio_rate':'48000',
             'fps':'24',
         }
-        loadRenderConfig(confFile, self.params)
+
+        self.config={}
+        loadRenderConfig(confFile, self.config)
         pass
 
-    def getFormat(self):
-        return self.params["format"]
-
-    def getParams(self):
-        return self.params
+    def getConfig(self, key):
+        if key in self.config.keys():
+            return self.config[key]
+        elif key in self.defaults.keys():
+            return self.defaults[key]
+        else:
+            print "Warning: No such key (%s)" % (key)
+            return ""
 
     def getProfileName(self):
-        return "%sx%s" % (self.params["width"], self.params["height"])
+        return "%sx%s" % (self.config["width"], self.config["height"])

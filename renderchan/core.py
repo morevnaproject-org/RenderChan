@@ -48,15 +48,6 @@ class RenderChan():
         decomposer = "renderchan.puli.RenderChanDecomposer"
 
         params = taskfile.getParams()
-        params["filename"]=taskfile.getPath()
-        params["output"]=taskfile.getRenderPath()
-        params["profile_output"]=taskfile.getProfileRenderPath()
-        params["module"]=taskfile.module.getName()
-        params["packetSize"]=taskfile.module.getPacketSize()
-        params["start"]=taskfile.getStartFrame()
-        params["end"]=taskfile.getEndFrame()
-        params["dependencies"]=taskfile.getDependencies()
-        params["projectVersion"]=taskfile.project.version
 
         # Make sure we have all directories created
         mkdirs(os.path.dirname(params["profile_output"]))

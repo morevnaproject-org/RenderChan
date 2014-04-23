@@ -4,6 +4,7 @@ import os.path
 from renderchan.project import loadRenderConfig
 
 class RenderChanFile():
+    globalParams=["width","height","fps",]
     def __init__(self, path, modules, projects):
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
@@ -16,7 +17,8 @@ class RenderChanFile():
         self.dependencies=[]
         self.startFrame=-1
         self.endFrame=-1
-        self.params={}
+
+        self.config={}
 
         if self.module:
             info=self.module.analyze(self.getPath())
@@ -29,10 +31,7 @@ class RenderChanFile():
 
             # Rendering params
             if os.path.exists(self.getPath()+".conf"):
-                loadRenderConfig(self.getPath()+".conf", self.params)
-            # Check if format is supported by the module
-            if not self.getParam("format") in self.module.getOutputFormats():
-                self.params["format"]=self.module.getOutputFormats()[0]
+                loadRenderConfig(self.getPath()+".conf", self.config)
 
 
     def _findProjectRoot(self, path):
@@ -61,33 +60,79 @@ class RenderChanFile():
         return os.path.join(self.projectPath, self.localPath)
 
     def getRenderPath(self):
-        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getParam("format") )
+        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getConfig("format") )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
 
     def getProfileRenderPath(self):
         profile = self.project.getProfileName()
-        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getParam("format") )
+        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getConfig("format") )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
 
-    def getParams(self):
-        params=self.project.getParams().copy()
+    def getPacketSize(self):
 
-        for key in self.params.keys():
-            params[key]=self.params[key]
+        size=0
+
+        # First, let conf files override packet size
+        if self.config.has_key(self.module.getName()+"_packet_size"):
+            size=self.config[self.module.getName()+"_packet_size"]
+        elif self.config.has_key("packet_size"):
+            size=self.config["packet_size"]
+        elif self.project.config.has_key(self.module.getName()+"_packet_size"):
+            size=self.project.config[self.module.getName()+"_packet_size"]
+        elif self.project.config.has_key("packet_size"):
+            size=self.project.config["packet_size"]
+
+        if size!=0:
+            return size
+        else:
+            return self.module.getPacketSize()
+
+    def getFormat(self):
+        # Check if format is supported by the module
+        format=self.getConfig("format")
+        if not format in self.module.getOutputFormats():
+            format=self.module.getOutputFormats()[0]
+        return format
+
+    def getParams(self):
+        params={}
+
+        # Basic project values
+        for key in self.project.defaults.keys():
+            params[key]=self.getConfig(key)
+
+        # Module-specific configuration
+        for key in self.module.extraParams.keys():
+            if key in self.config.keys():
+                params[key]=self.config[key]
+            elif key in self.project.config.keys():
+                params[key]=self.project.config[key]
+            else:
+                params[key]=self.module.extraParams[key]
+
+        # File-specific configuration
+        params["filename"]=self.getPath()
+        params["output"]=self.getRenderPath()
+        params["profile_output"]=self.getProfileRenderPath()
+        params["module"]=self.module.getName()
+        params["packetSize"]=self.getPacketSize()
+        params["start"]=self.getStartFrame()
+        params["end"]=self.getEndFrame()
+        params["dependencies"]=self.getDependencies()
+        params["projectVersion"]=self.project.version
+        params["format"]=self.getFormat()
 
         return params
 
-    def getParam(self, param):
-        if self.params.has_key(param):
-            return self.params[param]
-        elif self.project.getParams().has_key(param):
-            return self.project.getParams()[param]
+    def getConfig(self, key):
+        if self.config.has_key(key):
+            return self.config[key]
         else:
-            return None
+            return self.project.getConfig(key)
 
     def getDependencies(self):
         return self.dependencies
