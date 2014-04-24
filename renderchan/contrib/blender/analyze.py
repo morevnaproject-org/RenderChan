@@ -20,7 +20,7 @@ import re
 
 # blender 2.56 & 2.57 crashes when using "bpy.utils.blend_paths(1)",
 # so we forced to fallback to relative paths:
-paths = bpy.utils.blend_paths(1)
+paths = bpy.utils.blend_paths(absolute=True, packed=True, local=True)
 outputlist = []
 projectroots = []
 
