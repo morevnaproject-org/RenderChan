@@ -3,7 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 from importlib import import_module
 from renderchan.utils import which
 from renderchan.utils import touch
-import os
+import os, shutil
 import inspect
 
 class RenderChanModuleManager():
@@ -109,6 +109,12 @@ class RenderChanModule():
         #for key in self.extraParams.keys():
         #    if not extraParams.has_key(key):
         #        extraParams[key]=self.extraParams[key]
+
+        # TODO: Check if we really need to re-render
+        # ...
+
+        if os.path.isdir(outputPath):
+            shutil.rmtree(outputPath)
 
         # TODO: Create lock here
 

@@ -121,7 +121,8 @@ class RenderChanProject():
                 config = ConfigParser.SafeConfigParser()
                 config.add_section('main')
                 for key in newconfig.keys():
-                    config.set('main', key, newconfig[key])
+                    if newconfig[key]!=None:
+                        config.set('main', key, newconfig[key])
                 with open(filename, 'wb') as configfile:
                     config.write(configfile)
 
