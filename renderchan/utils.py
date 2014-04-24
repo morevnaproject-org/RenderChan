@@ -64,3 +64,10 @@ def mkdirs(path):
             pass
         else:
             raise
+
+def touch(path, time=None):
+    basedir = os.path.dirname(path)
+    if not os.path.exists(basedir):
+        os.makedirs(basedir)
+    with open(path, 'a'):
+        os.utime(path, (time, time))

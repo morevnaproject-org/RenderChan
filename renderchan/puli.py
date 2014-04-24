@@ -4,6 +4,7 @@ __author__ = 'Konstantin Dmitriev'
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
 from renderchan.module import RenderChanModuleManager
 from renderchan.utils import copytree
+from renderchan.utils import touch
 import os, shutil
 import subprocess
 import random
@@ -175,5 +176,7 @@ class RenderChanPostRunner(CommandRunner):
                 os.link(profile_output, output)
             except:
                 print "Error: file already exists"
+
+        touch(output+".done",arguments["maxTime"])
 
         updateCompletion(1)

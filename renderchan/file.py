@@ -8,6 +8,7 @@ class RenderChanFile():
     def __init__(self, path, modules, projects):
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
+        self.project=None
         if self.projectPath!='':
             self.project=projects.get(self.projectPath)
         else:
@@ -25,7 +26,7 @@ class RenderChanFile():
         # File modification time
         self.mtime=None
 
-        self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
+        self.module = modules.getByExtension(os.path.splitext(self.localPath)[1][1:])
         self.dependencies=[]
         self.startFrame=-1
         self.endFrame=-1
@@ -34,7 +35,8 @@ class RenderChanFile():
 
         if self.module:
 
-            self.project.registerModule(self.module)
+            if self.project:
+                self.project.registerModule(self.module)
 
             info=self.module.analyze(self.getPath())
             if "dependencies" in info.keys():
@@ -62,8 +64,19 @@ class RenderChanFile():
     def _findLocalPath(self, path):
         if self.projectPath!="" and path.startswith(self.projectPath):
             localpath=path[len(self.projectPath):]
+
+            # cleanup
             while localpath.startswith('/'):
                 localpath=localpath[1:]
+
+            if localpath.startswith("render"):
+                localpath=localpath[6:]
+                localpath=os.path.splitext(localpath)[0]
+
+            # cleanup
+            while localpath.startswith('/'):
+                localpath=localpath[1:]
+
             return localpath
         else:
             return path
@@ -81,21 +94,24 @@ class RenderChanFile():
         return os.path.join(self.projectPath, self.localPath)
 
     def getRenderPath(self):
-        path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getConfig("format") )
-        #if self.getOutputFormat() in RenderChanFile.imageExtensions:
-        #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
-        return path
+        if self.project:
+            path=os.path.join(self.projectPath, "render", self.localPath+"."+self.getFormat() )
+            #if self.getOutputFormat() in RenderChanFile.imageExtensions:
+            #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
+            return path
+        else:
+            return None
 
     def getProfileRenderPath(self):
         profile = self.project.getProfileName()
-        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getConfig("format") )
+        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
 
     def getPacketSize(self):
 
-        size=0
+        size=-1
 
         # First, let conf files override packet size
         if self.config.has_key(self.module.getName()+"_packet_size"):
@@ -107,7 +123,7 @@ class RenderChanFile():
         elif self.project.config.has_key("packet_size"):
             size=self.project.config["packet_size"]
 
-        if size!=0:
+        if size!=-1:
             return size
         else:
             return self.module.getPacketSize()
@@ -152,8 +168,10 @@ class RenderChanFile():
     def getConfig(self, key):
         if self.config.has_key(key):
             return self.config[key]
-        else:
+        elif self.project:
             return self.project.getConfig(key)
+        else:
+            return None
 
     def getDependencies(self):
         return self.dependencies

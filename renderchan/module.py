@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 from importlib import import_module
 from renderchan.utils import which
+from renderchan.utils import touch
 import os
 import inspect
 
@@ -27,8 +28,10 @@ class RenderChanModuleManager():
             motherClassName = "%s.%s" % (motherClass.__module__, motherClass.__name__)
             raise ImportError("%s (loaded as '%s') is not a valid %s." % (moduleClass, name, motherClassName))
 
-        self.list[name] = moduleClass()
-        self.list[name].checkRequirements()
+        module = moduleClass()
+        if not module.checkRequirements():
+            print "Warning: Unable load module - %s." % (name)
+        self.list[name]=module
 
     def loadAll(self):
         dir = os.path.dirname(os.path.abspath(__file__))
@@ -103,10 +106,16 @@ class RenderChanModule():
         return self.conf["packetSize"]
 
     def execute(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
-        for key in self.extraParams.keys():
-            if not extraParams.has_key(key):
-                extraParams[key]=self.extraParams[key]
+        #for key in self.extraParams.keys():
+        #    if not extraParams.has_key(key):
+        #        extraParams[key]=self.extraParams[key]
+
+        # TODO: Create lock here
+
         self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
+        touch(outputPath+".done",extraParams["maxTime"])
+
+        # TODO: Release lock here
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
         pass

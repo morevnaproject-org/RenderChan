@@ -69,18 +69,7 @@ class RenderChan():
             compareTime = os.path.getmtime(taskfile.getRenderPath()+".done")
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
-        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
-
-        # maxTime is the maximum of modification times for all direct dependencies.
-        # It allows to compare with already rendered pieces and continue rendering
-        # if they are rendered AFTER the maxTime.
-        #
-        # But, if we have at least one INDIRECT dependency (i.e. render task) and it is submitted
-        # for rendering, then we can't compare with maxTime (because dependency will be rendered
-        # and thus rendering should take place no matter what).
-        # Let's set it to current time then:
-        if len(tasklist)!=0:
-            maxTime=time.time()
+        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, [])
 
         if isDirtyValue:
             isDirty = True
@@ -126,19 +115,26 @@ class RenderChan():
         return isDirty
 
 
-    def parseDirectDependency(self, taskfile, compareTime, maxTime=None, tasklist=[]):
+    def parseDirectDependency(self, taskfile, compareTime, tasklist):
         """
 
         :type taskfile: RenderChanFile
         """
 
         self.loadedFiles[taskfile.getPath()]=taskfile
-        self.loadedFiles[taskfile.getRenderPath()]=taskfile
+        if taskfile.project!=None:
+            self.loadedFiles[taskfile.getRenderPath()]=taskfile
 
         deps = taskfile.getDependencies()
 
-        if maxTime is None or taskfile.getTime()>maxTime:
-            maxTime = taskfile.getTime()
+        # maxTime is the maximum of modification times for all direct dependencies.
+        # It allows to compare with already rendered pieces and continue rendering
+        # if they are rendered AFTER the maxTime.
+        #
+        # But, if we have at least one INDIRECT dependency (i.e. render task) and it is submitted
+        # for rendering, then we can't compare with maxTime (because dependency will be rendered
+        # and thus rendering should take place no matter what).
+        maxTime = taskfile.getTime()
 
         taskfile.pending=True  # we need this to avoid circular dependencies
 
@@ -157,36 +153,44 @@ class RenderChan():
             if path != dependency.getPath():
                 # We have a new task to render
                 if dependency.isDirty==None:
-                    isDirty = self.submit(dependency) or isDirty
+                    if dependency.module!=None:
+                        dep_isDirty = self.parseRenderDependency(dependency)
+                    else:
+                        raise Exception("No module to render file")
                 else:
                     # The dependency was already submitted to graph
-                    isDirty = dependency.isDirty
+                    dep_isDirty = dependency.isDirty
 
-                # If no rendering requested, we still have to check if rendering result
-                # is newer than compareTime
-                if not isDirty:
-                    #if os.path.exists(taskfile.getRenderPath()+".done"):  -- file is obviously exists, because isDirty==0
-                        timestamp=os.path.getmtime(taskfile.getRenderPath()+".done")
-                        if compareTime is None:
-                            isDirty = True
-                        elif timestamp > compareTime:
-                            isDirty = True
-                        if timestamp>maxTime:
-                            maxTime=timestamp
-
-                if isDirty:
+                if dep_isDirty:
                     # Let's return submitted task into tasklist
                     if not dependency.taskPost in tasklist:
                         tasklist.append(dependency.taskPost)
+                    # Increase maxTime, because re-rendering of dependency will take place
+                    maxTime=time.time()
+                    isDirty = True
+                else:
+                    # If no rendering requested, we still have to check if rendering result
+                    # is newer than compareTime
+
+                    #if os.path.exists(dependency.getRenderPath()+".done"):  -- file is obviously exists, because isDirty==0
+                    timestamp=os.path.getmtime(dependency.getRenderPath()+".done")
+
+                    if compareTime is None:
+                        isDirty = True
+                    elif timestamp > compareTime:
+                        isDirty = True
+                    if timestamp>maxTime:
+                        maxTime=timestamp
 
             else:
                 # No, this is an ordinary dependency
-                (isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, maxTime, tasklist) or isDirty
-                if dep_maxTime>maxTime:
-                    maxTime=dep_maxTime
-                for task in dep_tasklist:
-                    if not task in tasklist:
-                        tasklist.append(task)
+                if os.path.exists(dependency.getPath()):
+                    (isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime,  tasklist) or isDirty
+                    if dep_maxTime>maxTime:
+                        maxTime=dep_maxTime
+                    for task in dep_tasklist:
+                        if not task in tasklist:
+                            tasklist.append(task)
 
         if not isDirty:
             timestamp = taskfile.getTime()
@@ -197,4 +201,4 @@ class RenderChan():
 
         taskfile.pending=False
 
-        return (isDirty, tasklist, maxTime)
+        return (isDirty, list(tasklist), maxTime)
