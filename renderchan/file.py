@@ -115,13 +115,13 @@ class RenderChanFile():
 
         # First, let conf files override packet size
         if self.config.has_key(self.module.getName()+"_packet_size"):
-            size=self.config[self.module.getName()+"_packet_size"]
+            size=int(self.config[self.module.getName()+"_packet_size"])
         elif self.config.has_key("packet_size"):
-            size=self.config["packet_size"]
+            size=int(self.config["packet_size"])
         elif self.project.config.has_key(self.module.getName()+"_packet_size"):
-            size=self.project.config[self.module.getName()+"_packet_size"]
+            size=int(self.project.config[self.module.getName()+"_packet_size"])
         elif self.project.config.has_key("packet_size"):
-            size=self.project.config["packet_size"]
+            size=int(self.project.config["packet_size"])
 
         if size!=-1:
             return size
