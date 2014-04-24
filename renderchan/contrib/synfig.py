@@ -14,6 +14,9 @@ class RenderChanSynfigModule(RenderChanModule):
         self.conf["packetSize"]=100
         self.conf["maxNbCores"]=1
 
+        # Extra params
+        self.extraParams["single"]=None
+
     def getInputFormats(self):
         return ["sif", "sifz"]
 
@@ -129,7 +132,7 @@ class RenderChanSynfigModule(RenderChanModule):
         #/path/to/file.sifz.png: Line 10 of 100 -- 1m 14s
         frameNumberPattern = re.compile(": Line (.*) of \d+ -- ")
 
-        if format in RenderChanModule.imageExtensions:
+        if format in RenderChanModule.imageExtensions and extraParams["single"] is None:
             try:
                 os.makedirs(outputPath)
             except OSError as exc: # Python >2.5
@@ -139,9 +142,19 @@ class RenderChanSynfigModule(RenderChanModule):
             outputPath=os.path.join(outputPath, "file."+format)
 
 
-        commandline=[self.conf['binary'], "-t", format, "-o",outputPath, "-w", width, "-h", height,
-                     "--start-time",str(startFrame)+"f", "--end-time",str(endFrame)+"f",
-                     filename]
+        commandline=[self.conf['binary'], "-t", format, "-o",outputPath, "-w", width, "-h", height]
+
+        if extraParams["single"] is None:
+            commandline.append("--start-time")
+            commandline.append(str(startFrame)+"f")
+            commandline.append("--end-time")
+            commandline.append(str(endFrame)+"f")
+        else:
+            commandline.append("--time")
+            commandline.append(extraParams["single"]+"f")
+
+        commandline.append(filename)
+
         #print " ".join(commandline)
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         rc = None
