@@ -26,9 +26,11 @@ class RenderChanFlacModule(RenderChanModule):
         for key in ['binary','sox_binary']:
             if which(self.conf[key]) == None:
                 self.active=False
-            else:
-                self.active=True
-        return self.active
+                print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf[key])
+                print "    Please install flac package."
+                return False
+        self.active=True
+        return True
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
 
