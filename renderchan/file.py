@@ -38,17 +38,20 @@ class RenderChanFile():
             if self.project:
                 self.project.registerModule(self.module)
 
-            info=self.module.analyze(self.getPath())
-            if "dependencies" in info.keys():
-                self.dependencies=list(set(info["dependencies"]))
-            if "startFrame" in info.keys():
-                self.startFrame=int(info["startFrame"])
-            if "endFrame" in info.keys():
-                self.endFrame=int(info["endFrame"])
+            if os.path.exists(self.getPath()):
+                info=self.module.analyze(self.getPath())
+                if "dependencies" in info.keys():
+                    self.dependencies=list(set(info["dependencies"]))
+                if "startFrame" in info.keys():
+                    self.startFrame=int(info["startFrame"])
+                if "endFrame" in info.keys():
+                    self.endFrame=int(info["endFrame"])
 
-            # Rendering params
-            if os.path.exists(self.getPath()+".conf"):
-                loadRenderConfig(self.getPath()+".conf", self.config)
+                # Rendering params
+                if os.path.exists(self.getPath()+".conf"):
+                    loadRenderConfig(self.getPath()+".conf", self.config)
+            else:
+                print "Warning: No source file found for %s" % path
 
 
     def _findProjectRoot(self, path):

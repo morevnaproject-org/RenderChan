@@ -124,7 +124,7 @@ class RenderChan():
         """
 
         self.loadedFiles[taskfile.getPath()]=taskfile
-        if taskfile.project!=None:
+        if taskfile.project!=None and taskfile.module!=None:
             self.loadedFiles[taskfile.getRenderPath()]=taskfile
 
         deps = taskfile.getDependencies()
@@ -149,7 +149,11 @@ class RenderChan():
                     print "Warning: Circular dependency detected for %s. Skipping." % (path)
                     break
             else:
+                print ". loading file: %s" % path
                 dependency = RenderChanFile(path, self.modules, self.projects)
+                if not os.path.exists(dependency.getPath()):
+                    print "   Skipping file %s..." % path
+                    continue
 
             # Check if this is a rendering dependency
             if path != dependency.getPath():
