@@ -13,6 +13,18 @@ class RenderChanFile():
         else:
             print "Warning: File %s doesn't belong to any project." % (path)
 
+        # Associated tasks
+        self.taskRender=None
+        self.taskPost=None
+
+        # Shows if we already had attempt to submit this file to the graph and stores the result
+        self.isDirty=None
+        # Shows if this file is waiting for dirty status resolution
+        self.pending=False
+
+        # File modification time
+        self.mtime=None
+
         self.module = modules.getByExtension(os.path.splitext(path)[1][1:])
         self.dependencies=[]
         self.startFrame=-1
@@ -55,6 +67,12 @@ class RenderChanFile():
             return localpath
         else:
             return path
+
+    def getTime(self):
+        if self.mtime is None:
+            self.mtime=os.path.getmtime(self.getPath())
+        return self.mtime
+
 
     def getProjectRoot(self):
         return self.projectPath
@@ -125,7 +143,7 @@ class RenderChanFile():
         params["packetSize"]=self.getPacketSize()
         params["start"]=self.getStartFrame()
         params["end"]=self.getEndFrame()
-        params["dependencies"]=self.getDependencies()
+        #params["dependencies"]=self.getDependencies()
         params["projectVersion"]=self.project.version
         params["format"]=self.getFormat()
 

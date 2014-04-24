@@ -6,7 +6,7 @@ from renderchan.project import RenderChanProjectManager
 from renderchan.module import RenderChanModuleManager
 from renderchan.utils import mkdirs
 from puliclient import Task, Graph
-import os
+import os, time
 
 class RenderChan():
     def __init__(self):
@@ -18,6 +18,10 @@ class RenderChan():
         self.projects = RenderChanProjectManager()
         self.modules = RenderChanModuleManager()
         self.modules.loadAll()
+
+        self.loadedFiles = {}
+
+        self.graph = Graph( 'RenderChan graph', poolName="default" )
 
     def setHost(self, host):
         self.puliServer=host
@@ -31,43 +35,8 @@ class RenderChan():
 
         :type taskfile: RenderChanFile
         """
-        deps = taskfile.getDependencies()
 
-        for path in deps:
-            dependency = RenderChanFile(path, self.modules, self.projects)
-            if path != dependency.getPath():
-                # We have a new task to render
-                self.submit(dependency)
-
-        # Puli part here
-
-        # First we create a graph
-        graph = Graph( 'RenderChan graph', poolName="default" )
-        name = taskfile.getPath()
-        runner = "renderchan.puli.RenderChanRunner"
-        decomposer = "renderchan.puli.RenderChanDecomposer"
-
-        params = taskfile.getParams()
-
-        # Make sure we have all directories created
-        mkdirs(os.path.dirname(params["profile_output"]))
-        mkdirs(os.path.dirname(params["output"]))
-
-        # Add rendering task to the graph
-        taskRender=graph.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
-
-
-        # Now we will add a task which composes results and places it into valid destination
-
-        # Add rendering task to the graph
-        runner = "renderchan.puli.RenderChanPostRunner"
-        decomposer = "renderchan.puli.RenderChanPostDecomposer"
-        taskPost=graph.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
-                                   maxNbCores=taskfile.module.conf["maxNbCores"] )
-
-        graph.addEdges( [
-            (taskRender, taskPost)
-            ] )
+        self.parseRenderDependency(taskfile)
 
         # Finally submit the graph to Puli
 
@@ -80,8 +49,152 @@ class RenderChan():
 
         if useDispatcher:
             # Submit to dispatcher host
-            graph.submit(server, self.puliPort)
+            self.graph.submit(server, self.puliPort)
         else:
             # Local rendering
-            graph.execute()
+            self.graph.execute()
 
+    def parseRenderDependency(self, taskfile):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+        isDirty = False
+        if not os.path.exists(taskfile.getRenderPath()+".done"):
+            # If no rendering exists, then obviously rendering is required
+            isDirty = True
+            compareTime = None
+        else:
+            # Otherwise we have to check against the time of the last rendering
+            compareTime = os.path.getmtime(taskfile.getRenderPath()+".done")
+
+        # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
+        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
+
+        # maxTime is the maximum of modification times for all direct dependencies.
+        # It allows to compare with already rendered pieces and continue rendering
+        # if they are rendered AFTER the maxTime.
+        #
+        # But, if we have at least one INDIRECT dependency (i.e. render task) and it is submitted
+        # for rendering, then we can't compare with maxTime (because dependency will be rendered
+        # and thus rendering should take place no matter what).
+        # Let's set it to current time then:
+        if len(tasklist)!=0:
+            maxTime=time.time()
+
+        if isDirtyValue:
+            isDirty = True
+
+        # If rendering is requested
+        if isDirty:
+
+            # Puli part here
+
+            name = taskfile.getPath()
+            runner = "renderchan.puli.RenderChanRunner"
+            decomposer = "renderchan.puli.RenderChanDecomposer"
+
+            params = taskfile.getParams()
+            # Max time is a
+            params["maxTime"]=maxTime
+
+            # Make sure we have all directories created
+            mkdirs(os.path.dirname(params["profile_output"]))
+            mkdirs(os.path.dirname(params["output"]))
+
+            # Add rendering task to the graph
+            taskfile.taskRender=self.graph.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
+
+
+            # Now we will add a task which composes results and places it into valid destination
+
+            # Add rendering task to the graph
+            runner = "renderchan.puli.RenderChanPostRunner"
+            decomposer = "renderchan.puli.RenderChanPostDecomposer"
+            taskfile.taskPost=self.graph.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
+                                       maxNbCores=taskfile.module.conf["maxNbCores"] )
+
+            self.graph.addEdges( [(taskfile.taskRender, taskfile.taskPost)] )
+
+            # Add edges for dependent tasks
+            for task in tasklist:
+                self.graph.addEdges( [(task, taskfile.taskRender)] )
+
+        # Mark this file as already parsed and thus its "dirty" value is known
+        taskfile.isDirty=isDirty
+
+        return isDirty
+
+
+    def parseDirectDependency(self, taskfile, compareTime, maxTime=None, tasklist=[]):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+
+        self.loadedFiles[taskfile.getPath()]=taskfile
+        self.loadedFiles[taskfile.getRenderPath()]=taskfile
+
+        deps = taskfile.getDependencies()
+
+        if maxTime is None or taskfile.getTime()>maxTime:
+            maxTime = taskfile.getTime()
+
+        taskfile.pending=True  # we need this to avoid circular dependencies
+
+        isDirty=False
+        for path in deps:
+            if path in self.loadedFiles.keys():
+                dependency = self.loadedFiles[path]
+                if dependency.pending:
+                    # Avoid circular dependencies
+                    print "Warning: Circular dependency detected for %s. Skipping." % (path)
+                    break
+            else:
+                dependency = RenderChanFile(path, self.modules, self.projects)
+
+            # Check if this is a rendering dependency
+            if path != dependency.getPath():
+                # We have a new task to render
+                if dependency.isDirty==None:
+                    isDirty = self.submit(dependency) or isDirty
+                else:
+                    # The dependency was already submitted to graph
+                    isDirty = dependency.isDirty
+
+                # If no rendering requested, we still have to check if rendering result
+                # is newer than compareTime
+                if not isDirty:
+                    #if os.path.exists(taskfile.getRenderPath()+".done"):  -- file is obviously exists, because isDirty==0
+                        timestamp=os.path.getmtime(taskfile.getRenderPath()+".done")
+                        if compareTime is None:
+                            isDirty = True
+                        elif timestamp > compareTime:
+                            isDirty = True
+                        if timestamp>maxTime:
+                            maxTime=timestamp
+
+                if isDirty:
+                    # Let's return submitted task into tasklist
+                    if not dependency.taskPost in tasklist:
+                        tasklist.append(dependency.taskPost)
+
+            else:
+                # No, this is an ordinary dependency
+                (isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, maxTime, tasklist) or isDirty
+                if dep_maxTime>maxTime:
+                    maxTime=dep_maxTime
+                for task in dep_tasklist:
+                    if not task in tasklist:
+                        tasklist.append(task)
+
+        if not isDirty:
+            timestamp = taskfile.getTime()
+            if compareTime is None:
+                isDirty = True
+            elif timestamp > compareTime:
+                isDirty = True
+
+        taskfile.pending=False
+
+        return (isDirty, tasklist, maxTime)
