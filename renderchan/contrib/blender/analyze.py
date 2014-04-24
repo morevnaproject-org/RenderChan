@@ -20,7 +20,7 @@ import re
 
 # blender 2.56 & 2.57 crashes when using "bpy.utils.blend_paths(1)",
 # so we forced to fallback to relative paths:
-paths = bpy.utils.blend_paths(0)
+paths = bpy.utils.blend_paths(1)
 outputlist = []
 projectroots = []
 
@@ -70,7 +70,7 @@ for f in paths:
             # or
             # f2 = /projectroot/path.ext
 
-            if not os.path.exists(f2):
+            if (not os.path.exists(f2)) and (os.path.exists(os.path.dirname(f2))) and (not os.path.isdir(os.path.dirname(f2))):
                 # f2 = /projectroot/path.ext.png/file000x
 
                 f = os.path.dirname(f)
