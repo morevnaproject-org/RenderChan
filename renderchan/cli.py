@@ -19,6 +19,7 @@ def process_args():
     parser.add_option("--height", dest="height",
             action="store",
             help=_("Output height."))
+
     parser.add_option("--use-dispatcher", dest="useDispatcher",
             action="store_true",
             default=False,
@@ -29,6 +30,11 @@ def process_args():
     parser.add_option("--dispatcher-port", dest="dispatcherPort",
             action="store",
             help=_("Set remote dispatcher port."))
+
+    parser.add_option("--deps", dest="dependenciesOnly",
+            action="store_true",
+            default=False,
+            help=_("Render dependencies, but not file itself."))
     options, args = parser.parse_args()
 
     return options, args
@@ -46,4 +52,4 @@ def main(argv):
             renderchan.setPort(options.dispatcherPort)
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    renderchan.submit(taskfile, options.useDispatcher)
+    renderchan.submit(taskfile, options.useDispatcher, options.dependenciesOnly)

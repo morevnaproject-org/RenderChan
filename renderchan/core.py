@@ -29,14 +29,16 @@ class RenderChan():
     def setPort(self, port):
         self.puliPort=port
 
-    def submit(self, taskfile, useDispatcher=True):
+    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False):
 
         """
 
         :type taskfile: RenderChanFile
         """
-
-        self.parseRenderDependency(taskfile)
+        if not dependenciesOnly:
+            self.parseRenderDependency(taskfile)
+        else:
+            self.parseDirectDependency(taskfile, None, [])
 
         # Finally submit the graph to Puli
 
