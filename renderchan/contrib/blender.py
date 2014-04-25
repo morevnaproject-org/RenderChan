@@ -91,7 +91,7 @@ class RenderChanBlenderModule(RenderChanModule):
         f.write(script)
         f.close()
 
-        if format in RenderChanModule.imageExtensions:
+        if format in RenderChanModule.imageExtensions and extraParams["single"] is None:
             if extraParams["projectVersion"]<1:
                 outputPath=os.path.join(outputPath, "file")+".####"
             else:
