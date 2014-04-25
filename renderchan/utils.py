@@ -71,7 +71,10 @@ def touch(path, time=None):
     basedir = os.path.dirname(path)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    with open(path, 'a'):
+    if not os.path.exists(path):
+        with open(path, 'a'):
+            os.utime(path, (time, time))
+    else:
         os.utime(path, (time, time))
 
 def float_trunc(f, n):
