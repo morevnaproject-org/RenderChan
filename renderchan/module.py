@@ -115,7 +115,7 @@ class RenderChanModule():
 
         # Check if we really need to re-render
         uptodate=False
-        if os.path.exists(outputPath+".done"):
+        if os.path.exists(outputPath+".done") and os.path.exists(outputPath):
             if float_trunc(os.path.getmtime(outputPath+".done"),1) >= extraParams["maxTime"]:
                 # Hurray! No need to re-render that piece.
                 uptodate=True
