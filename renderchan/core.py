@@ -64,15 +64,19 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
+        isDirty = False
+
         # First, let's ensure, that we are in sync with profile data
         checkTime=None
         if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
             checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
             checkTime=float_trunc(os.path.getmtime(checkFile),1)
-        sync(taskfile.getProfileRenderPath(),taskfile.getRenderPath(),checkTime)
+        if os.path.exists(taskfile.getProfileRenderPath()):
+            sync(taskfile.getProfileRenderPath(),taskfile.getRenderPath(),checkTime)
+        else:
+            isDirty = True
 
 
-        isDirty = False
         if not os.path.exists(taskfile.getRenderPath()):
             # If no rendering exists, then obviously rendering is required
             isDirty = True
