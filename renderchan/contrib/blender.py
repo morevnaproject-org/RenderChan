@@ -91,8 +91,10 @@ class RenderChanBlenderModule(RenderChanModule):
         f.write(script)
         f.close()
 
-        if format in RenderChanModule.imageExtensions and extraParams["single"] is None:
-            if extraParams["projectVersion"]<1:
+        if format in RenderChanModule.imageExtensions:
+            if extraParams["single"] is not None:
+                outputPath=outputPath+"-######"
+            elif extraParams["projectVersion"]<1:
                 outputPath=os.path.join(outputPath, "file")+".####"
             else:
                 outputPath=os.path.join(outputPath, "file")+".#####"
@@ -106,12 +108,16 @@ class RenderChanBlenderModule(RenderChanModule):
 
         commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath]
         if extraParams["single"] is None:
+            commandline.append("-x")
+            commandline.append("1")
             commandline.append("-s")
             commandline.append(str(startFrame))
             commandline.append("-e")
             commandline.append(str(endFrame))
             commandline.append("-a")
         else:
+            commandline.append("-x")
+            commandline.append("0")
             commandline.append("-f")
             commandline.append(extraParams["single"])
 
@@ -144,6 +150,12 @@ class RenderChanBlenderModule(RenderChanModule):
         print '===================================================='
         print '  Blender command returns with code %d' % rc
         print '===================================================='
+
+        if format in RenderChanModule.imageExtensions and extraParams["single"] is not None:
+            outputPath=outputPath[:-7]
+            tmp=outputPath+"-%06d" % int(extraParams["single"])
+            os.rename(tmp, outputPath)
+
         if rc != 0:
             print '  Blender command failed...'
             raise Exception('  Blender command failed...')
