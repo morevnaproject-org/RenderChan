@@ -40,7 +40,7 @@ class RenderChan():
         if not dependenciesOnly:
             self.parseRenderDependency(taskfile)
         else:
-            self.parseDirectDependency(taskfile, None, [])
+            self.parseDirectDependency(taskfile, None)
 
         # Finally submit the graph to Puli
 
@@ -82,7 +82,7 @@ class RenderChan():
             compareTime = float_trunc(os.path.getmtime(taskfile.getRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
-        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, [])
+        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
 
         if isDirtyValue:
             isDirty = True
@@ -128,11 +128,13 @@ class RenderChan():
         return isDirty
 
 
-    def parseDirectDependency(self, taskfile, compareTime, tasklist):
+    def parseDirectDependency(self, taskfile, compareTime):
         """
 
         :type taskfile: RenderChanFile
         """
+
+        tasklist=[]
 
         self.loadedFiles[taskfile.getPath()]=taskfile
         if taskfile.project!=None and taskfile.module!=None:
@@ -201,7 +203,7 @@ class RenderChan():
 
             else:
                 # No, this is an ordinary dependency
-                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime,  tasklist)
+                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime)
                     if dep_isDirty:
                         isDirty=True
                     if dep_maxTime>maxTime:
