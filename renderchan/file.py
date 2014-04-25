@@ -150,6 +150,12 @@ class RenderChanFile():
             size=int(self.project.config["packet_size"])
 
         if size!=-1:
+
+            length = self.endFrame - self.startFrame + 1
+            if length<=size:
+                # We don't need to split anything
+                return 0
+
             return size
         else:
             return self.module.getPacketSize()

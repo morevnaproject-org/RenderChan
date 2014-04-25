@@ -77,7 +77,7 @@ class RenderChanDecomposer(TaskDecomposer):
        args["start"] = packetStart
        args["end"] = packetEnd
        args["output"] = args["profile_output"]
-       if args["format"]=="avi":
+       if args["format"]=="avi" and args["packetSize"]!=0:
             # For avi files we need to give each packet different name
             args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+".avi"
             # And also keep track of created files within a special list
@@ -150,7 +150,7 @@ class RenderChanPostRunner(CommandRunner):
         profile_output=arguments["profile_output"]
         profile_output_list=os.path.splitext(profile_output)[0]+".txt"
 
-        if arguments["format"]=="avi":
+        if arguments["format"]=="avi" and arguments["packetSize"]!=0:
             # We need to merge the rendered files into single one
 
             print "Merging: %s" % profile_output
