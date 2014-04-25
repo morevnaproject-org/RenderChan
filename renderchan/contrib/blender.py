@@ -15,6 +15,7 @@ class RenderChanBlenderModule(RenderChanModule):
         # Extra params
         self.extraParams["blender_cycles_samples"]=0
         self.extraParams["blender_prerender_count"]=0
+        self.extraParams["single"]=None
 
     def getInputFormats(self):
         return ["blend"]
@@ -102,8 +103,18 @@ class RenderChanBlenderModule(RenderChanModule):
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
-        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath,
-                     "-s",str(startFrame), "-e",str(endFrame), "-a"]
+
+        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath]
+        if extraParams["single"] is None:
+            commandline.append("-s")
+            commandline.append(str(startFrame))
+            commandline.append("-e")
+            commandline.append(str(endFrame))
+            commandline.append("-a")
+        else:
+            commandline.append("-f")
+            commandline.append(extraParams["single"])
+
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         rc = None
         currentFrame = None
