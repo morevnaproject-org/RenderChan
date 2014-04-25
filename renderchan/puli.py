@@ -14,6 +14,9 @@ class RenderChanDecomposer(TaskDecomposer):
        self.task = task
        self.task.runner = "renderchan.puli.RenderChanRunner"
 
+       if os.path.exists(os.path.splitext(task.arguments["profile_output"])[0]+".txt"):
+           os.remove(os.path.splitext(task.arguments["profile_output"])[0]+".txt")
+
        if task.arguments["packetSize"]!=0:
            # The decompose method will split the task from start to end in packet_size and call the addCommand method below for each chunk
            self.decompose(task.arguments["start"], task.arguments["end"],
@@ -79,7 +82,7 @@ class RenderChanDecomposer(TaskDecomposer):
             args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+".avi"
             # And also keep track of created files within a special list
             output_list = os.path.splitext(args["profile_output"])[0]+".txt"
-            f = open(output_list,'w')
+            f = open(output_list,'a')
             f.write("file '%s'\n" % (args["output"]))
             f.close()
 
