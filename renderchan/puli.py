@@ -3,11 +3,11 @@ __author__ = 'Konstantin Dmitriev'
 
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
 from renderchan.module import RenderChanModuleManager
-from renderchan.utils import copytree
 from renderchan.utils import touch
-import os, shutil
+from renderchan.utils import sync
+from renderchan.utils import float_trunc
+import os
 import subprocess
-import random
 
 class RenderChanDecomposer(TaskDecomposer):
    def __init__(self, task):
@@ -79,7 +79,7 @@ class RenderChanDecomposer(TaskDecomposer):
             args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+".avi"
             # And also keep track of created files within a special list
             output_list = os.path.splitext(args["profile_output"])[0]+".txt"
-            f = open(output_list,'a')
+            f = open(output_list,'w')
             f.write("file '%s'\n" % (args["output"]))
             f.close()
 
@@ -149,34 +149,27 @@ class RenderChanPostRunner(CommandRunner):
 
         if arguments["format"]=="avi":
             # We need to merge the rendered files into single one
-            subprocess.check_call(["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
-            os.remove(profile_output_list)
+
+            print "Merging: %s" % profile_output
+
+            # But first let's check if we really need to do that
+            uptodate=False
+            if os.path.exists(profile_output+".done"):
+                if float_trunc(os.path.getmtime(profile_output+".done"),1) >= arguments["maxTime"]:
+                    # Hurray! No need to merge that piece.
+                    uptodate=True
+
+            if not uptodate:
+                subprocess.check_call(["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                os.remove(profile_output_list)
+                touch(profile_output+".done",arguments["maxTime"])
+            else:
+                print "  This chunk is already merged. Skipping."
             updateCompletion(0.5)
 
-        if not os.path.exists(os.path.dirname(output)):
-            os.makedirs(os.path.dirname(output))
+        sync(profile_output, output)
 
-        if os.path.isdir(profile_output):
-            # Copy to temporary path to ensure quick switching
-            output_tmp= output+"%08d" % (random.randint(0,99999999))
-            copytree(profile_output, output_tmp, hardlinks=True)
-            if os.path.exists(output):
-                if os.path.isdir(output):
-                    shutil.rmtree(output)
-                else:
-                    os.remove(output)
-            os.rename(output_tmp, output)
-        else:
-            if os.path.exists(output):
-                if os.path.isdir(output):
-                    shutil.rmtree(output)
-                else:
-                    os.remove(output)
-            try:
-                os.link(profile_output, output)
-            except:
-                print "Error: file already exists"
-
-        touch(output+".done",arguments["maxTime"])
+        #touch(output+".done",arguments["maxTime"])
+        touch(output,arguments["maxTime"])
 
         updateCompletion(1)

@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os.path
 import ConfigParser
+from renderchan.utils import mkdirs
 
 def loadRenderConfig(filename, targetDict):
 
@@ -56,6 +57,7 @@ class RenderChanProject():
         else:
             self.version = 1
         self.path=os.path.dirname(confFile)
+        self.confPath=confFile
         self.dependencies=[]
 
         self.defaults = {
@@ -69,7 +71,10 @@ class RenderChanProject():
         self.config={}
         loadRenderConfig(confFile, self.config)
 
-        # Store project configuration - we need that for configuration changes detection
+        # Store project configuration - we need that to track configuration changes
+
+        if not os.path.isdir(os.path.join(self.path,"render","project.conf",self.getProfileName())):
+            mkdirs(os.path.join(self.path,"render","project.conf",self.getProfileName()))
 
         filename=os.path.join(self.path,"render","project.conf",self.getProfileName(),"core.conf")
         oldconfig={}
@@ -93,6 +98,19 @@ class RenderChanProject():
             with open(filename, 'wb') as configfile:
                 config.write(configfile)
 
+        # Store current profile
+        filename=os.path.join(self.path,"render","project.conf","profile.conf")
+        prev_profile = ""
+        if os.path.exists(filename):
+            # Read previous profile
+            f=open(filename)
+            prev_profile = f.readlines()[0].strip()
+            f.close()
+        if prev_profile!=self.getProfileName():
+            f = open(filename,'w')
+            f.write(self.getProfileName()+"\n")
+            f.close()
+
     def registerModule(self, module):
         name=module.getName()
         if name in self.dependencies:
@@ -111,20 +129,22 @@ class RenderChanProject():
             for key in cp.options('main'):
                 oldconfig[key]=cp.get('main', key)
 
-        newconfig=module.extraParams.copy()
+        newconfig={}
+        for key in module.extraParams:
+            if module.extraParams[key]!=None:
+                newconfig[key]=module.extraParams[key]
         for key in self.config.keys():
             if key in module.extraParams.keys():
                 newconfig[key]=self.config[key]
 
         if newconfig!=oldconfig:
-            if newconfig!=oldconfig:
-                config = ConfigParser.SafeConfigParser()
-                config.add_section('main')
-                for key in newconfig.keys():
-                    if newconfig[key]!=None:
-                        config.set('main', key, newconfig[key])
-                with open(filename, 'wb') as configfile:
-                    config.write(configfile)
+            config = ConfigParser.SafeConfigParser()
+            config.add_section('main')
+            for key in newconfig.keys():
+                if newconfig[key]!=None:
+                    config.set('main', key, newconfig[key])
+            with open(filename, 'wb') as configfile:
+                config.write(configfile)
 
     def getConfig(self, key):
         if key in self.config.keys():

@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os.path
 from renderchan.project import loadRenderConfig
+from renderchan.utils import float_trunc
 
 class RenderChanFile():
     globalParams=["width","height","fps",]
@@ -41,7 +42,26 @@ class RenderChanFile():
             if os.path.exists(self.getPath()):
                 info=self.module.analyze(self.getPath())
                 if "dependencies" in info.keys():
+
+                    projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),'core.conf')
+                    if os.path.exists(projectconf):
+                        info["dependencies"].append(projectconf)
+
+                    moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),self.module.getName()+'.conf')
+                    if os.path.exists(moduleconf):
+                        info["dependencies"].append(moduleconf)
+
+                    # This is commented, because it shouldn't influence maxTime
+                    #profileconf=os.path.join(self.project.path,"render","project.conf","profile.conf")
+                    #if os.path.exists(profileconf):
+                    #    info["dependencies"].append(profileconf)
+
+                    fileconf=self.getPath()+'.conf'
+                    if os.path.exists(fileconf):
+                        info["dependencies"].append(fileconf)
+
                     self.dependencies=list(set(info["dependencies"]))
+
                 if "startFrame" in info.keys():
                     self.startFrame=int(info["startFrame"])
                 if "endFrame" in info.keys():
@@ -72,7 +92,7 @@ class RenderChanFile():
             while localpath.startswith('/'):
                 localpath=localpath[1:]
 
-            if localpath.startswith("render"):
+            if localpath.startswith("render") and not localpath.startswith(os.path.join("render","project.conf")):
                 localpath=localpath[6:]
                 localpath=os.path.splitext(localpath)[0]
 
@@ -86,7 +106,7 @@ class RenderChanFile():
 
     def getTime(self):
         if self.mtime is None:
-            self.mtime=os.path.getmtime(self.getPath())
+            self.mtime=float_trunc(os.path.getmtime(self.getPath()),1)
         return self.mtime
 
 
@@ -116,7 +136,10 @@ class RenderChanFile():
 
         size=-1
 
-        # First, let conf files override packet size
+        if self.config.has_key("single") and self.config["single"]!=None:
+            return 0
+
+        # Let conf files override packet size
         if self.config.has_key(self.module.getName()+"_packet_size"):
             size=int(self.config[self.module.getName()+"_packet_size"])
         elif self.config.has_key("packet_size"):

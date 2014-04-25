@@ -1,6 +1,8 @@
 __author__ = 'Konstantin Dmitriev'
 
 import os, shutil, errno
+import random
+import time
 
 def which(program):
 
@@ -71,3 +73,57 @@ def touch(path, time=None):
         os.makedirs(basedir)
     with open(path, 'a'):
         os.utime(path, (time, time))
+
+def float_trunc(f, n):
+    '''Truncates/pads a float f to n decimal places without rounding'''
+    slen = len('%.*f' % (n, f))
+    return float(str(f)[:slen])
+
+def sync(profile_output, output, compareTime=None):
+
+    if os.path.exists(profile_output):
+
+        needSync=True
+
+        if compareTime!=None:
+            if os.path.exists(profile_output+".sync"):
+                if float_trunc(os.path.getmtime(profile_output+".sync"),1) >= compareTime:
+                    needSync=False
+
+        if needSync:
+
+            if compareTime!=None:
+                print "Syncing profile data for %s..." % output
+
+            if not os.path.exists(os.path.dirname(output)):
+                    mkdirs(os.path.dirname(output))
+
+            if os.path.isdir(profile_output):
+                # Copy to temporary path to ensure quick switching
+                output_tmp= output+"%08d" % (random.randint(0,99999999))
+                copytree(profile_output, output_tmp, hardlinks=True)
+                if os.path.exists(output):
+                    if os.path.isdir(output):
+                        shutil.rmtree(output)
+                    else:
+                        os.remove(output)
+                os.rename(output_tmp, output)
+            else:
+                if os.path.exists(output):
+                    if os.path.isdir(output):
+                        shutil.rmtree(output)
+                    else:
+                        os.remove(output)
+                try:
+                    os.link(profile_output, output)
+                except:
+                    print "Error: file already exists"
+
+            # Remember the time of the last sync
+            touch(profile_output+".sync", time.time())
+
+    elif os.path.exists(output):
+        if os.path.isdir(output):
+            shutil.rmtree(output)
+        else:
+            os.remove(output)

@@ -3,6 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 from importlib import import_module
 from renderchan.utils import which
 from renderchan.utils import touch
+from renderchan.utils import float_trunc
 import os, shutil
 import inspect
 
@@ -110,18 +111,28 @@ class RenderChanModule():
         #    if not extraParams.has_key(key):
         #        extraParams[key]=self.extraParams[key]
 
-        # TODO: Check if we really need to re-render
-        # ...
+        print "Rendering: %s" % outputPath
 
-        if os.path.isdir(outputPath):
-            shutil.rmtree(outputPath)
+        # Check if we really need to re-render
+        uptodate=False
+        if os.path.exists(outputPath+".done"):
+            if float_trunc(os.path.getmtime(outputPath+".done"),1) >= extraParams["maxTime"]:
+                # Hurray! No need to re-render that piece.
+                uptodate=True
 
-        # TODO: Create lock here
+        if not uptodate:
 
-        self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
-        touch(outputPath+".done",extraParams["maxTime"])
+            if os.path.isdir(outputPath):
+                shutil.rmtree(outputPath)
 
-        # TODO: Release lock here
+            # TODO: Create lock here
+
+            self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
+            touch(outputPath+".done",extraParams["maxTime"])
+
+            # TODO: Release lock here
+        else:
+            print "  This chunk is already up to date. Skipping."
 
     def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
         pass

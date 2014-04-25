@@ -5,6 +5,8 @@ from renderchan.file import RenderChanFile
 from renderchan.project import RenderChanProjectManager
 from renderchan.module import RenderChanModuleManager
 from renderchan.utils import mkdirs
+from renderchan.utils import float_trunc
+from renderchan.utils import sync
 from puliclient import Task, Graph
 import os, time
 
@@ -61,14 +63,23 @@ class RenderChan():
 
         :type taskfile: RenderChanFile
         """
+
+        # First, let's ensure, that we are in sync with profile data
+        checkTime=None
+        if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
+            checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
+            checkTime=float_trunc(os.path.getmtime(checkFile),1)
+        sync(taskfile.getProfileRenderPath(),taskfile.getRenderPath(),checkTime)
+
+
         isDirty = False
-        if not os.path.exists(taskfile.getRenderPath()+".done"):
+        if not os.path.exists(taskfile.getRenderPath()):
             # If no rendering exists, then obviously rendering is required
             isDirty = True
             compareTime = None
         else:
             # Otherwise we have to check against the time of the last rendering
-            compareTime = os.path.getmtime(taskfile.getRenderPath()+".done")
+            compareTime = float_trunc(os.path.getmtime(taskfile.getRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
         (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, [])
@@ -178,8 +189,8 @@ class RenderChan():
                     # If no rendering requested, we still have to check if rendering result
                     # is newer than compareTime
 
-                    #if os.path.exists(dependency.getRenderPath()+".done"):  -- file is obviously exists, because isDirty==0
-                    timestamp=os.path.getmtime(dependency.getRenderPath()+".done")
+                    #if os.path.exists(dependency.getRenderPath()):  -- file is obviously exists, because isDirty==0
+                    timestamp=float_trunc(os.path.getmtime(dependency.getRenderPath()),1)
 
                     if compareTime is None:
                         isDirty = True
@@ -190,8 +201,9 @@ class RenderChan():
 
             else:
                 # No, this is an ordinary dependency
-                if os.path.exists(dependency.getPath()):
-                    (isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime,  tasklist) or isDirty
+                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime,  tasklist)
+                    if dep_isDirty:
+                        isDirty=True
                     if dep_maxTime>maxTime:
                         maxTime=dep_maxTime
                     for task in dep_tasklist:
@@ -199,11 +211,13 @@ class RenderChan():
                             tasklist.append(task)
 
         if not isDirty:
-            timestamp = taskfile.getTime()
+            timestamp = float_trunc(taskfile.getTime(), 1)
             if compareTime is None:
                 isDirty = True
             elif timestamp > compareTime:
                 isDirty = True
+            if timestamp>maxTime:
+                maxTime=timestamp
 
         taskfile.pending=False
 
