@@ -10,6 +10,7 @@ AUDIOFILE = "audiofile"
 FORMAT = "format"
 CYCLES_SAMPLES = "cycles_samples"
 PRERENDER_COUNT = "prerender_count"
+GPU_DEVICE = "gpu_device"
 
 params = {UPDATE: False,
           WIDTH: 480,
@@ -18,7 +19,8 @@ params = {UPDATE: False,
           AUDIOFILE:"/tmp/renderchan-test.wav",
           FORMAT: "png",
           CYCLES_SAMPLES: None,
-          PRERENDER_COUNT: 0}
+          PRERENDER_COUNT: 0,
+          GPU_DEVICE: ""}
 
 
 def main():
@@ -54,9 +56,36 @@ def main():
 
     #rend.color_mode = "RGBA"
 
-    # Cycles
-    if params[CYCLES_SAMPLES]!=0:
-        sce.cycles.samples = params[CYCLES_SAMPLES]
+    # Cycles special tweaks
+    if sce.render.engine == 'CYCLES':
+
+        # Allow to override smples from .conf file
+        if params[CYCLES_SAMPLES]!=0:
+            sce.cycles.samples = params[CYCLES_SAMPLES]
+
+        # Allow to set GPU device from RenderChan module settings
+        # For information how to get your GPU device on a cluster, see
+        #  http://www.dalaifelinto.com/?p=746
+        if params[GPU_DEVICE]!="":
+            bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+            bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
+            sce.cycles.device = 'GPU'
+
+        # Optimize tiles for speed depending on rendering device
+        # See tip #3 at http://www.blenderguru.com/4-easy-ways-to-speed-up-cycles/
+        if sce.cycles.device == 'GPU':
+            sce.render.tile_x = 256
+            sce.render.tile_y = 256
+            sce.cycles.debug_use_spatial_splits = False
+        else:
+            sce.render.tile_x = 64
+            sce.render.tile_y = 64
+            sce.cycles.debug_use_spatial_splits = True
+
+        sce.cycles.use_cache = True   # Cache BVH
+        sce.cycles.debug_bvh_type = 'STATIC_BVH'
+        sce.render.use_persistent_data = True   # Persistent Images
+
 
     # Suff for updating file
     size_x = rend.resolution_x
