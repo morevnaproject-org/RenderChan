@@ -12,6 +12,7 @@ class RenderChanBlenderModule(RenderChanModule):
         RenderChanModule.__init__(self)
         self.conf['binary']="blender"
         self.conf["packetSize"]=40
+        self.conf["gpu_device"]=""
         # Extra params
         self.extraParams["blender_cycles_samples"]=0
         self.extraParams["blender_prerender_count"]=0
@@ -86,7 +87,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
            .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))\
-           .replace("params[PRERENDER_COUNT]",str(extraParams["blender_prerender_count"]))
+           .replace("params[PRERENDER_COUNT]",str(extraParams["blender_prerender_count"]))\
+           .replace("params[GPU_DEVICE]",'"'+self.conf["gpu_device"]+'"')
         f = open(renderscript,'w')
         f.write(script)
         f.close()
