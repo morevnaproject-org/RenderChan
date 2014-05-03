@@ -135,11 +135,11 @@ def main():
         bpy.ops.wm.save_mainfile("EXEC_DEFAULT", filepath=bpy.data.filepath)
 
     # Dump audio track if any
-    audio_found = False
-    for path in bpy.utils.blend_paths(0):
-        if path.endswith(".wav"):
-            bpy.ops.sound.mixdown(filepath=params[AUDIOFILE], check_existing=False, container="WAV")
-            break
+    #audio_found = False
+    #for path in bpy.utils.blend_paths(0):
+    #    if path.endswith(".wav"):
+    #        bpy.ops.sound.mixdown(filepath=params[AUDIOFILE], check_existing=False, container="WAV")
+    #        break
 
 if __name__ == '__main__':
     main()
