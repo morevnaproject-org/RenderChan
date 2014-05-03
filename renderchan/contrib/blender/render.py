@@ -64,20 +64,23 @@ def main():
             sce.cycles.samples = params[CYCLES_SAMPLES]
 
         # Allow to set GPU device from RenderChan module settings
-        # For information how to get your GPU device on a cluster, see
-        #  http://www.dalaifelinto.com/?p=746
+        # For information how to identify your GPU device from
+        # a cluster console, see http://www.dalaifelinto.com/?p=746
         if params[GPU_DEVICE]!="":
             bpy.context.user_preferences.system.compute_device_type = 'CUDA'
             bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
             sce.cycles.device = 'GPU'
+            print("Cycles: GPU configuration found")
 
         # Optimize tiles for speed depending on rendering device
         # See tip #3 at http://www.blenderguru.com/4-easy-ways-to-speed-up-cycles/
         if sce.cycles.device == 'GPU':
+            print("Cycles: GPU device used")
             sce.render.tile_x = 256
             sce.render.tile_y = 256
             sce.cycles.debug_use_spatial_splits = False
         else:
+            print("Cycles: CPU device used")
             sce.render.tile_x = 64
             sce.render.tile_y = 64
             sce.cycles.debug_use_spatial_splits = True
