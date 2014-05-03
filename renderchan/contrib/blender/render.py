@@ -5,7 +5,7 @@ import bpy
 UPDATE = "update"
 WIDTH = "width"
 HEIGHT = "height"
-CAMERA = "camera"
+STEREO_CAMERA = "camera"
 AUDIOFILE = "audiofile"
 FORMAT = "format"
 CYCLES_SAMPLES = "cycles_samples"
@@ -14,7 +14,7 @@ PRERENDER_COUNT = "prerender_count"
 params = {UPDATE: False,
           WIDTH: 480,
           HEIGHT: 270,
-          CAMERA: "",
+          STEREO_CAMERA: "",
           AUDIOFILE:"/tmp/renderchan-test.wav",
           FORMAT: "png",
           CYCLES_SAMPLES: None,
@@ -30,10 +30,21 @@ def main():
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
 
-    for ob in sce.objects:
-        if ob.name == params[CAMERA]:
-            sce.camera = ob
-            break
+    if params[STEREO_CAMERA]!="":
+        found=False
+
+        for ob in sce.objects:
+            if ob.name == params[STEREO_CAMERA]:
+                sce.camera = ob
+                found=True
+                break
+
+        if not found:
+            basename = sce.camera.name
+            for ob in sce.objects:
+                if ob.name == basename+"."+params[STEREO_CAMERA]:
+                    sce.camera = ob
+                    break
 
     rend = sce.render
 

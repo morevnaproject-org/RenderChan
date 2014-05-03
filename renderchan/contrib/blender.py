@@ -82,7 +82,7 @@ class RenderChanBlenderModule(RenderChanModule):
         script=script.replace("params[UPDATE]","False")\
            .replace("params[WIDTH]", str(width))\
            .replace("params[HEIGHT]", str(height))\
-           .replace("params[CAMERA]", '""')\
+           .replace("params[STEREO_CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
            .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))\
