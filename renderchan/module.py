@@ -6,6 +6,7 @@ from renderchan.utils import touch
 from renderchan.utils import float_trunc
 import os, shutil
 import inspect
+import ConfigParser
 
 class RenderChanModuleManager():
     def __init__(self):
@@ -30,6 +31,7 @@ class RenderChanModuleManager():
             raise ImportError("%s (loaded as '%s') is not a valid %s." % (moduleClass, name, motherClassName))
 
         module = moduleClass()
+        module.loadConfiguration()
         if not module.checkRequirements():
             print "Warning: Unable load module - %s." % (name)
         self.list[name]=module
@@ -73,6 +75,20 @@ class RenderChanModule():
 
     def getName(self):
         return os.path.splitext(os.path.basename(inspect.getfile(self.__class__)))[0]
+
+    def loadConfiguration(self):
+
+        filename = os.path.join(os.path.expanduser("~"), ".config", "renderchan", "modules")
+
+        if os.path.exists(filename):
+
+            config = ConfigParser.SafeConfigParser()
+            config.read(filename)
+
+            if config.has_section(self.getName()):
+                for key in self.conf:
+                    if config.has_option(self.getName(),key):
+                        self.conf=config.get(self.getName(),key)
 
     def getConfiguration(self):
         return self.conf
