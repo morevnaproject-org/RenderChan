@@ -164,7 +164,7 @@ class RenderChan():
                 if dependency.pending:
                     # Avoid circular dependencies
                     print "Warning: Circular dependency detected for %s. Skipping." % (path)
-                    break
+                    continue
             else:
                 print ". loading file: %s" % path
                 dependency = RenderChanFile(path, self.modules, self.projects)
