@@ -67,10 +67,21 @@ def main():
         # For information how to identify your GPU device from
         # a cluster console, see http://www.dalaifelinto.com/?p=746
         if params[GPU_DEVICE]!="":
-            bpy.context.user_preferences.system.compute_device_type = 'CUDA'
-            bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
-            sce.cycles.device = 'GPU'
             print("Cycles: GPU configuration found")
+            bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+            if params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
+                bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
+            else:
+                # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
+                print("")
+                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
+                print("")
+                print("Available devices:")
+                for device in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
+                    print("   * %s\n" % device)
+                print("")
+
+            sce.cycles.device = 'GPU'
 
         # Optimize tiles for speed depending on rendering device
         # See tip #3 at http://www.blenderguru.com/4-easy-ways-to-speed-up-cycles/
