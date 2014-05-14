@@ -4,7 +4,7 @@ from importlib import import_module
 from renderchan.utils import which
 from renderchan.utils import touch
 from renderchan.utils import float_trunc
-import os, shutil
+import os, shutil, sys
 import inspect
 import ConfigParser
 
@@ -17,7 +17,7 @@ class RenderChanModuleManager():
             #module = __import__(moduleName, fromlist=[cls])
             module = import_module("renderchan.contrib."+name)
         except ImportError, error:
-            raise ImportError("No module '%s' on PYTHONPATH:\n%s. (%s)" % (moduleName, "\n".join(sys.path), error))
+            raise ImportError("No module '%s' on PYTHONPATH:\n%s. (%s)" % (name, "\n".join(sys.path), error))
 
         cls = name.capitalize()
         try:
@@ -78,7 +78,7 @@ class RenderChanModule():
 
     def loadConfiguration(self):
 
-        filename = os.path.join(os.path.expanduser("~"), ".config", "renderchan", "modules")
+        filename = os.path.join(os.path.expanduser("~"), ".config", "renderchan", "modules.conf")
 
         if os.path.exists(filename):
 
@@ -88,7 +88,7 @@ class RenderChanModule():
             if config.has_section(self.getName()):
                 for key in self.conf:
                     if config.has_option(self.getName(),key):
-                        self.conf=config.get(self.getName(),key)
+                        self.conf[key]=config.get(self.getName(),key)
 
     def getConfiguration(self):
         return self.conf
