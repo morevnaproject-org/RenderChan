@@ -13,9 +13,11 @@ def process_args():
         usage=_("""
     %prog [FILE]               """))
 
+    # TODO: Not implemented
     parser.add_option("--width", dest="width",
             action="store",
             help=_("Output width."))
+    # TODO: Not implemented
     parser.add_option("--height", dest="height",
             action="store",
             help=_("Output height."))
@@ -35,6 +37,11 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Render dependencies, but not file itself."))
+    parser.add_option("--allocate", dest="allocateOnly",
+            action="store_true",
+            default=False,
+            help=_("Don't do the actual render, just allocate a placeholder for file."))
+
     options, args = parser.parse_args()
 
     return options, args
@@ -52,4 +59,4 @@ def main(argv):
             renderchan.setPort(options.dispatcherPort)
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    renderchan.submit(taskfile, options.useDispatcher, options.dependenciesOnly)
+    renderchan.submit(taskfile, options.useDispatcher, options.dependenciesOnly, options.allocateOnly)

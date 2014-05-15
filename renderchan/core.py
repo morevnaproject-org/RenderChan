@@ -31,16 +31,35 @@ class RenderChan():
     def setPort(self, port):
         self.puliPort=port
 
-    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False):
+    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False, allocateOnly=False):
 
         """
 
         :type taskfile: RenderChanFile
         """
-        if not dependenciesOnly:
-            self.parseRenderDependency(taskfile)
-        else:
+
+        if allocateOnly and dependenciesOnly:
+
+            if os.path.exists(taskfile.getRenderPath()):
+                self.parseDirectDependency(taskfile, None)
+            else:
+                taskfile.endFrame = taskfile.startFrame + 2
+                self.parseRenderDependency(taskfile, allocateOnly)
+
+        elif dependenciesOnly:
+
             self.parseDirectDependency(taskfile, None)
+
+        else:
+
+            if allocateOnly:
+                if os.path.exists(taskfile.getRenderPath()):
+                    print "File is already allocated."
+                    sys.exit(0)
+                taskfile.dependencies=[]
+                taskfile.endFrame = taskfile.startFrame + 2
+
+            self.parseRenderDependency(taskfile, allocateOnly)
 
         # Finally submit the graph to Puli
 
@@ -58,7 +77,7 @@ class RenderChan():
             # Local rendering
             self.graph.execute()
 
-    def parseRenderDependency(self, taskfile):
+    def parseRenderDependency(self, taskfile, allocateOnly):
         """
 
         :type taskfile: RenderChanFile
@@ -102,7 +121,11 @@ class RenderChan():
 
             params = taskfile.getParams()
             # Max time is a
-            params["maxTime"]=maxTime
+            if allocateOnly:
+                # Make sure this file will be re-rendered next time
+                params["maxTime"]=taskfile.mtime-1000
+            else:
+                params["maxTime"]=maxTime
 
             # Make sure we have all directories created
             mkdirs(os.path.dirname(params["profile_output"]))
@@ -177,7 +200,7 @@ class RenderChan():
                 # We have a new task to render
                 if dependency.isDirty==None:
                     if dependency.module!=None:
-                        dep_isDirty = self.parseRenderDependency(dependency)
+                        dep_isDirty = self.parseRenderDependency(dependency, allocateOnly=False)
                     else:
                         raise Exception("No module to render file")
                 else:
