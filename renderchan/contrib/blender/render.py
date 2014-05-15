@@ -96,9 +96,9 @@ def main():
             sce.render.tile_y = 64
             sce.cycles.debug_use_spatial_splits = True
 
-        sce.cycles.use_cache = True   # Cache BVH
+        #sce.cycles.use_cache = True   # Cache BVH
         sce.cycles.debug_bvh_type = 'STATIC_BVH'
-        sce.render.use_persistent_data = True   # Persistent Images
+        #sce.render.use_persistent_data = True   # Persistent Images
 
 
     # Suff for updating file
