@@ -43,7 +43,7 @@ class RenderChan():
             if os.path.exists(taskfile.getRenderPath()):
                 self.parseDirectDependency(taskfile, None)
             else:
-                taskfile.endFrame = taskfile.startFrame + 1
+                taskfile.endFrame = taskfile.startFrame + 2
                 self.parseRenderDependency(taskfile, allocateOnly)
 
         elif dependenciesOnly:
@@ -57,7 +57,7 @@ class RenderChan():
                     print "File is already allocated."
                     sys.exit(0)
                 taskfile.dependencies=[]
-                taskfile.endFrame = taskfile.startFrame + 1
+                taskfile.endFrame = taskfile.startFrame + 2
 
             self.parseRenderDependency(taskfile, allocateOnly)
 
