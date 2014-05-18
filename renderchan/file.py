@@ -219,3 +219,16 @@ class RenderChanFile():
             return True
         else:
             return False
+
+    def isFrozen(self):
+        if self.project:
+            return self.project.isFrozen(self.localPath)
+        else:
+            return False
+
+    def setFrozen(self, value):
+        if self.project:
+            self.project.setFrozen(self.localPath, value)
+        else:
+            if value:
+                print "ERROR: Cannot freeze file which is not a part of any project."

@@ -68,6 +68,9 @@ class RenderChanProject():
             'fps':'24',
         }
 
+
+        # Project configuration
+
         self.config={}
         loadRenderConfig(confFile, self.config)
 
@@ -110,6 +113,11 @@ class RenderChanProject():
             f = open(filename,'w')
             f.write(self.getProfileName()+"\n")
             f.close()
+
+
+        # Load list of frozen files
+        self.frozenPaths=[]
+        self.loadFrozenPaths()
 
     def registerModule(self, module):
         name=module.getName()
@@ -157,3 +165,37 @@ class RenderChanProject():
 
     def getProfileName(self):
         return "%sx%s" % (self.config["width"], self.config["height"])
+
+    def loadFrozenPaths(self):
+        filename=os.path.join(self.path,"render","project.conf","frozen.list")
+        if os.path.exists(filename):
+            f=open(filename)
+            for line in f.readlines():
+                line = line.strip()
+                if not line in self.frozenPaths:
+                    self.frozenPaths.append(line)
+            f.close()
+
+    def saveFrozenPaths(self):
+        filename=os.path.join(self.path,"render","project.conf","frozen.list")
+        f = open(filename, 'w')
+        for line in self.frozenPaths:
+            f.write(line+"\n")
+        f.close()
+
+    def isFrozen(self, path):
+        for frozenPath in self.frozenPaths:
+            if ("/"+path).startswith(frozenPath):
+                return True
+        return False
+
+    def setFrozen(self, path, value):
+        if os.path.isdir(os.path.join(self.path, path)) and not path.endswith('/'):
+            path = path+'/'
+        path="/"+path
+        if value==True:
+            if not path in self.frozenPaths:
+                self.frozenPaths.append(path)
+        else:
+            if path in self.frozenPaths:
+                self.frozenPaths.remove(path)

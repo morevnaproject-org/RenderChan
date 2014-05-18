@@ -164,6 +164,10 @@ class RenderChan():
         tasklist=[]
 
         self.loadedFiles[taskfile.getPath()]=taskfile
+
+        if taskfile.isFrozen():
+            return (False, [], 0)
+
         if taskfile.project!=None and taskfile.module!=None:
             self.loadedFiles[taskfile.getRenderPath()]=taskfile
 
