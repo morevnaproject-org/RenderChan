@@ -22,10 +22,6 @@ def process_args():
             action="store",
             help=_("Output height."))
 
-    parser.add_option("--use-dispatcher", dest="useDispatcher",
-            action="store_true",
-            default=False,
-            help=_("Use dispatcher for renderfarm rendering."))
     parser.add_option("--dispatcher-host", dest="dispatcherHost",
             action="store",
             help=_("Set remote dispatcher host."))
@@ -52,11 +48,15 @@ def main(argv):
     filename = os.path.abspath(args[0])
 
     renderchan = RenderChan()
-    if options.useDispatcher:
-        if options.dispatcherHost:
-            renderchan.setHost(options.dispatcherHost)
+
+    useDispatcher=False
+    if options.dispatcherHost:
+        renderchan.setHost(options.dispatcherHost)
         if options.dispatcherPort:
             renderchan.setPort(options.dispatcherPort)
+        useDispatcher=True
+    elif options.dispatcherPort:
+        print "WARNING: No dispatcher host specified. Ignoring --dispatcher-port parameter."
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    renderchan.submit(taskfile, options.useDispatcher, options.dependenciesOnly, options.allocateOnly)
+    renderchan.submit(taskfile, useDispatcher, options.dependenciesOnly, options.allocateOnly)
