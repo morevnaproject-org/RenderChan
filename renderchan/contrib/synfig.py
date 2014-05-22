@@ -130,7 +130,7 @@ class RenderChanSynfigModule(RenderChanModule):
 
         totalFrames = endFrame - startFrame + 1
         #/path/to/file.sifz.png: Line 10 of 100 -- 1m 14s
-        frameNumberPattern = re.compile(": Line (.*) of \d+ -- ")
+        frameNumberPattern = re.compile(": Line (\d+) of \d+ -- ")
 
         if format in RenderChanModule.imageExtensions and extraParams["single"] is None:
             try:
@@ -156,7 +156,7 @@ class RenderChanSynfigModule(RenderChanModule):
         commandline.append(filename)
 
         #print " ".join(commandline)
-        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         rc = None
         #currentFrame = None
         while rc is None:
@@ -180,3 +180,4 @@ class RenderChanSynfigModule(RenderChanModule):
         if rc != 0:
             print '  Synfig command failed...'
             raise Exception('  Synfig command failed...')
+        updateCompletion(1)
