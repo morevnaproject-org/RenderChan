@@ -6,8 +6,10 @@ from renderchan.module import RenderChanModuleManager
 from renderchan.utils import touch
 from renderchan.utils import sync
 from renderchan.utils import float_trunc
+from renderchan.utils import copytree
 import os
 import subprocess
+import shutil
 
 class RenderChanDecomposer(TaskDecomposer):
    def __init__(self, task):
@@ -77,9 +79,9 @@ class RenderChanDecomposer(TaskDecomposer):
        args["start"] = packetStart
        args["end"] = packetEnd
        args["output"] = args["profile_output"]
-       if args["format"]=="avi" and args["packetSize"]!=0:
-            # For avi files we need to give each packet different name
-            args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+".avi"
+       if args["packetSize"]!=0:
+            # We need to give each packet different name
+            args["output"] = os.path.splitext(args["output"])[0]+"-"+str(packetStart)+"-"+str(packetEnd)+"."+args["format"]
             # And also keep track of created files within a special list
             output_list = os.path.splitext(args["profile_output"])[0]+".txt"
             f = open(output_list,'a')
@@ -150,20 +152,36 @@ class RenderChanPostRunner(CommandRunner):
         profile_output=arguments["profile_output"]
         profile_output_list=os.path.splitext(profile_output)[0]+".txt"
 
-        if arguments["format"]=="avi" and arguments["packetSize"]!=0:
+        if arguments["packetSize"]!=0:
+
             # We need to merge the rendered files into single one
 
             print "Merging: %s" % profile_output
 
             # But first let's check if we really need to do that
             uptodate=False
-            if os.path.exists(profile_output+".done"):
-                if float_trunc(os.path.getmtime(profile_output+".done"),1) >= arguments["maxTime"]:
-                    # Hurray! No need to merge that piece.
-                    uptodate=True
+            if os.path.exists(profile_output):
+                if os.path.exists(profile_output+".done") and \
+                   float_trunc(os.path.getmtime(profile_output+".done"),1) >= arguments["maxTime"]:
+                        # Hurray! No need to merge that piece.
+                        uptodate=True
+                else:
+                    if os.path.isdir(profile_output):
+                        shutil.rmtree(profile_output)
+                    else:
+                        os.remove(profile_output)
 
             if not uptodate:
-                subprocess.check_call(["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                if arguments["format"]=="avi":
+                    subprocess.check_call(["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                else:
+                    f = open(profile_output_list,'r')
+                    for line in f.readlines():
+                        line=line.strip()
+                        line=line[6:-1]
+                        print line
+                        copytree(line, profile_output, hardlinks=True)
+                    f.close()
                 os.remove(profile_output_list)
                 touch(profile_output+".done",arguments["maxTime"])
             else:
