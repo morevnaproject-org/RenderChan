@@ -34,7 +34,7 @@ class RenderChanBlenderModule(RenderChanModule):
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
-        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",script]
+        commandline=[self.conf['binary'], "-b",filename, "-P",script]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         rc = None
         while rc is None:
