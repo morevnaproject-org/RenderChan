@@ -190,6 +190,9 @@ class RenderChanProject():
         return False
 
     def setFrozen(self, path, value):
+
+        # FIXME: In fact, we have to use a more complex algorithm for recursive paths
+
         if os.path.isdir(os.path.join(self.path, path)) and not path.endswith('/'):
             path = path+'/'
         path="/"+path
