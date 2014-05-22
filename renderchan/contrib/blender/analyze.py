@@ -70,14 +70,16 @@ for f in paths:
             # or
             # f2 = /projectroot/path.ext
 
-            if (not os.path.exists(f2)) and (os.path.exists(os.path.dirname(f2))) and (not os.path.isdir(os.path.dirname(f2))):
-                # f2 = /projectroot/path.ext.png/file000x
+            if ( not os.path.exists(f2) ) and \
+               ( os.path.exists(os.path.splitext(os.path.dirname(f2))[0]) ) and \
+               ( not os.path.isdir(os.path.splitext(os.path.dirname(f2))[0]) ):
+                    # f2 = /projectroot/path.ext.png/file000x
 
-                f = os.path.dirname(f)
-                # f = /projectroot/render/path.ext.png
+                    f = os.path.dirname(f)
+                    # f = /projectroot/render/path.ext.png
 
-                if not f in outputlist:
-                    outputlist.append(f)
+                    if not f in outputlist:
+                        outputlist.append(f)
 
             else:
                 # f2 = /projectroot/path.ext
