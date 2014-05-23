@@ -175,6 +175,7 @@ class RenderChanPostRunner(CommandRunner):
                 if arguments["format"]=="avi":
                     subprocess.check_call(["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                 else:
+                    # Merge all sequences into single directory
                     f = open(profile_output_list,'r')
                     for line in f.readlines():
                         line=line.strip()
@@ -182,6 +183,22 @@ class RenderChanPostRunner(CommandRunner):
                         print line
                         copytree(line, profile_output, hardlinks=True)
                     f.close()
+                    # Add LST file
+                    lst_path=os.path.splitext(profile_output)[0]+".lst"
+                    f = open(lst_path,'w')
+                    f.write("FPS %s\n" % arguments["fps"])
+                    for filename in sorted(os.listdir(profile_output)):
+                        if filename.endswith(arguments["format"]):
+                            f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
+                    f.close()
+                    # Compatibility
+                    if arguments["projectVersion"]<1:
+                        f = open(os.path.join(profile_output, "file.lst"),'w')
+                        f.write("FPS %s\n" % arguments["fps"])
+                        for filename in sorted(os.listdir(profile_output)):
+                            if filename.endswith(arguments["format"]):
+                                f.write("%s\n" % filename)
+                        f.close()
                 os.remove(profile_output_list)
                 touch(profile_output+".done",arguments["maxTime"])
             else:
