@@ -43,8 +43,8 @@ class RenderChanSynfigModule(RenderChanModule):
 
         fpsPattern = re.compile("<canvas .*fps=\"([0-9]+\.[0-9]+)\".*>")
         framePattern = {}
-        framePattern["startFrame"] = re.compile("<canvas .*begin-time=\"([0-9.sf\s]+[sf])\".*>")
-        framePattern["endFrame"] =  re.compile("<canvas .*end-time=\"([0-9.sf\s]+[sf])\".*>")
+        framePattern["startFrame"] = re.compile("<canvas .*begin-time=\"([0-9.hmsf\s]+[hmsf])\".*>")
+        framePattern["endFrame"] =  re.compile("<canvas .*end-time=\"([0-9.hmsf\s]+[hmsf])\".*>")
 
         # We need this to make sure that start-end values are read only once
         fps=-1
@@ -65,17 +65,18 @@ class RenderChanSynfigModule(RenderChanModule):
                         pat=framePattern[i].search(line)
                         if pat:
                             t=pat.group(1).strip()
-                            if t.endswith('f'):
-                                a=t.split('s ')
-                                if len(a)==1:
-                                    # "11.000f" case
-                                    t=float(a[0][0:-1])
-                                else:
-                                    # "5s 4.00f" case
-                                    t=float(a[0])*fps+float(a[1][0:-1])
-                            elif t.endswith('s'):
-                                t=float(t[0:-1])*fps
-                            info[i]=int(round(t))
+                            a=t.split(' ')
+                            framesCount=float(0)
+                            for field in a:
+                                if field.endswith('f'):
+                                    framesCount+=float(field[0:-1])
+                                elif field.endswith('s'):
+                                    framesCount+=float(field[0:-1])*fps
+                                elif field.endswith('m'):
+                                    framesCount+=float(field[0:-1])*60*fps
+                                elif field.endswith('h'):
+                                    framesCount+=float(field[0:-1])*60*60*fps
+                            info[i]=int(round(framesCount))
 
             pat=scriptPattern.search(line)
             if pat:
