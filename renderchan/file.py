@@ -70,6 +70,22 @@ class RenderChanFile():
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):
                     loadRenderConfig(self.getPath()+".conf", self.config)
+
+                # Format defined by renderpath should take precedence
+                if path != self.getPath():
+                    ext=os.path.splitext(path)[1][1:]
+                    if ext == "lst":
+                        # Read the real format from lst file
+                        f=open(path)
+                        # Line 1, skip it
+                        line=f.readline()
+                        # Line 2
+                        line=f.readline()
+                        line=line.strip()
+                        ext=os.path.splitext(line)[1][1:]
+                        f.close()
+                    self.config["format"]=ext
+
             else:
                 print "Warning: No source file found for %s" % path
 
