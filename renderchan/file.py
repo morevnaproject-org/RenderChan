@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os.path
 from renderchan.project import loadRenderConfig
+from renderchan.module import RenderChanModule
 from renderchan.utils import float_trunc
 
 class RenderChanFile():
@@ -75,15 +76,8 @@ class RenderChanFile():
                 if path != self.getPath():
                     ext=os.path.splitext(path)[1][1:]
                     if ext == "lst":
-                        # Read the real format from lst file
-                        f=open(path)
-                        # Line 1, skip it
-                        line=f.readline()
-                        # Line 2
-                        line=f.readline()
-                        line=line.strip()
-                        ext=os.path.splitext(line)[1][1:]
-                        f.close()
+                        if not self.getFormat() in RenderChanModule.imageExtensions:
+                            ext=RenderChanModule.imageExtensions[0]
                     self.config["format"]=ext
 
             else:
