@@ -150,7 +150,7 @@ class RenderChanProject():
             config.add_section('main')
             for key in newconfig.keys():
                 if newconfig[key]!=None:
-                    config.set('main', key, newconfig[key])
+                    config.set('main', key, str(newconfig[key]))
             with open(filename, 'wb') as configfile:
                 config.write(configfile)
 
