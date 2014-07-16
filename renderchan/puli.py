@@ -152,7 +152,7 @@ class RenderChanPostRunner(CommandRunner):
         profile_output=arguments["profile_output"]
         profile_output_list=os.path.splitext(profile_output)[0]+".txt"
 
-        if arguments["packetSize"]!=0:
+        if arguments["packetSize"]>0:
 
             # We need to merge the rendered files into single one
 
