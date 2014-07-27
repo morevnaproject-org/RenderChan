@@ -41,32 +41,42 @@ class RenderChanFile():
                 self.project.registerModule(self.module)
 
             if os.path.exists(self.getPath()):
-                info=self.module.analyze(self.getPath())
-                if "dependencies" in info.keys():
-
-                    projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),'core.conf')
-                    if os.path.exists(projectconf):
-                        info["dependencies"].append(projectconf)
-
-                    moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),self.module.getName()+'.conf')
-                    if os.path.exists(moduleconf):
-                        info["dependencies"].append(moduleconf)
-
-                    # This is commented, because it shouldn't influence maxTime
-                    #profileconf=os.path.join(self.project.path,"render","project.conf","profile.conf")
-                    #if os.path.exists(profileconf):
-                    #    info["dependencies"].append(profileconf)
-
-                    fileconf=self.getPath()+'.conf'
-                    if os.path.exists(fileconf):
-                        info["dependencies"].append(fileconf)
-
-                    self.dependencies=list(set(info["dependencies"]))
-
-                if "startFrame" in info.keys():
+                print ". Analysing file: %s" % os.path.relpath(path)
+                info=self.project.cache.getInfo(self.localPath)
+                if info and info["timestamp"]>=self.getTime():
+                    print ". . Cache found"
                     self.startFrame=int(info["startFrame"])
-                if "endFrame" in info.keys():
                     self.endFrame=int(info["endFrame"])
+                    self.dependencies=self.project.cache.getDependencies(self.localPath)
+                else:
+                    info=self.module.analyze(self.getPath())
+                    if "dependencies" in info.keys():
+                        projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),'core.conf')
+                        if os.path.exists(projectconf):
+                            info["dependencies"].append(projectconf)
+
+                        moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),self.module.getName()+'.conf')
+                        if os.path.exists(moduleconf):
+                            info["dependencies"].append(moduleconf)
+
+                        # This is commented, because it shouldn't influence maxTime
+                        #profileconf=os.path.join(self.project.path,"render","project.conf","profile.conf")
+                        #if os.path.exists(profileconf):
+                        #    info["dependencies"].append(profileconf)
+
+                        fileconf=self.getPath()+'.conf'
+                        if os.path.exists(fileconf):
+                            info["dependencies"].append(fileconf)
+
+                        self.dependencies=list(set(info["dependencies"]))
+
+                    if "startFrame" in info.keys():
+                        self.startFrame=int(info["startFrame"])
+                    if "endFrame" in info.keys():
+                        self.endFrame=int(info["endFrame"])
+
+                    # Write cache
+                    self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies)
 
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):

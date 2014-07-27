@@ -3,6 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 import ConfigParser
 from renderchan.utils import mkdirs
+from renderchan.cache import RenderChanCache
 
 def loadRenderConfig(filename, targetDict):
 
@@ -58,6 +59,8 @@ class RenderChanProject():
             self.version = 1
         self.path=os.path.dirname(confFile)
         self.confPath=confFile
+        self.cache=RenderChanCache(os.path.join(self.path, "render", "cache.sqlite"))
+        # List of modules used in the project
         self.dependencies=[]
 
         self.defaults = {

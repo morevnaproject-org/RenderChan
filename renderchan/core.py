@@ -193,7 +193,6 @@ class RenderChan():
                     print "Warning: Circular dependency detected for %s. Skipping." % (path)
                     continue
             else:
-                print ". loading file: %s" % path
                 dependency = RenderChanFile(path, self.modules, self.projects)
                 if not os.path.exists(dependency.getPath()):
                     print "   Skipping file %s..." % path
