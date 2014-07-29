@@ -29,7 +29,7 @@ class RenderChanCache():
 
     def getInfo(self, path):
         cur=self.connection.cursor()
-        cur.execute("SELECT * FROM Paths WHERE Path='%s'" % (path))
+        cur.execute("SELECT * FROM Paths WHERE Path = ? ", (path,))
         row = cur.fetchone()
         if row:
             info={}
@@ -42,7 +42,7 @@ class RenderChanCache():
 
     def getDependencies(self, path):
         cur=self.connection.cursor()
-        cur.execute("SELECT Id FROM Paths WHERE Path='%s'" % (path))
+        cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
         result = cur.fetchone()
         if result:
             id=result[0]
@@ -61,7 +61,7 @@ class RenderChanCache():
         cur=self.connection.cursor()
 
         # First, delete all records for given path if present
-        cur.execute("SELECT Id FROM Paths WHERE Path='%s'" % (path))
+        cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
         rows = cur.fetchall()
         for row in rows:
             cur.execute("DELETE FROM Paths WHERE Id=%s" % (row[0]))
@@ -69,9 +69,14 @@ class RenderChanCache():
         self.connection.commit()
 
         # Now, write the data
-        cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End) VALUES('%s', %f, %s, %s)" % (path, timestamp, start, end))
+        cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End) VALUES(?, ?, ?, ?)", (path, timestamp, start, end))
         id = cur.lastrowid
+
+        # Again, make sure we have no associated data in dependency table
+        cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (id))
+
+        # Write a list of dependencies
         for dep in dependencies:
             relpath=os.path.relpath(os.path.realpath(dep), os.path.realpath(os.path.dirname(os.path.dirname(self.path))))
-            cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(%s, '%s')" % (id, relpath))
+            cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
         self.connection.commit()
