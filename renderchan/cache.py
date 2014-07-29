@@ -11,6 +11,7 @@ class RenderChanCache():
 
         try:
             self.connection=sqlite3.connect(path)
+            self.connection.text_factory = str
             cur=self.connection.cursor()
 
             cur.execute("CREATE TABLE IF NOT EXISTS Paths(Id INTEGER PRIMARY KEY, Path TEXT, Timestamp REAL, Start INTEGER, End INTEGER);")
