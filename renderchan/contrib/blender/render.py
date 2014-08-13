@@ -60,7 +60,7 @@ def main():
     if sce.render.engine == 'CYCLES':
 
         # Allow to override smples from .conf file
-        if params[CYCLES_SAMPLES]!=0:
+        if params[CYCLES_SAMPLES]!=None:
             sce.cycles.samples = params[CYCLES_SAMPLES]
 
         # Allow to set GPU device from RenderChan module settings
