@@ -14,9 +14,9 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
         # Extra params
-        self.extraParams["cycles_samples"]=0
-        self.extraParams["prerender_count"]=0
-        self.extraParams["single"]=None
+        self.extraParams["cycles_samples"]="0"
+        self.extraParams["prerender_count"]="0"
+        self.extraParams["single"]="None"
 
     def getInputFormats(self):
         return ["blend"]
@@ -94,7 +94,7 @@ class RenderChanBlenderModule(RenderChanModule):
         f.close()
 
         if format in RenderChanModule.imageExtensions:
-            if extraParams["single"] is not None:
+            if extraParams["single"]!="None":
                 outputPath=outputPath+"-######"
             elif extraParams["projectVersion"]<1:
                 outputPath=os.path.join(outputPath, "file")+".####"
@@ -109,7 +109,7 @@ class RenderChanBlenderModule(RenderChanModule):
         env["PYTHONPATH"]=""
 
         commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath]
-        if extraParams["single"] is None:
+        if extraParams["single"]=="None":
             commandline.append("-x")
             commandline.append("1")
             commandline.append("-s")
@@ -153,7 +153,7 @@ class RenderChanBlenderModule(RenderChanModule):
         print '  Blender command returns with code %d' % rc
         print '===================================================='
 
-        if format in RenderChanModule.imageExtensions and extraParams["single"] is not None:
+        if format in RenderChanModule.imageExtensions and extraParams["single"]!="None":
             outputPath=outputPath[:-7]
             tmp=outputPath+"-%06d" % int(extraParams["single"])
             os.rename(tmp, outputPath)

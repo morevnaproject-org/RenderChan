@@ -180,7 +180,7 @@ class RenderChanFile():
 
         size=-1
 
-        if self.config.has_key("single") and self.config["single"]!=None:
+        if self.config.has_key("single") and self.config["single"]!="None":
             return 0
 
         # Let conf files override packet size

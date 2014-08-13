@@ -15,8 +15,8 @@ class RenderChanSynfigModule(RenderChanModule):
         self.conf["maxNbCores"]=1
 
         # Extra params
-        self.extraParams["single"]=None
-        self.extraParams["extract_alpha"]=0
+        self.extraParams["single"]="None"
+        self.extraParams["extract_alpha"]="0"
 
     def getInputFormats(self):
         return ["sif", "sifz"]
@@ -134,7 +134,7 @@ class RenderChanSynfigModule(RenderChanModule):
         #/path/to/file.sifz.png: Line 10 of 100 -- 1m 14s
         frameNumberPattern = re.compile(": Line (\d+) of \d+ -- ")
 
-        if format in RenderChanModule.imageExtensions and extraParams["single"] is None:
+        if format in RenderChanModule.imageExtensions and extraParams["single"]=="None":
             try:
                 os.makedirs(outputPath)
             except OSError as exc: # Python >2.5
@@ -157,7 +157,7 @@ class RenderChanSynfigModule(RenderChanModule):
             commandline.append("-t")
             commandline.append("png")
 
-        if extraParams["single"] is None:
+        if extraParams["single"]=="None":
             commandline.append("--start-time")
             commandline.append(str(startFrame)+"f")
             commandline.append("--end-time")
