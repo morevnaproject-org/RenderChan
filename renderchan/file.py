@@ -114,13 +114,37 @@ class RenderChanFile():
 
             if localpath.startswith("render") and not localpath.startswith(os.path.join("render","project.conf")):
                 localpath=localpath[6:]
-                localpath=os.path.splitext(localpath)[0]
 
-            # cleanup
-            while localpath.startswith('/'):
-                localpath=localpath[1:]
+                # cleanup
+                while localpath.startswith('/'):
+                    localpath=localpath[1:]
+
+                # now, let's have some heuristics...
+
+                # /projectroot/path/file.ext.png ?
+                localpath=os.path.splitext(localpath)[0]
+                if os.path.exists(os.path.join(self.projectPath,localpath)):
+                    return localpath
+
+                # /projectroot/path/file.ext-alpha.png ?
+                if localpath.endswith("-alpha"):
+                    localpath_alpha=localpath[:-6]
+                    if os.path.exists(os.path.join(self.projectPath, localpath_alpha)):
+                        return localpath_alpha
+
+                # /projectroot/path/file.ext.png/file-0000x.png ?
+                localpath2=os.path.splitext(os.path.dirname(localpath))[0]
+                if os.path.exists(os.path.join(self.projectPath,localpath2)) and not os.path.isdir(os.path.join(self.projectPath,localpath2)):
+                    return localpath2
+
+                # /projectroot/path/file.ext-alpha.png/file-0000x.png ?
+                if localpath2.endswith("-alpha"):
+                    localpath_alpha=localpath2[:-6]
+                    if os.path.exists(os.path.join(self.projectPath, localpath_alpha)) and not os.path.isdir(os.path.join(self.projectPath,localpath_alpha)):
+                        return localpath_alpha
 
             return localpath
+
         else:
             return path
 

@@ -16,6 +16,7 @@ class RenderChanSynfigModule(RenderChanModule):
 
         # Extra params
         self.extraParams["single"]=None
+        self.extraParams["extract_alpha"]=0
 
     def getInputFormats(self):
         return ["sif", "sifz"]
@@ -164,6 +165,9 @@ class RenderChanSynfigModule(RenderChanModule):
         else:
             commandline.append("--time")
             commandline.append(extraParams["single"]+"f")
+
+        if extraParams["extract_alpha"] == "1":
+            commandline.append("-x")
 
         commandline.append(filename)
 
