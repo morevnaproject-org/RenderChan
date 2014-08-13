@@ -21,7 +21,7 @@ class RenderChanSynfigModule(RenderChanModule):
         return ["sif", "sifz"]
 
     def getOutputFormats(self):
-        return ["png","exr"]
+        return ["png","exr", "avi"]
 
     def analyze(self, filename):
 
@@ -143,7 +143,18 @@ class RenderChanSynfigModule(RenderChanModule):
             outputPath=os.path.join(outputPath, "file."+format)
 
 
-        commandline=[self.conf['binary'], "-t", format, "-o",outputPath, "-w", width, "-h", height]
+        commandline=[self.conf['binary'], "-o",outputPath, "-w", width, "-h", height]
+
+        if format == "avi":
+            commandline.append("-t")
+            commandline.append("ffmpeg")
+            commandline.append("--video-codec")
+            commandline.append("libx264-lossless")
+            commandline.append("--video-bitrate")
+            commandline.append("2000")
+        else:
+            commandline.append("-t")
+            commandline.append("png")
 
         if extraParams["single"] is None:
             commandline.append("--start-time")
