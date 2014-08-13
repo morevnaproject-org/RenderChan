@@ -158,7 +158,7 @@ class RenderChanPostRunner(CommandRunner):
         updateCompletion(0.0)
 
         jobs = [(arguments["output"], arguments["profile_output"])]
-        if arguments["extract_alpha"] == "1":
+        if arguments.has_key("extract_alpha") and arguments["extract_alpha"] == "1":
             alpha_job = []
             alpha_job.append(
                 os.path.splitext(arguments["output"])[0] + "-alpha" + os.path.splitext(arguments["output"])[1])
