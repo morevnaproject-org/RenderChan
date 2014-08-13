@@ -86,8 +86,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[STEREO_CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
-           .replace("params[CYCLES_SAMPLES]",str(extraParams["cycles_samples"]))\
-           .replace("params[PRERENDER_COUNT]",str(extraParams["prerender_count"]))\
+           .replace("params[CYCLES_SAMPLES]",str(int(extraParams["cycles_samples"])))\
+           .replace("params[PRERENDER_COUNT]",str(int(extraParams["prerender_count"])))\
            .replace("params[GPU_DEVICE]",'"'+self.conf["gpu_device"]+'"')
         f = open(renderscript,'w')
         f.write(script)
