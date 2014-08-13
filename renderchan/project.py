@@ -163,8 +163,7 @@ class RenderChanProject():
         elif key in self.defaults.keys():
             return self.defaults[key]
         else:
-            print "Warning: No such key (%s)" % (key)
-            return ""
+            return None
 
     def getProfileName(self):
         return "%sx%s" % (self.config["width"], self.config["height"])

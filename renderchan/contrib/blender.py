@@ -14,8 +14,8 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
         # Extra params
-        self.extraParams["blender_cycles_samples"]=0
-        self.extraParams["blender_prerender_count"]=0
+        self.extraParams["cycles_samples"]=0
+        self.extraParams["prerender_count"]=0
         self.extraParams["single"]=None
 
     def getInputFormats(self):
@@ -78,7 +78,7 @@ class RenderChanBlenderModule(RenderChanModule):
         frameNumberPattern = re.compile("Fra:(\d+) Mem:.*")
 
         random_string = "%08d" % (random.randint(0,99999999))
-        renderscript="/tmp/renderchan"+os.path.basename(filename)+"-"+random_string+".py"
+        renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
         script=script.replace("params[UPDATE]","False")\
            .replace("params[WIDTH]", str(width))\
@@ -86,8 +86,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[STEREO_CAMERA]", '""')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
-           .replace("params[CYCLES_SAMPLES]",str(extraParams["blender_cycles_samples"]))\
-           .replace("params[PRERENDER_COUNT]",str(extraParams["blender_prerender_count"]))\
+           .replace("params[CYCLES_SAMPLES]",str(extraParams["cycles_samples"]))\
+           .replace("params[PRERENDER_COUNT]",str(extraParams["prerender_count"]))\
            .replace("params[GPU_DEVICE]",'"'+self.conf["gpu_device"]+'"')
         f = open(renderscript,'w')
         f.write(script)

@@ -160,12 +160,10 @@ class RenderChanFile():
             return 0
 
         # Let conf files override packet size
-        if self.config.has_key(self.module.getName()+"_packet_size"):
-            size=int(self.config[self.module.getName()+"_packet_size"])
-        elif self.config.has_key("packet_size"):
+        if self.config.has_key("packet_size"):
             size=int(self.config["packet_size"])
-        elif self.project.config.has_key(self.module.getName()+"_packet_size"):
-            size=int(self.project.config[self.module.getName()+"_packet_size"])
+        elif self.project.config.has_key(self.module.getName()+".packet_size"):
+            size=int(self.project.config[self.module.getName()+".packet_size"])
         elif self.project.config.has_key("packet_size"):
             size=int(self.project.config["packet_size"])
 
@@ -181,8 +179,15 @@ class RenderChanFile():
             return self.module.getPacketSize()
 
     def getFormat(self):
+        key="format"
+        if self.config.has_key(key):
+            format=self.config[key]
+        elif self.project:
+            if self.module.getName()+"."+key in self.project.config.keys():
+                format=self.project.getConfig(self.module.getName()+"."+key)
+            else:
+                format=self.project.getConfig(key)
         # Check if format is supported by the module
-        format=self.getConfig("format")
         if not format in self.module.getOutputFormats():
             format=self.module.getOutputFormats()[0]
         return format
@@ -192,12 +197,20 @@ class RenderChanFile():
 
         # Basic project values
         for key in self.project.defaults.keys():
-            params[key]=self.getConfig(key)
+            if self.config.has_key(key):
+                params[key]=self.config[key]
+            elif self.project:
+                if self.module.getName()+"."+key in self.project.config.keys():
+                    params[key]=self.project.getConfig(self.module.getName()+"."+key)
+                else:
+                    params[key]=self.project.getConfig(key)
 
         # Module-specific configuration
         for key in self.module.extraParams.keys():
             if key in self.config.keys():
                 params[key]=self.config[key]
+            elif self.module.getName()+"."+key in self.project.config.keys():
+                params[key]=self.project.config[self.module.getName()+"."+key]
             elif key in self.project.config.keys():
                 params[key]=self.project.config[key]
             else:
@@ -213,17 +226,8 @@ class RenderChanFile():
         params["end"]=self.getEndFrame()
         #params["dependencies"]=self.getDependencies()
         params["projectVersion"]=self.project.version
-        params["format"]=self.getFormat()
 
         return params
-
-    def getConfig(self, key):
-        if self.config.has_key(key):
-            return self.config[key]
-        elif self.project:
-            return self.project.getConfig(key)
-        else:
-            return None
 
     def getDependencies(self):
         return self.dependencies
