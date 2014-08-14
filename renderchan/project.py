@@ -142,11 +142,12 @@ class RenderChanProject():
 
         newconfig={}
         for key in module.extraParams:
-            if module.extraParams[key]!=None:
-                newconfig[key]=module.extraParams[key]
-        for key in self.config.keys():
-            if key in module.extraParams.keys():
+            if self.config.has_key(module.getName()+"."+key):
+                newconfig[key]=self.config[module.getName()+"."+key]
+            elif self.config.has_key(key):
                 newconfig[key]=self.config[key]
+            else:
+                newconfig[key]=module.extraParams[key]
 
         if newconfig!=oldconfig:
             config = ConfigParser.SafeConfigParser()
