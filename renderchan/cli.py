@@ -13,6 +13,10 @@ def process_args():
         usage=_("""
     %prog [FILE]               """))
 
+    parser.add_option("--profile", dest="profile",
+            action="store",
+            help=_("Set rendering profile."))
+
     # TODO: Not implemented
     parser.add_option("--width", dest="width",
             action="store",
@@ -48,6 +52,8 @@ def main(argv):
     filename = os.path.abspath(args[0])
 
     renderchan = RenderChan()
+    if options.profile:
+        renderchan.projects.setProfile(options.profile)
 
     useDispatcher=False
     if options.dispatcherHost:

@@ -2,48 +2,32 @@ __author__ = 'Konstantin Dmitriev'
 
 import os.path
 import ConfigParser
-from renderchan.utils import mkdirs
+from renderchan.utils import mkdirs, PlainConfigFileWrapper
 from renderchan.cache import RenderChanCache
-
-def loadRenderConfig(filename, targetDict):
-
-    config = ConfigParser.SafeConfigParser()
-    config.readfp(FakeSecHead(open(filename)))
-
-    for key in config.options('default'):
-        targetDict[key]=config.get('default', key)
-
-    return True
-
-class FakeSecHead(object):
-    def __init__(self, fp):
-        self.fp = fp
-        self.sechead = '[default]\n'
-    def readline(self):
-        if self.sechead:
-            try:
-                return self.sechead
-            finally:
-                self.sechead = None
-        else:
-            return self.fp.readline()
 
 class RenderChanProjectManager():
     def __init__(self):
+
         self.list = {}
 
+        # Active project. All other projects inherit render settings of active one.
+        self.active = None
+
+        # Active profile to apply. If value is None, then use default (defined by the project).
+        self.profile = None
+
     def load(self, path):
-        confFile = os.path.join(path,"project.conf")
-        if not os.path.exists(confFile):
-            # Look for remake.conf
-            confFile = os.path.join(path,"remake.conf")
-        if not os.path.exists(confFile):
-            raise Exception
 
-        # TODO: Load project cache here
-        # ...
+        self.list[path]=RenderChanProject(path)
 
-        self.list[path]=RenderChanProject(confFile)
+        # All projects should inherit render configuration of active project
+        if self.getActive()==None:
+            self.setActive(self.list[path])
+            if self.profile:
+                self.setProfile(self.profile)
+        else:
+            self.list[path].config=self.active.config[:]
+            self.list[path].activeProfile=self.active.activeProfile
 
     def get(self, path):
         if not self.list.has_key(path):
@@ -51,14 +35,50 @@ class RenderChanProjectManager():
 
         return self.list[path]
 
+    def setActive(self, project):
+        """
+
+        :type project: RenderChanProject
+        """
+        self.active = project
+        self.updateChildProjects()
+
+    def getActive(self):
+        return self.active
+
+    def setProfile(self, profile):
+        """
+
+        :type profile: str
+        """
+        if self.active and self.active.loadRenderConfig(profile):
+            self.updateChildProjects()
+        self.profile=profile
+
+    def updateChildProjects(self):
+        for key in self.list.keys():
+            self.list[key].config=self.active.config.copy()
+            self.list[key].activeProfile=self.active.activeProfile
+
+
 class RenderChanProject():
-    def __init__(self, confFile):
-        if os.path.basename(confFile) == "remake.conf":
+    def __init__(self, path):
+
+        self.path=path
+
+        self.confPath = os.path.join(path,"project.conf")
+        if not os.path.exists(self.confPath):
+            # Look for remake.conf
+            self.confPath = os.path.join(path,"remake.conf")
+        if not os.path.exists(self.confPath):
+            raise Exception
+
+        if os.path.basename(self.confPath) == "remake.conf":
             self.version = 0
         else:
             self.version = 1
-        self.path=os.path.dirname(confFile)
-        self.confPath=confFile
+
+        self.activeProfile=None
         self.cache=RenderChanCache(os.path.join(self.path, "render", "cache.sqlite"))
         # List of modules used in the project
         self.dependencies=[]
@@ -75,14 +95,67 @@ class RenderChanProject():
         # Project configuration
 
         self.config={}
-        loadRenderConfig(confFile, self.config)
+        self.loadRenderConfig()
+
+        # Load list of frozen files
+        self.frozenPaths=[]
+        self.loadFrozenPaths()
+
+    def loadRenderConfig(self, profile=None):
+
+        """
+        :type profile: str
+        """
+        if self.version==0 and profile!=None:
+
+            print("Warning: Profiles are not supported with old project format. No profile loaded.")
+            return False
+
+        elif self.version==0:
+
+            # Old project format, used by Remake
+
+            config = ConfigParser.SafeConfigParser()
+            config.readfp(PlainConfigFileWrapper(open(self.confPath)))
+
+            for key in config.options('default'):
+                self.config[key]=config.get('default', key)
+        else:
+
+            # Native RenderChan project format
+
+            config = ConfigParser.SafeConfigParser()
+            config.readfp(open(self.confPath))
+
+            # sanity check
+            for section in config.sections():
+                if "." in section:
+                    print "Warning: Incorrect profile name found (%s) - dots are not allowed." % (section)
+
+            if profile==None:
+                if config.has_option("main", "active_profile"):
+                    profile=config.get("main", "active_profile")
+                else:
+                    if len(config.sections())!=0:
+                        self.config
+                    else:
+                        return False
+
+            profile=profile.replace(".","")
+
+            for key in config.options(profile):
+                self.config[key]=config.get(profile, key)
+
+            self.activeProfile=profile
+
+
 
         # Store project configuration - we need that to track configuration changes
 
-        if not os.path.isdir(os.path.join(self.path,"render","project.conf",self.getProfileName())):
-            mkdirs(os.path.join(self.path,"render","project.conf",self.getProfileName()))
+        if not os.path.isdir(os.path.join(self.path,"render","project.conf",self.getProfileDirName())):
+            mkdirs(os.path.join(self.path,"render","project.conf",self.getProfileDirName()))
 
-        filename=os.path.join(self.path,"render","project.conf",self.getProfileName(),"core.conf")
+        filename=os.path.join(self.path,"render","project.conf",self.getProfileDirName(),"core.conf")
         oldconfig={}
         if os.path.exists(filename):
             cp = ConfigParser.SafeConfigParser()
@@ -112,15 +185,12 @@ class RenderChanProject():
             f=open(filename)
             prev_profile = f.readlines()[0].strip()
             f.close()
-        if prev_profile!=self.getProfileName():
+        if prev_profile!=self.getProfileDirName():
             f = open(filename,'w')
-            f.write(self.getProfileName()+"\n")
+            f.write(self.getProfileDirName()+"\n")
             f.close()
 
-
-        # Load list of frozen files
-        self.frozenPaths=[]
-        self.loadFrozenPaths()
+        return True
 
     def registerModule(self, module):
         name=module.getName()
@@ -131,7 +201,7 @@ class RenderChanProject():
         self.dependencies.append(name)
 
         # Store module configuration - we need that for configuration changes detection
-        filename=os.path.join(self.path,"render","project.conf",self.getProfileName(),name+".conf")
+        filename=os.path.join(self.path,"render","project.conf",self.getProfileDirName(),name+".conf")
         oldconfig={}
         if os.path.exists(filename):
             cp = ConfigParser.SafeConfigParser()
@@ -166,8 +236,12 @@ class RenderChanProject():
         else:
             return None
 
-    def getProfileName(self):
-        return "%sx%s" % (self.config["width"], self.config["height"])
+    def getProfileDirName(self):
+        if self.version == 0:
+            result="%sx%s" % (self.config["width"], self.config["height"])
+        else:
+            result="%sx%s.%s"  % (self.config["width"], self.config["height"], self.activeProfile)
+        return result
 
     def loadFrozenPaths(self):
         filename=os.path.join(self.path,"render","project.conf","frozen.list")

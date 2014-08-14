@@ -1,12 +1,11 @@
 __author__ = 'Konstantin Dmitriev'
 
 import os.path
-from renderchan.project import loadRenderConfig
+import ConfigParser
 from renderchan.module import RenderChanModule
-from renderchan.utils import float_trunc
+from renderchan.utils import float_trunc, PlainConfigFileWrapper
 
 class RenderChanFile():
-    globalParams=["width","height","fps",]
     def __init__(self, path, modules, projects):
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
@@ -41,7 +40,12 @@ class RenderChanFile():
                 self.project.registerModule(self.module)
 
             if os.path.exists(self.getPath()):
-                print ". Analysing file: %s" % os.path.relpath(path)
+
+                output_str=os.path.relpath(path)
+                if len(output_str)>60:
+                    output_str="..."+output_str[-60:]
+                print ". Analyzing file: %s" % output_str
+
                 info=self.project.cache.getInfo(self.localPath)
                 if info and info["timestamp"]>=self.getTime():
                     print ". . Cache found"
@@ -51,11 +55,11 @@ class RenderChanFile():
                 else:
                     info=self.module.analyze(self.getPath())
                     if "dependencies" in info.keys():
-                        projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),'core.conf')
+                        projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileDirName(),'core.conf')
                         if os.path.exists(projectconf):
                             info["dependencies"].append(projectconf)
 
-                        moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileName(),self.module.getName()+'.conf')
+                        moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileDirName(),self.module.getName()+'.conf')
                         if os.path.exists(moduleconf):
                             info["dependencies"].append(moduleconf)
 
@@ -80,7 +84,7 @@ class RenderChanFile():
 
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):
-                    loadRenderConfig(self.getPath()+".conf", self.config)
+                    self._loadConfig(self.getPath()+".conf")
 
                 # Format defined by renderpath should take precedence
                 if path != self.getPath():
@@ -93,6 +97,15 @@ class RenderChanFile():
             else:
                 print "Warning: No source file found for %s" % path
 
+    def _loadConfig(self, filename):
+
+        config = ConfigParser.SafeConfigParser()
+        config.readfp(PlainConfigFileWrapper(open(filename)))
+
+        for key in config.options('default'):
+            self.config[key]=config.get('default', key)
+
+        return True
 
     def _findProjectRoot(self, path):
         while True:
@@ -170,7 +183,7 @@ class RenderChanFile():
             return None
 
     def getProfileRenderPath(self):
-        profile = self.project.getProfileName()
+        profile = self.project.getProfileDirName()
         path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
