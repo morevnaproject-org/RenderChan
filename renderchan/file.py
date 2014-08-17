@@ -263,6 +263,7 @@ class RenderChanFile():
         params["end"]=self.getEndFrame()
         #params["dependencies"]=self.getDependencies()
         params["projectVersion"]=self.project.version
+        params["profile"]=self.project.activeProfile
 
         return params
 

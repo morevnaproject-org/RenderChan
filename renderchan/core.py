@@ -24,6 +24,13 @@ class RenderChan():
         self.loadedFiles = {}
 
         self.graph = Graph( 'RenderChan graph', poolName="default" )
+        # == taskgroups bug / commented ==
+        # The following are the special taskgroups used for managing stereo rendering
+        #self.taskgroupLeft = None
+        #self.taskgroupRight = None
+
+        # FIXME: The childTask is a dirty workaround, which we need because of broken taskgroups functionality (search for "taskgroups bug" string to get the commented code)
+        self.childTask = None
 
     def setHost(self, host):
         self.puliServer=host
@@ -31,35 +38,61 @@ class RenderChan():
     def setPort(self, port):
         self.puliPort=port
 
-    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False, allocateOnly=False):
+    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False, allocateOnly=False, stereo=""):
 
         """
 
         :type taskfile: RenderChanFile
         """
 
-        if allocateOnly and dependenciesOnly:
+        if stereo in ("vertical","v","horizontal","h"):
 
-            if os.path.exists(taskfile.getRenderPath()):
-                self.parseDirectDependency(taskfile, None)
+            # Left eye graph
+            self.projects.setStereoMode("left")
+            self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+            input_left = taskfile.getProfileRenderPath()
+
+            # Right eye graph
+            self.projects.setStereoMode("right")
+            self.childTask = taskfile.taskPost
+            self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+            input_right = taskfile.getProfileRenderPath()
+
+            # Stitching altogether
+            name = taskfile.getPath()
+            runner = "renderchan.puli.RenderChanStereoPostRunner"
+            decomposer = "renderchan.puli.RenderChanNullDecomposer"
+            params={}
+            params["input_left"]=input_left
+            params["input_right"]=input_right
+            params["output"] = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo"
+            if stereo in ("vertical","v"):
+                params["stereo_mode"] = "vertical"
+                params["output"]+="-v"
             else:
-                taskfile.endFrame = taskfile.startFrame + 2
-                self.parseRenderDependency(taskfile, allocateOnly)
+                params["stereo_mode"] = "horizontal"
+                params["output"]+="-h"
+            params["output"]+=".avi"
+            stereoTask = self.graph.addNewTask( name="StereoPost: "+name, runner=runner, arguments=params, decomposer=decomposer )
 
-        elif dependenciesOnly:
+            # Dummy task
+            #decomposer = "puliclient.contrib.generic.GenericDecomposer"
+            #params={ "cmd":"echo", "start":1, "end":1, "packetSize":1, "prod":"test", "shot":"test" }
+            #dummyTask = self.graph.addNewTask( name="StereoDummy", arguments=params, decomposer=decomposer )
 
-            self.parseDirectDependency(taskfile, None)
+            # == taskgroups bug / commented ==
+            #self.graph.addEdges( [(self.taskgroupLeft, self.taskgroupRight)] )
+            #self.graph.addEdges( [(self.taskgroupRight, stereoTask)] )
+            #self.graph.addChain( [self.taskgroupLeft, dummyTask, self.taskgroupRight, stereoTask] )
+            if taskfile.taskPost!=None:
+                self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
 
         else:
-
-            if allocateOnly:
-                if os.path.exists(taskfile.getRenderPath()):
-                    print "File is already allocated."
-                    sys.exit(0)
-                taskfile.dependencies=[]
-                taskfile.endFrame = taskfile.startFrame + 2
-
-            self.parseRenderDependency(taskfile, allocateOnly)
+            if stereo in ("left","l"):
+                self.projects.setStereoMode("left")
+            elif stereo in ("right","r"):
+                self.projects.setStereoMode("right")
+            self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
         # Finally submit the graph to Puli
 
@@ -77,11 +110,60 @@ class RenderChan():
             # Local rendering
             self.graph.execute()
 
+    def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+
+        for path in self.loadedFiles.keys():
+            self.loadedFiles[path].isDirty=None
+        #self.loadedFiles={}
+
+        # == taskgroups bug / commented ==
+        # Prepare taskgroups if we do stereo rendering
+        #if self.projects.active.getConfig("stereo")=="left":
+        #    self.taskgroupLeft = self.graph.addNewTaskGroup( name="TG Left: "+taskfile.getPath() )
+        #elif self.projects.active.getConfig("stereo")=="right":
+        #    self.taskgroupRight = self.graph.addNewTaskGroup( name="TG Right: "+taskfile.getPath() )
+
+
+        if allocateOnly and dependenciesOnly:
+
+            if os.path.exists(taskfile.getRenderPath()):
+                self.parseDirectDependency(taskfile, None)
+            else:
+                taskfile.endFrame = taskfile.startFrame + 2
+                self.parseRenderDependency(taskfile, allocateOnly)
+
+        elif dependenciesOnly:
+
+            self.parseDirectDependency(taskfile, None)
+
+        elif allocateOnly:
+
+            if os.path.exists(taskfile.getRenderPath()):
+                print "File is already allocated."
+                sys.exit(0)
+            taskfile.dependencies=[]
+            taskfile.endFrame = taskfile.startFrame + 2
+            self.parseRenderDependency(taskfile, allocateOnly)
+
+        else:
+
+            self.parseRenderDependency(taskfile, allocateOnly)
+
+
+        self.childTask = None
+
+
     def parseRenderDependency(self, taskfile, allocateOnly):
         """
 
         :type taskfile: RenderChanFile
         """
+
+        # TODO: Re-implement this function in the same way as syncProfileData()
 
         isDirty = False
 
@@ -91,7 +173,15 @@ class RenderChan():
             checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
             checkTime=float_trunc(os.path.getmtime(checkFile),1)
         if os.path.exists(taskfile.getProfileRenderPath()):
-            sync(taskfile.getProfileRenderPath(),taskfile.getRenderPath(),checkTime)
+
+            source=taskfile.getProfileRenderPath()
+            dest=taskfile.getRenderPath()
+            sync(source,dest,checkTime)
+
+            source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            sync(source,dest,checkTime)
+
         else:
             isDirty = True
 
@@ -115,7 +205,19 @@ class RenderChan():
 
             # Puli part here
 
-            name = taskfile.getPath()
+            name = taskfile.localPath
+
+            graph_destination = self.graph
+            # == taskgroups bug / commented ==
+            #if self.projects.active.getConfig("stereo")=="left":
+            #    graph_destination = self.taskgroupLeft
+            #    name+=" (L)"
+            #elif self.projects.active.getConfig("stereo")=="right":
+            #    graph_destination = self.taskgroupRight
+            #    name+=" (R)"
+            #else:
+            #    graph_destination = self.graph
+
             runner = "renderchan.puli.RenderChanRunner"
             decomposer = "renderchan.puli.RenderChanDecomposer"
 
@@ -132,15 +234,15 @@ class RenderChan():
             mkdirs(os.path.dirname(params["output"]))
 
             # Add rendering task to the graph
-            taskfile.taskRender=self.graph.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
+            taskfile.taskRender=graph_destination.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
 
 
             # Now we will add a task which composes results and places it into valid destination
 
             # Add rendering task to the graph
             runner = "renderchan.puli.RenderChanPostRunner"
-            decomposer = "renderchan.puli.RenderChanPostDecomposer"
-            taskfile.taskPost=self.graph.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
+            decomposer = "renderchan.puli.RenderChanNullDecomposer"
+            taskfile.taskPost=graph_destination.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
                                        maxNbCores=taskfile.module.conf["maxNbCores"] )
 
             self.graph.addEdges( [(taskfile.taskRender, taskfile.taskPost)] )
@@ -148,6 +250,9 @@ class RenderChan():
             # Add edges for dependent tasks
             for task in tasklist:
                 self.graph.addEdges( [(task, taskfile.taskRender)] )
+
+            if self.childTask!=None:
+                self.graph.addEdges( [(self.childTask, taskfile.taskRender)] )
 
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
@@ -254,3 +359,41 @@ class RenderChan():
         taskfile.pending=False
 
         return (isDirty, list(tasklist), maxTime)
+
+    def syncProfileData(self, renderpath):
+
+        if renderpath in self.loadedFiles.keys():
+            taskfile = self.loadedFiles[renderpath]
+            if taskfile.pending:
+                # Avoid circular dependencies
+                print "Warning: Circular dependency detected for %s. Skipping." % (renderpath)
+                return
+        else:
+            taskfile = RenderChanFile(renderpath, self.modules, self.projects)
+            if not os.path.exists(taskfile.getPath()):
+                print "   No source file for %s. Skipping." % renderpath
+                return
+            self.loadedFiles[taskfile.getPath()]=taskfile
+            taskfile.pending=True  # we need this to avoid circular dependencies
+            if taskfile.project!=None and taskfile.module!=None:
+                self.loadedFiles[taskfile.getRenderPath()]=taskfile
+
+        deps = taskfile.getDependencies()
+        for path in deps:
+            self.syncProfileData(path)
+
+        if renderpath != taskfile.getPath():
+            # TODO: Change parseRenderDependency() in the same way?
+            checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
+            checkTime=float_trunc(os.path.getmtime(checkFile),1)
+
+            source=taskfile.getProfileRenderPath()
+            dest=taskfile.getRenderPath()
+            sync(source,dest,checkTime)
+
+            source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            sync(source,dest,checkTime)
+
+        taskfile.pending=False
+

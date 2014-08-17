@@ -16,6 +16,14 @@ def process_args():
     parser.add_option("--profile", dest="profile",
             action="store",
             help=_("Set rendering profile."))
+    parser.add_option("--stereo", dest="stereo",
+            action="store",
+            help=_("Enable stereo-3D rendering. Possible values for STEREO:\n\n"
+                   "'vertical' or 'v', "
+                   "'horizontal' or 'h', "
+                   "'left' or 'l', "
+                   "'right' or 'r'. "
+                    ))
 
     # TODO: Not implemented
     parser.add_option("--width", dest="width",
@@ -65,4 +73,4 @@ def main(argv):
         print "WARNING: No dispatcher host specified. Ignoring --dispatcher-port parameter."
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    renderchan.submit(taskfile, useDispatcher, options.dependenciesOnly, options.allocateOnly)
+    renderchan.submit(taskfile, useDispatcher, options.dependenciesOnly, options.allocateOnly, options.stereo)

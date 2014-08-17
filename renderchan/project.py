@@ -16,6 +16,9 @@ class RenderChanProjectManager():
         # Active profile to apply. If value is None, then use default (defined by the project).
         self.profile = None
 
+        # Stereo mode to apply
+        self.stereo = ""
+
     def load(self, path):
 
         self.list[path]=RenderChanProject(path)
@@ -25,6 +28,7 @@ class RenderChanProjectManager():
             self.setActive(self.list[path])
             if self.profile:
                 self.setProfile(self.profile)
+            self.active.config["stereo"]=self.stereo
         else:
             self.list[path].config=self.active.config[:]
             self.list[path].activeProfile=self.active.activeProfile
@@ -51,9 +55,18 @@ class RenderChanProjectManager():
 
         :type profile: str
         """
-        if self.active and self.active.loadRenderConfig(profile):
+        if self.active:
+            self.active.config["stereo"]=self.stereo
+            self.active.loadRenderConfig(profile)
             self.updateChildProjects()
         self.profile=profile
+
+    def setStereoMode(self, mode):
+        if self.active:
+            self.active.config["stereo"]=mode
+            self.active.loadRenderConfig(self.profile)
+            self.updateChildProjects()
+        self.stereo=mode
 
     def updateChildProjects(self):
         for key in self.list.keys():
@@ -89,6 +102,7 @@ class RenderChanProject():
             'format':'png',
             'audio_rate':'48000',
             'fps':'24',
+            'stereo':'',
         }
 
 
@@ -137,7 +151,7 @@ class RenderChanProject():
                     profile=config.get("main", "active_profile")
                 else:
                     if len(config.sections())!=0:
-                        self.config
+                        profile = config.sections()[0]
                     else:
                         return False
 
@@ -145,6 +159,10 @@ class RenderChanProject():
 
             for key in config.options(profile):
                 self.config[key]=config.get(profile, key)
+
+            # check for correct values
+            if self.getConfig("stereo")!="left" and self.getConfig("stereo")!="right":
+                self.config["stereo"]=""
 
             self.activeProfile=profile
 
@@ -238,9 +256,11 @@ class RenderChanProject():
 
     def getProfileDirName(self):
         if self.version == 0:
-            result="%sx%s" % (self.config["width"], self.config["height"])
+            result="%sx%s" % (self.getConfig("width"), self.getConfig("height"))
         else:
-            result="%sx%s.%s"  % (self.config["width"], self.config["height"], self.activeProfile)
+            result="%sx%s.%s"  % (self.getConfig("width"), self.getConfig("height"), self.activeProfile)
+        if self.getConfig("stereo")!='':
+            result=result+"."+self.getConfig("stereo")
         return result
 
     def loadFrozenPaths(self):

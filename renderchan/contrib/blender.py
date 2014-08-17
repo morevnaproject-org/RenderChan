@@ -77,13 +77,19 @@ class RenderChanBlenderModule(RenderChanModule):
         frameCompletionPattern2 = re.compile("Append frame (\d+) Time: .* \(Saving: .*\)")
         frameNumberPattern = re.compile("Fra:(\d+) Mem:.*")
 
+        stereo_camera = ""
+        if extraParams["stereo"]=="left":
+            stereo_camera = "Left"
+        elif extraParams["stereo"]=="right":
+            stereo_camera = "Right"
+
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
         script=script.replace("params[UPDATE]","False")\
            .replace("params[WIDTH]", str(width))\
            .replace("params[HEIGHT]", str(height))\
-           .replace("params[STEREO_CAMERA]", '""')\
+           .replace("params[STEREO_CAMERA]", '"'+stereo_camera+'"')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
            .replace("params[CYCLES_SAMPLES]",str(int(extraParams["cycles_samples"])))\

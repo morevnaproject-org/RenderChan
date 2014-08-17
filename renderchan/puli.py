@@ -2,7 +2,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
-from renderchan.module import RenderChanModuleManager
+from renderchan.core import RenderChan
 from renderchan.utils import touch
 from renderchan.utils import sync
 from renderchan.utils import float_trunc
@@ -82,20 +82,20 @@ class RenderChanDecomposer(TaskDecomposer):
         # change values of start and end
         args["start"] = packetStart
         args["end"] = packetEnd
-        args["output"] = args["profile_output"]
+        #args["output"] = args["profile_output"]
         if args["packetSize"] != 0:
             # We need to give each packet different name
-            args["output"] = os.path.splitext(args["output"])[0] + "-" + str(packetStart) + "-" + str(packetEnd) + "." + \
+            chunk_name = os.path.splitext(args["profile_output"])[0] + "-" + str(packetStart) + "-" + str(packetEnd) + "." + \
                              args["format"]
             # And also keep track of created files within a special list
             output_list = os.path.splitext(args["profile_output"])[0] + ".txt"
             f = open(output_list, 'a')
-            f.write("file '%s'\n" % (args["output"]))
+            f.write("file '%s'\n" % (chunk_name))
             f.close()
             if args.has_key("extract_alpha") and args["extract_alpha"] == "1":
                 output_list = os.path.splitext(args["profile_output"])[0] + "-alpha.txt"
                 f = open(output_list, 'a')
-                alpha_output = os.path.splitext(args["output"])[0] + "-alpha" + os.path.splitext(args["output"])[1]
+                alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
                 f.write("file '%s'\n" % (alpha_output))
                 f.close()
 
@@ -110,14 +110,20 @@ class RenderChanRunner(CommandRunner):
         print 'Running module "%s"' % arguments["module"]
         updateCompletion(0.0)
 
-        if not os.path.exists(os.path.dirname(arguments["output"])):
-            os.makedirs(os.path.dirname(arguments["output"]))
+        if not os.path.exists(os.path.dirname(arguments["profile_output"])):
+            os.makedirs(os.path.dirname(arguments["profile_output"]))
 
-        moduleManager = RenderChanModuleManager()
+        renderchan = RenderChan()
 
-        module = moduleManager.get(arguments["module"])
+        # make sure our rendertree is in sync with current profile
+        renderchan.projects.setProfile(arguments["profile"])
+        renderchan.projects.setStereoMode(arguments["stereo"])
+        # TODO: Implement profile locking
+        renderchan.syncProfileData(arguments["output"])
+
+        module = renderchan.modules.get(arguments["module"])
         module.execute(arguments["filename"],
-                       arguments["output"],
+                       arguments["profile_output"],
                        int(arguments["start"]),
                        int(arguments["end"]),
                        arguments["width"],
@@ -131,10 +137,9 @@ class RenderChanRunner(CommandRunner):
         updateCompletion(1)
 
 
-class RenderChanPostDecomposer(TaskDecomposer):
+class RenderChanNullDecomposer(TaskDecomposer):
     def __init__(self, task):
-        self.task = task
-        self.task.runner = "renderchan.puli.RenderChanPostRunner"
+        #self.task.runner = "renderchan.puli.RenderChanPostRunner"
         #self.ranges=[]
 
         # The decompose method will split the task from start to end in packet_size and call the addCommand method below for each chunk
@@ -142,14 +147,13 @@ class RenderChanPostDecomposer(TaskDecomposer):
         #                             task.arguments["packetSize"], self.addRange)
 
         # get all arguments from the Task
-        args = self.task.arguments.copy()
+        args = task.arguments.copy()
 
         # change values of start and end
         #args["ranges"] = self.ranges
-        cmdName = "%s_%s" % (self.task.name, "post")
 
         # Add the command to the Task
-        self.task.addCommand(cmdName, args)
+        task.addCommand(task.name, args)
 
 
 class RenderChanPostRunner(CommandRunner):
@@ -189,6 +193,8 @@ class RenderChanPostRunner(CommandRunner):
                             shutil.rmtree(profile_output)
                         else:
                             os.remove(profile_output)
+                        if os.path.exists(profile_output + ".done"):
+                            os.remove(profile_output + ".done")
 
                 if not uptodate:
                     if arguments["format"] == "avi":
@@ -231,3 +237,55 @@ class RenderChanPostRunner(CommandRunner):
             touch(output, arguments["maxTime"])
 
         updateCompletion(1)
+
+class RenderChanStereoPostRunner(CommandRunner):
+    def execute(self, arguments, updateCompletion, updateMessage, updateStats):
+
+        updateCompletion(0.0)
+
+        # We need to merge the rendered files into single one
+
+        output=arguments["output"]
+
+        print "Merging: %s" % output
+
+        # But first let's check if we really need to do that
+        uptodate = False
+        if os.path.exists(output):
+            if os.path.exists(output + ".done") and \
+                os.path.exists(arguments["input_left"]) and \
+                os.path.exists(arguments["input_right"]) and \
+                float_trunc(os.path.getmtime(output + ".done"), 1) >= float_trunc(os.path.getmtime(arguments["input_left"]), 1) and \
+                float_trunc(os.path.getmtime(output + ".done"), 1) >= float_trunc(os.path.getmtime(arguments["input_right"]), 1):
+                    # Hurray! No need to merge that piece.
+                    uptodate = True
+            else:
+                if os.path.isdir(output):
+                    shutil.rmtree(output)
+                else:
+                    os.remove(output)
+                if os.path.exists(output + ".done"):
+                    os.remove(output + ".done")
+
+        if not uptodate:
+            if arguments["stereo_mode"]=="vertical":
+                subprocess.check_call(
+                        ["ffmpeg", "-y", "-i", arguments["input_left"], "-i", arguments["input_right"],
+                         "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw:ih*2[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=0:h",
+                         "-c:v", "libx264", "-c:a", "aac",
+                         "-strict", "experimental",
+                         "-pix_fmt", "yuv420p", "-qp", "0",
+                         output])
+            else:
+                subprocess.check_call(
+                        ["ffmpeg", "-y", "-i", arguments["input_left"], "-i", arguments["input_right"],
+                         "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw*2:ih[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=w",
+                         "-c:v", "libx264", "-c:a", "aac",
+                         "-strict", "experimental",
+                         "-pix_fmt", "yuv420p", "-qp", "0",
+                         output])
+            touch(output + ".done", os.path.getmtime(output))
+        else:
+            print "  This chunk is already merged. Skipping."
+
+        updateCompletion(1.0)
