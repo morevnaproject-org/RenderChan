@@ -57,6 +57,11 @@ def process_args():
 
 def main(argv):
     options, args = process_args()
+
+    if len(args)<1:
+        print "Please specify filename for rendering."
+        sys.exit(0)
+
     filename = os.path.abspath(args[0])
 
     renderchan = RenderChan()
