@@ -2,11 +2,12 @@
 __author__ = 'Konstantin Dmitriev'
 
 from puliclient.jobs import TaskDecomposer, CommandRunner, StringParameter
-from renderchan.core import RenderChan
+from renderchan.module import RenderChanModuleManager
 from renderchan.utils import touch
 from renderchan.utils import sync
 from renderchan.utils import float_trunc
 from renderchan.utils import copytree
+from renderchan.utils import switchProfile
 import os
 import subprocess
 import shutil
@@ -113,15 +114,14 @@ class RenderChanRunner(CommandRunner):
         if not os.path.exists(os.path.dirname(arguments["profile_output"])):
             os.makedirs(os.path.dirname(arguments["profile_output"]))
 
-        renderchan = RenderChan()
-
         # make sure our rendertree is in sync with current profile
-        renderchan.projects.setProfile(arguments["profile"])
-        renderchan.projects.setStereoMode(arguments["stereo"])
-        # TODO: Implement profile locking
-        renderchan.syncProfileData(arguments["output"])
+        locks=[]
+        for project_path in arguments["projects"]:
+            t=switchProfile(project_path,arguments["profileDir"])
+            locks.append(t)
 
-        module = renderchan.modules.get(arguments["module"])
+        moduleManager = RenderChanModuleManager()
+        module = moduleManager.get(arguments["module"])
         module.execute(arguments["filename"],
                        arguments["profile_output"],
                        int(arguments["start"]),
@@ -133,6 +133,9 @@ class RenderChanRunner(CommandRunner):
                        arguments["audio_rate"],
                        updateCompletion,
                        arguments)
+
+        for lock in locks:
+            lock.unlock()
 
         updateCompletion(1)
 
@@ -289,3 +292,13 @@ class RenderChanStereoPostRunner(CommandRunner):
             print "  This chunk is already merged. Skipping."
 
         updateCompletion(1.0)
+
+#class RenderChanProfileSyncRunner(CommandRunner):
+#    def execute(self, arguments, updateCompletion, updateMessage, updateStats):
+#
+#        updateCompletion(0.0)
+#
+#        for project_path in arguments["projects"]:
+#            switchProfile(project_path, arguments["profile"])
+#
+#        updateCompletion(1.0)

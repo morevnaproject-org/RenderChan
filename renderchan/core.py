@@ -7,6 +7,7 @@ from renderchan.module import RenderChanModuleManager
 from renderchan.utils import mkdirs
 from renderchan.utils import float_trunc
 from renderchan.utils import sync
+from renderchan.utils import switchProfile
 from puliclient import Task, Graph
 import os, time
 
@@ -87,12 +88,31 @@ class RenderChan():
             if taskfile.taskPost!=None:
                 self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
 
+            last_task = stereoTask
+
         else:
             if stereo in ("left","l"):
                 self.projects.setStereoMode("left")
             elif stereo in ("right","r"):
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+
+            last_task = taskfile.taskPost
+
+        if last_task==None:
+            # Profile syncronization
+            #runner = "renderchan.puli.RenderChanProfileSyncRunner"
+            #decomposer = "renderchan.puli.RenderChanNullDecomposer"
+            for project_path in self.projects.list.keys():
+                #params={}
+                #params["projects"] = project_path
+                #params["profile"] = self.projects.active.activeProfile
+                #sync_task = self.graph.addNewTask( name="Sync: "+project_path, runner=runner, arguments=params, decomposer=decomposer )
+                #if last_task!=None:
+                #    self.graph.addEdges( [(last_task, sync_task)] )
+                print "Switching profile..."
+                t=switchProfile(project_path, self.projects.active.getProfileDirName())
+                t.unlock()
 
         # Finally submit the graph to Puli
 
@@ -163,36 +183,36 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
-        # TODO: Re-implement this function in the same way as syncProfileData()
+        # TODO: Re-implement this function in the same way as __not_used__syncProfileData() ?
 
         isDirty = False
 
         # First, let's ensure, that we are in sync with profile data
-        checkTime=None
-        if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
-            checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
-            checkTime=float_trunc(os.path.getmtime(checkFile),1)
-        if os.path.exists(taskfile.getProfileRenderPath()):
+        #checkTime=None
+        #if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
+        #    checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
+        #    checkTime=float_trunc(os.path.getmtime(checkFile),1)
+        #if os.path.exists(taskfile.getProfileRenderPath()):
+        #
+        #    source=taskfile.getProfileRenderPath()
+        #    dest=taskfile.getRenderPath()
+        #    sync(source,dest,checkTime)
+        #
+        #    source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
+        #    dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
+        #    sync(source,dest,checkTime)
+        #
+        #else:
+        #    isDirty = True
 
-            source=taskfile.getProfileRenderPath()
-            dest=taskfile.getRenderPath()
-            sync(source,dest,checkTime)
 
-            source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
-            dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
-            sync(source,dest,checkTime)
-
-        else:
-            isDirty = True
-
-
-        if not os.path.exists(taskfile.getRenderPath()):
+        if not os.path.exists(taskfile.getProfileRenderPath()):
             # If no rendering exists, then obviously rendering is required
             isDirty = True
             compareTime = None
         else:
             # Otherwise we have to check against the time of the last rendering
-            compareTime = float_trunc(os.path.getmtime(taskfile.getRenderPath()),1)
+            compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
         (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
@@ -222,6 +242,9 @@ class RenderChan():
             decomposer = "renderchan.puli.RenderChanDecomposer"
 
             params = taskfile.getParams()
+            params["projects"]=[]
+            for project in self.projects.list.keys():
+                params["projects"].append(project)
             # Max time is a
             if allocateOnly:
                 # Make sure this file will be re-rendered next time
@@ -327,7 +350,7 @@ class RenderChan():
                     # is newer than compareTime
 
                     #if os.path.exists(dependency.getRenderPath()):  -- file is obviously exists, because isDirty==0
-                    timestamp=float_trunc(os.path.getmtime(dependency.getRenderPath()),1)
+                    timestamp=float_trunc(os.path.getmtime(dependency.getProfileRenderPath()),1)
 
                     if compareTime is None:
                         isDirty = True
@@ -360,7 +383,7 @@ class RenderChan():
 
         return (isDirty, list(tasklist), maxTime)
 
-    def syncProfileData(self, renderpath):
+    def __not_used__syncProfileData(self, renderpath):
 
         if renderpath in self.loadedFiles.keys():
             taskfile = self.loadedFiles[renderpath]

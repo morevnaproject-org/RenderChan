@@ -28,6 +28,8 @@ class RenderChanProjectManager():
             self.setActive(self.list[path])
             if self.profile:
                 self.setProfile(self.profile)
+            else:
+                self.profile = self.active.activeProfile
             self.active.config["stereo"]=self.stereo
         else:
             self.list[path].config=self.active.config[:]
@@ -196,17 +198,17 @@ class RenderChanProject():
                 config.write(configfile)
 
         # Store current profile
-        filename=os.path.join(self.path,"render","project.conf","profile.conf")
-        prev_profile = ""
-        if os.path.exists(filename):
-            # Read previous profile
-            f=open(filename)
-            prev_profile = f.readlines()[0].strip()
-            f.close()
-        if prev_profile!=self.getProfileDirName():
-            f = open(filename,'w')
-            f.write(self.getProfileDirName()+"\n")
-            f.close()
+        #filename=os.path.join(self.path,"render","project.conf","profile.conf")
+        #prev_profile = ""
+        #if os.path.exists(filename):
+        #    # Read previous profile
+        #    f=open(filename)
+        #    prev_profile = f.readlines()[0].strip()
+        #    f.close()
+        #if prev_profile!=self.getProfileDirName():
+        #    f = open(filename,'w')
+        #    f.write(self.getProfileDirName()+"\n")
+        #    f.close()
 
         return True
 
