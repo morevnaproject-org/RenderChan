@@ -145,7 +145,7 @@ class LockThread(threading.Thread):
         self.active = True
     def run(self):
         while self.active:
-            touch(self.filename, time.clock())
+            touch(self.filename, time.time())
             for i in (1,2,3,4,5):
                 if self.active:
                     time.sleep(1)
