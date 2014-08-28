@@ -167,7 +167,11 @@ def switchProfile(project_path, profile):
                     sync( os.path.join(src,name), os.path.join(dest,name) )
 
 
+    msg=""
     while True:
+        if msg!="":
+            print msg
+        msg="The rendertree is locked by other process. Waiting..."
         # Check if we are on correct profile
         need_sync = True
         checkfile=os.path.join(project_path,"render","project.conf","profile.conf")
