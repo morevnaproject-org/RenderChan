@@ -99,6 +99,7 @@ class RenderChanDecomposer(TaskDecomposer):
                 alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
                 f.write("file '%s'\n" % (alpha_output))
                 f.close()
+            args["profile_output"]=chunk_name
 
         cmdName = "%s_%s_%s" % (self.task.name, str(packetStart), str(packetEnd))
 
