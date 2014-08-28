@@ -11,6 +11,7 @@ from renderchan.utils import switchProfile
 import os
 import subprocess
 import shutil
+import ast
 
 
 class RenderChanDecomposer(TaskDecomposer):
@@ -117,7 +118,11 @@ class RenderChanRunner(CommandRunner):
 
         # make sure our rendertree is in sync with current profile
         locks=[]
-        for project_path in arguments["projects"]:
+        if type(arguments["projects"]) is list:
+            projects=arguments["projects"]
+        else:
+            projects=ast.literal_eval(arguments["projects"])
+        for project_path in projects:
             t=switchProfile(project_path,arguments["profileDir"])
             locks.append(t)
 
@@ -230,7 +235,7 @@ class RenderChanPostRunner(CommandRunner):
                                     f.write("%s\n" % filename)
                             f.close()
                     os.remove(profile_output_list)
-                    touch(profile_output + ".done", arguments["maxTime"])
+                    touch(profile_output + ".done", float(arguments["maxTime"]))
                 else:
                     print "  This chunk is already merged. Skipping."
                 updateCompletion(0.5)
@@ -238,7 +243,7 @@ class RenderChanPostRunner(CommandRunner):
             sync(profile_output, output)
 
             #touch(output+".done",arguments["maxTime"])
-            touch(output, arguments["maxTime"])
+            touch(output, float(arguments["maxTime"]))
 
         updateCompletion(1)
 

@@ -144,7 +144,7 @@ class RenderChanModule():
             # TODO: Create lock here
 
             self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
-            touch(outputPath+".done",extraParams["maxTime"])
+            touch(outputPath+".done",float(extraParams["maxTime"]))
 
             # TODO: Release lock here
         else:
