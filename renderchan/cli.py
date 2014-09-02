@@ -3,6 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 from gettext import gettext as _
 from optparse import OptionParser
 import os.path
+import sys
 
 from renderchan.core import RenderChan
 from renderchan.file import RenderChanFile
