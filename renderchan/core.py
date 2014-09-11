@@ -265,7 +265,9 @@ class RenderChan():
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                 # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --stereo %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, compare_time )
+                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                if self.projects.stereo!="":
+                    command += " --stereo %s" % (self.projects.stereo)
                 taskfile.taskPost=graph_destination.addNewTask( name="Post: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                 # Add rendering segments
@@ -274,10 +276,12 @@ class RenderChan():
                     end=range[1]
                     if start!=None and end!=None:
                         segment_name = "Render: %s (%s-%s)" % (taskfile.localPath, start, end)
-                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --stereo %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, start, end, compare_time )
+                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, start, end, compare_time )
                     else:
                         segment_name = "Render: %s" % (taskfile.localPath)
-                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --stereo %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, compare_time )
+                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                    if self.projects.stereo!="":
+                        command += " --stereo %s" % (self.projects.stereo)
 
                     task=graph_destination.addNewTask( name=segment_name, runner=runner, arguments={ "args": command} )
                     self.graph.addEdges( [(task, taskfile.taskPost)] )
