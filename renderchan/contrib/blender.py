@@ -67,7 +67,7 @@ class RenderChanBlenderModule(RenderChanModule):
 
         return info
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
+    def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)
@@ -87,8 +87,8 @@ class RenderChanBlenderModule(RenderChanModule):
         renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
         script=script.replace("params[UPDATE]","False")\
-           .replace("params[WIDTH]", str(width))\
-           .replace("params[HEIGHT]", str(height))\
+           .replace("params[WIDTH]", str(extraParams["width"]))\
+           .replace("params[HEIGHT]", str(extraParams["height"]))\
            .replace("params[STEREO_CAMERA]", '"'+stereo_camera+'"')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\

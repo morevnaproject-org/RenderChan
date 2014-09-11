@@ -8,12 +8,16 @@ from renderchan.utils import mkdirs
 from renderchan.utils import float_trunc
 from renderchan.utils import sync
 from renderchan.utils import switchProfile
-from puliclient import Task, Graph
+from renderchan.utils import touch
+from renderchan.utils import copytree
 import os, time
+import shutil
+import subprocess
 
 class RenderChan():
     def __init__(self):
 
+        self.renderfarm_engine = ""
         self.puliServer = ""
         self.puliPort = 8004
 
@@ -24,7 +28,7 @@ class RenderChan():
 
         self.loadedFiles = {}
 
-        self.graph = Graph( 'RenderChan graph', poolName="default" )
+        self.graph = None  # used by Puli
         # == taskgroups bug / commented ==
         # The following are the special taskgroups used for managing stereo rendering
         #self.taskgroupLeft = None
@@ -46,49 +50,45 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
+        if self.renderfarm_engine=="puli":
+            from puliclient import Graph
+            self.graph = Graph( 'RenderChan graph', poolName="default" )
+
         if stereo in ("vertical","v","horizontal","h"):
 
             # Left eye graph
             self.projects.setStereoMode("left")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
-            input_left = taskfile.getProfileRenderPath()
+
+            if self.renderfarm_engine!="":
+                self.childTask = taskfile.taskPost
 
             # Right eye graph
             self.projects.setStereoMode("right")
-            self.childTask = taskfile.taskPost
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
-            input_right = taskfile.getProfileRenderPath()
 
             # Stitching altogether
-            name = taskfile.getPath()
-            runner = "renderchan.puli.RenderChanStereoPostRunner"
-            decomposer = "renderchan.puli.RenderChanNullDecomposer"
-            params={}
-            params["input_left"]=input_left
-            params["input_right"]=input_right
-            params["output"] = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo"
-            if stereo in ("vertical","v"):
-                params["stereo_mode"] = "vertical"
-                params["output"]+="-v"
+            if self.renderfarm_engine=="":
+                self.job_merge_stereo(taskfile, stereo)
             else:
-                params["stereo_mode"] = "horizontal"
-                params["output"]+="-h"
-            params["output"]+=".avi"
-            stereoTask = self.graph.addNewTask( name="StereoPost: "+name, runner=runner, arguments=params, decomposer=decomposer )
 
-            # Dummy task
-            #decomposer = "puliclient.contrib.generic.GenericDecomposer"
-            #params={ "cmd":"echo", "start":1, "end":1, "packetSize":1, "prod":"test", "shot":"test" }
-            #dummyTask = self.graph.addNewTask( name="StereoDummy", arguments=params, decomposer=decomposer )
+                runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
-            # == taskgroups bug / commented ==
-            #self.graph.addEdges( [(self.taskgroupLeft, self.taskgroupRight)] )
-            #self.graph.addEdges( [(self.taskgroupRight, stereoTask)] )
-            #self.graph.addChain( [self.taskgroupLeft, dummyTask, self.taskgroupRight, stereoTask] )
-            if taskfile.taskPost!=None:
-                self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
+                # Add parent task which composes results and places it into valid destination
+                command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo )
+                stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
-            last_task = stereoTask
+                # Dummy task
+                #decomposer = "puliclient.contrib.generic.GenericDecomposer"
+                #params={ "cmd":"echo", "start":1, "end":1, "packetSize":1, "prod":"test", "shot":"test" }
+                #dummyTask = self.graph.addNewTask( name="StereoDummy", arguments=params, decomposer=decomposer )
+
+                # == taskgroups bug / commented ==
+                #self.graph.addEdges( [(self.taskgroupLeft, self.taskgroupRight)] )
+                #self.graph.addEdges( [(self.taskgroupRight, stereoTask)] )
+                #self.graph.addChain( [self.taskgroupLeft, dummyTask, self.taskgroupRight, stereoTask] )
+                if taskfile.taskPost!=None:
+                    self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
 
         else:
             if stereo in ("left","l"):
@@ -96,25 +96,6 @@ class RenderChan():
             elif stereo in ("right","r"):
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
-
-            last_task = taskfile.taskPost
-
-        if last_task==None:
-            # Profile syncronization
-            #runner = "renderchan.puli.RenderChanProfileSyncRunner"
-            #decomposer = "renderchan.puli.RenderChanNullDecomposer"
-            for project_path in self.projects.list.keys():
-                #params={}
-                #params["projects"] = project_path
-                #params["profile"] = self.projects.active.activeProfile
-                #sync_task = self.graph.addNewTask( name="Sync: "+project_path, runner=runner, arguments=params, decomposer=decomposer )
-                #if last_task!=None:
-                #    self.graph.addEdges( [(last_task, sync_task)] )
-                print "Switching profile..."
-                t=switchProfile(project_path, self.projects.active.getProfileDirName())
-                t.unlock()
-
-        # Finally submit the graph to Puli
 
         if self.puliServer=="":
             server="127.0.0.1"
@@ -126,9 +107,6 @@ class RenderChan():
         if useDispatcher:
             # Submit to dispatcher host
             self.graph.submit(server, self.puliPort)
-        else:
-            # Local rendering
-            self.graph.execute()
 
     def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
         """
@@ -188,22 +166,27 @@ class RenderChan():
         isDirty = False
 
         # First, let's ensure, that we are in sync with profile data
-        #checkTime=None
-        #if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
-        #    checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
-        #    checkTime=float_trunc(os.path.getmtime(checkFile),1)
-        #if os.path.exists(taskfile.getProfileRenderPath()):
-        #
-        #    source=taskfile.getProfileRenderPath()
-        #    dest=taskfile.getRenderPath()
-        #    sync(source,dest,checkTime)
-        #
-        #    source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
-        #    dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
-        #    sync(source,dest,checkTime)
-        #
-        #else:
-        #    isDirty = True
+
+        t=switchProfile(taskfile.project.path, taskfile.project.getProfileDirName())
+
+        checkTime=None
+        if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
+            checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
+            checkTime=float_trunc(os.path.getmtime(checkFile),1)
+        if os.path.exists(taskfile.getProfileRenderPath()):
+
+            source=taskfile.getProfileRenderPath()
+            dest=taskfile.getRenderPath()
+            sync(source,dest,checkTime)
+
+            source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
+            sync(source,dest,checkTime)
+
+        else:
+            isDirty = True
+
+        t.unlock()
 
 
         if not os.path.exists(taskfile.getProfileRenderPath()):
@@ -223,59 +206,94 @@ class RenderChan():
         # If rendering is requested
         if isDirty:
 
-            # Puli part here
-
-            name = taskfile.localPath
-
-            graph_destination = self.graph
-            # == taskgroups bug / commented ==
-            #if self.projects.active.getConfig("stereo")=="left":
-            #    graph_destination = self.taskgroupLeft
-            #    name+=" (L)"
-            #elif self.projects.active.getConfig("stereo")=="right":
-            #    graph_destination = self.taskgroupRight
-            #    name+=" (R)"
-            #else:
-            #    graph_destination = self.graph
-
-            runner = "renderchan.puli.RenderChanRunner"
-            decomposer = "renderchan.puli.RenderChanDecomposer"
+            # Make sure we have all directories created
+            mkdirs(os.path.dirname(taskfile.getProfileRenderPath()))
+            mkdirs(os.path.dirname(taskfile.getRenderPath()))
 
             params = taskfile.getParams()
-            params["projects"]=[]
-            for project in self.projects.list.keys():
-                params["projects"].append(project)
-            # Max time is a
+
+            # Keep track of created files to allow merging them later
+            output_list = os.path.splitext( taskfile.getProfileRenderPath() )[0] + ".txt"
+            output_list_alpha = os.path.splitext( taskfile.getProfileRenderPath() )[0] + "-alpha.txt"
+            if os.path.exists(output_list):
+                os.remove(output_list)
+            if os.path.exists(output_list_alpha):
+                os.remove(output_list_alpha)
+            if taskfile.getPacketSize() > 0:
+                segments = self.decompose(taskfile.getStartFrame(), taskfile.getEndFrame(), taskfile.getPacketSize())
+                for range in segments:
+                    start=range[0]
+                    end=range[1]
+                    chunk_name = taskfile.getProfileRenderPath(start,end)
+                    f = open(output_list, 'a')
+                    f.write("file '%s'\n" % (chunk_name))
+                    f.close()
+                    if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+
+                        f = open(output_list_alpha, 'a')
+                        alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
+                        f.write("file '%s'\n" % (alpha_output))
+                        f.close()
+            else:
+                segments=[ (None,None) ]
+
+
             if allocateOnly:
                 # Make sure this file will be re-rendered next time
-                params["maxTime"]=taskfile.mtime-1000
+                compare_time=taskfile.mtime-1000
             else:
-                params["maxTime"]=maxTime
+                compare_time=maxTime
 
-            # Make sure we have all directories created
-            mkdirs(os.path.dirname(params["profile_output"]))
-            mkdirs(os.path.dirname(params["output"]))
+            if self.renderfarm_engine=="":
 
-            # Add rendering task to the graph
-            taskfile.taskRender=graph_destination.addNewTask( name="Render: "+name, runner=runner, arguments=params, decomposer=decomposer )
+                for range in segments:
+                    start=range[0]
+                    end=range[1]
+                    self.job_render(taskfile, taskfile.getFormat(), self.updateCompletion, start, end, compare_time)
 
+                self.job_merge(taskfile, taskfile.getFormat(), taskfile.project.getConfig("stereo"), compare_time)
 
-            # Now we will add a task which composes results and places it into valid destination
+            elif self.renderfarm_engine=="puli":
 
-            # Add rendering task to the graph
-            runner = "renderchan.puli.RenderChanPostRunner"
-            decomposer = "renderchan.puli.RenderChanNullDecomposer"
-            taskfile.taskPost=graph_destination.addNewTask( name="Post: "+name, runner=runner, arguments=params, decomposer=decomposer,
-                                       maxNbCores=taskfile.module.conf["maxNbCores"] )
+                # Puli part here
 
-            self.graph.addEdges( [(taskfile.taskRender, taskfile.taskPost)] )
+                graph_destination = self.graph
+                # == taskgroups bug / commented ==
+                #if self.projects.active.getConfig("stereo")=="left":
+                #    graph_destination = self.taskgroupLeft
+                #    name+=" (L)"
+                #elif self.projects.active.getConfig("stereo")=="right":
+                #    graph_destination = self.taskgroupRight
+                #    name+=" (R)"
+                #else:
+                #    graph_destination = self.graph
 
-            # Add edges for dependent tasks
-            for task in tasklist:
-                self.graph.addEdges( [(task, taskfile.taskRender)] )
+                runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
-            if self.childTask!=None:
-                self.graph.addEdges( [(self.childTask, taskfile.taskRender)] )
+                # Add parent task which composes results and places it into valid destination
+                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --stereo %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, compare_time )
+                taskfile.taskPost=graph_destination.addNewTask( name="Post: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
+
+                # Add rendering segments
+                for range in segments:
+                    start=range[0]
+                    end=range[1]
+                    if start!=None and end!=None:
+                        segment_name = "Render: %s (%s-%s)" % (taskfile.localPath, start, end)
+                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --stereo %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, start, end, compare_time )
+                    else:
+                        segment_name = "Render: %s" % (taskfile.localPath)
+                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --stereo %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, self.projects.stereo, compare_time )
+
+                    task=graph_destination.addNewTask( name=segment_name, runner=runner, arguments={ "args": command} )
+                    self.graph.addEdges( [(task, taskfile.taskPost)] )
+
+                    # Add edges for dependent tasks
+                    for dep_task in tasklist:
+                        self.graph.addEdges( [(dep_task, task)] )
+
+                    if self.childTask!=None:
+                        self.graph.addEdges( [(self.childTask, task)] )
 
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
@@ -383,6 +401,9 @@ class RenderChan():
 
         return (isDirty, list(tasklist), maxTime)
 
+    def updateCompletion(self, value):
+        print "Rendering: %s" % (value*100)
+
     def __not_used__syncProfileData(self, renderpath):
 
         if renderpath in self.loadedFiles.keys():
@@ -420,3 +441,246 @@ class RenderChan():
 
         taskfile.pending=False
 
+    def job_render(self, taskfile, format, updateCompletion, start=None, end=None, compare_time=None):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+
+        output = taskfile.getProfileRenderPath(start,end)
+
+        if start==None or end==None:
+            start=taskfile.getStartFrame()
+            end=taskfile.getEndFrame()
+
+        if not os.path.exists(os.path.dirname(output)):
+            os.makedirs(os.path.dirname(output))
+
+        # Check if we really need to re-render
+        uptodate=False
+        if compare_time:
+            if os.path.exists(output+".done") and os.path.exists(output):
+                if float_trunc(os.path.getmtime(output+".done"),1) >= compare_time:
+                    # Hurray! No need to re-render that piece.
+                    uptodate=True
+
+        if not uptodate:
+
+            # PROJECT LOCK
+            # Make sure our rendertree is in sync with current profile
+            locks=[]
+            for project in self.projects.list.keys():
+                t=switchProfile(project, taskfile.project.getProfileDirName())
+                locks.append(t)
+
+            if os.path.isdir(output):
+                shutil.rmtree(output)
+
+            # TODO: Create file lock here
+
+            taskfile.module.render(taskfile.getPath(),
+                           output,
+                           int(start),
+                           int(end),
+                           format,
+                           updateCompletion,
+                           taskfile.getParams())
+            touch(output+".done",compare_time)
+
+            # TODO: Release file lock here
+
+            # Releasing PROJECT LOCK
+            for lock in locks:
+                lock.unlock()
+
+        else:
+            print "  This chunk is already up to date. Skipping."
+
+        updateCompletion(1.0)
+
+    def job_merge(self, taskfile, format, stereo, compare_time=None):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+
+        params = taskfile.getParams()
+
+        suffix_list = [""]
+        if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+            suffix_list.append("-alpha")
+
+        for suffix in suffix_list:
+
+            output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
+            profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+            profile_output_list = os.path.splitext(profile_output)[0] + ".txt"
+
+            if os.path.exists(profile_output_list):
+
+                # We need to merge the rendered files into single one
+
+                print "Merging: %s" % profile_output
+
+                # But first let's check if we really need to do that
+                uptodate = False
+                if os.path.exists(profile_output):
+                    if os.path.exists(profile_output + ".done") and \
+                                    float_trunc(os.path.getmtime(profile_output + ".done"), 1) >= compare_time:
+                        # Hurray! No need to merge that piece.
+                        uptodate = True
+                    else:
+                        if os.path.isdir(profile_output):
+                            shutil.rmtree(profile_output)
+                        else:
+                            os.remove(profile_output)
+                        if os.path.exists(profile_output + ".done"):
+                            os.remove(profile_output + ".done")
+
+                if not uptodate:
+                    if format == "avi":
+                        subprocess.check_call(
+                            ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                    else:
+                        # Merge all sequences into single directory
+                        f = open(profile_output_list, 'r')
+                        for line in f.readlines():
+                            line = line.strip()
+                            line = line[6:-1]
+                            print line
+                            copytree(line, profile_output, hardlinks=True)
+                        f.close()
+                        # Add LST file
+                        lst_path = os.path.splitext(profile_output)[0] + ".lst"
+                        f = open(lst_path, 'w')
+                        f.write("FPS %s\n" % params["fps"])
+                        for filename in sorted(os.listdir(profile_output)):
+                            if filename.endswith(format):
+                                f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
+                        f.close()
+                        # Compatibility
+                        if params["projectVersion"] < 1:
+                            f = open(os.path.join(profile_output, "file.lst"), 'w')
+                            f.write("FPS %s\n" % params["fps"])
+                            for filename in sorted(os.listdir(profile_output)):
+                                if filename.endswith(format):
+                                    f.write("%s\n" % filename)
+                            f.close()
+                    os.remove(profile_output_list)
+                    touch(profile_output + ".done", float(compare_time))
+                else:
+                    print "  This chunk is already merged. Skipping."
+                #updateCompletion(0.5)
+
+            sync(profile_output, output)
+
+            #touch(output+".done",arguments["maxTime"])
+            touch(output, float(compare_time))
+
+        #updateCompletion(1)
+
+    def job_merge_stereo(self, taskfile, mode, format="avi"):
+
+        output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo"
+        if mode[0:1]=='v':
+            output+="-v"
+        else:
+            output+="-h"
+        output+="."+format
+
+        prev_mode = self.projects.stereo
+        self.projects.setStereoMode("left")
+        input_left = taskfile.getProfileRenderPath()
+        self.projects.setStereoMode("right")
+        input_right = taskfile.getProfileRenderPath()
+        self.projects.setStereoMode(prev_mode)
+
+        print "Merging: %s" % output
+
+        # But first let's check if we really need to do that
+        uptodate = False
+        if os.path.exists(output):
+            if os.path.exists(output + ".done") and \
+                os.path.exists(input_left) and \
+                os.path.exists(input_right) and \
+                float_trunc(os.path.getmtime(output + ".done"), 1) >= float_trunc(os.path.getmtime(input_left), 1) and \
+                float_trunc(os.path.getmtime(output + ".done"), 1) >= float_trunc(os.path.getmtime(input_right), 1):
+                    # Hurray! No need to merge that piece.
+                    uptodate = True
+            else:
+                if os.path.isdir(output):
+                    shutil.rmtree(output)
+                else:
+                    os.remove(output)
+                if os.path.exists(output + ".done"):
+                    os.remove(output + ".done")
+
+        if not uptodate:
+            if mode[0:1]=='v':
+                subprocess.check_call(
+                        ["ffmpeg", "-y", "-i", input_left, "-i", input_right,
+                         "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw:ih*2[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=0:h",
+                         "-c:v", "libx264", "-c:a", "aac",
+                         "-strict", "experimental",
+                         "-pix_fmt", "yuv420p", "-qp", "0",
+                         output])
+            else:
+                subprocess.check_call(
+                        ["ffmpeg", "-y", "-i", input_left, "-i", input_right,
+                         "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw*2:ih[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=w",
+                         "-c:v", "libx264", "-c:a", "aac",
+                         "-strict", "experimental",
+                         "-pix_fmt", "yuv420p", "-qp", "0",
+                         output])
+            touch(output + ".done", os.path.getmtime(output))
+        else:
+            print "  This chunk is already merged. Skipping."
+
+        #updateCompletion(1.0)
+
+
+    def decompose(self, start, end, packetSize, framesList=""):
+        packetSize = int(packetSize)
+        result=[]
+        if len(framesList) != 0:
+            frames = framesList.split(",")
+            for frame in frames:
+                if "-" in frame:
+                    frameList = frame.split("-")
+                    start = int(frameList[0])
+                    end = int(frameList[1])
+
+                    length = end - start + 1
+                    fullPacketCount, lastPacketCount = divmod(length, packetSize)
+
+                    if length < packetSize:
+                        result.append((start, end))
+                    else:
+                        for i in range(fullPacketCount):
+                            packetStart = start + i * packetSize
+                            packetEnd = packetStart + packetSize - 1
+                            result.append((packetStart, packetEnd))
+                        if lastPacketCount:
+                            packetStart = start + (i + 1) * packetSize
+                            result.append((packetStart, end))
+                else:
+                    result.append((int(frame), int(frame)))
+        else:
+            start = int(start)
+            end = int(end)
+
+            length = end - start + 1
+            fullPacketCount, lastPacketCount = divmod(length, packetSize)
+
+            if length < packetSize:
+                result.append((start, end))
+            else:
+                for i in range(fullPacketCount):
+                    packetStart = start + i * packetSize
+                    packetEnd = packetStart + packetSize - 1
+                    result.append((packetStart, packetEnd))
+                if lastPacketCount:
+                    packetStart = start + (i + 1) * packetSize
+                    result.append((packetStart, end))
+
+        return result

@@ -125,7 +125,7 @@ class RenderChanSynfigModule(RenderChanModule):
 
         return info
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
+    def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)
@@ -144,7 +144,7 @@ class RenderChanSynfigModule(RenderChanModule):
             outputPath=os.path.join(outputPath, "file."+format)
 
 
-        commandline=[self.conf['binary'], "-o",outputPath, "-w", width, "-h", height]
+        commandline=[self.conf['binary'], "-o",outputPath, "-w", str(extraParams["width"]), "-h", str(extraParams["height"])]
 
         if format == "avi":
             commandline.append("-t")

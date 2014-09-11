@@ -92,7 +92,7 @@ class RenderChanFile():
                     if ext == "lst":
                         if not self.getFormat() in RenderChanModule.imageExtensions:
                             ext=RenderChanModule.imageExtensions[0]
-                    self.config["format"]=ext
+                    self.setFormat(ext)
 
             else:
                 print "Warning: No source file found for %s" % path
@@ -182,9 +182,12 @@ class RenderChanFile():
         else:
             return None
 
-    def getProfileRenderPath(self):
+    def getProfileRenderPath(self, start=None, end=None):
         profile = self.project.getProfileDirName()
-        path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getFormat() )
+        if start==None or end==None:
+            path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getFormat() )
+        else:
+            path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
@@ -214,6 +217,13 @@ class RenderChanFile():
             return size
         else:
             return self.module.getPacketSize()
+
+    def setFormat(self, format):
+        # Check if format is supported by the module
+        if not format in self.module.getOutputFormats():
+            return False
+        self.config["format"]=format
+        return True
 
     def getFormat(self):
         key="format"
@@ -254,17 +264,17 @@ class RenderChanFile():
                 params[key]=self.module.extraParams[key]
 
         # File-specific configuration
-        params["filename"]=self.getPath()
-        params["output"]=self.getRenderPath()
-        params["profile_output"]=self.getProfileRenderPath()
-        params["module"]=self.module.getName()
-        params["packetSize"]=self.getPacketSize()
-        params["start"]=self.getStartFrame()
-        params["end"]=self.getEndFrame()
+        #params["filename"]=self.getPath()
+        #params["output"]=self.getRenderPath()
+        #params["profile_output"]=self.getProfileRenderPath()
+        #params["module"]=self.module.getName()
+        #params["packetSize"]=self.getPacketSize()
+        #params["start"]=self.getStartFrame()
+        #params["end"]=self.getEndFrame()
         #params["dependencies"]=self.getDependencies()
-        params["projectVersion"]=self.project.version
-        params["profileDir"]=self.project.getProfileDirName()
-        params["projects"] = []
+        #params["projectVersion"]=self.project.version
+        #params["profileDir"]=self.project.getProfileDirName()
+        #params["projects"] = []
 
         return params
 

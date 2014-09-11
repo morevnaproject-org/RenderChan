@@ -39,10 +39,10 @@ def _configure_python_path():
         print "Couldn't set the gettext domain. Translations will not work."
 
 def _start():
-    import renderchan.launcher as launcher
+    import renderchan.joblauncher as joblauncher
 
     # Start the real application, with given arguments.
-    sys.exit(launcher.main(sys.argv))
+    sys.exit(joblauncher.main(sys.argv))
 
 
 if __name__ == "__main__":

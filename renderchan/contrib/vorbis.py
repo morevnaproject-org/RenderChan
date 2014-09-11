@@ -32,7 +32,7 @@ class RenderChanVorbisModule(RenderChanModule):
         self.active=True
         return True
 
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
+    def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)
@@ -45,7 +45,7 @@ class RenderChanVorbisModule(RenderChanModule):
         commandline=[self.conf['binary'], filename, "-o",tmpfile]
         subprocess.check_call(commandline)
 
-        commandline=[self.conf['sox_binary'], tmpfile, outputPath, "rate", "-v", audioRate]
+        commandline=[self.conf['sox_binary'], tmpfile, outputPath, "rate", "-v", extraParams["audio_rate"]]
         subprocess.check_call(commandline)
 
         os.remove(tmpfile)

@@ -122,33 +122,5 @@ class RenderChanModule():
     def getPacketSize(self):
         return self.conf["packetSize"]
 
-    def execute(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
-        #for key in self.extraParams.keys():
-        #    if not extraParams.has_key(key):
-        #        extraParams[key]=self.extraParams[key]
-
-        print "Rendering: %s" % outputPath
-
-        # Check if we really need to re-render
-        uptodate=False
-        if os.path.exists(outputPath+".done") and os.path.exists(outputPath):
-            if float_trunc(os.path.getmtime(outputPath+".done"),1) >= extraParams["maxTime"]:
-                # Hurray! No need to re-render that piece.
-                uptodate=True
-
-        if not uptodate:
-
-            if os.path.isdir(outputPath):
-                shutil.rmtree(outputPath)
-
-            # TODO: Create lock here
-
-            self.render(filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams)
-            touch(outputPath+".done",float(extraParams["maxTime"]))
-
-            # TODO: Release lock here
-        else:
-            print "  This chunk is already up to date. Skipping."
-
-    def render(self, filename, outputPath, startFrame, endFrame, width, height, format, fps, audioRate, updateCompletion, extraParams={}):
+    def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
         pass

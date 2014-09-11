@@ -68,15 +68,17 @@ def mkdirs(path):
         else:
             raise
 
-def touch(path, time=None):
+def touch(path, timevalue=None):
+    if timevalue==None:
+        timevalue=time.time()
     basedir = os.path.dirname(path)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
     if not os.path.exists(path):
         with open(path, 'a'):
-            os.utime(path, (time, time))
+            os.utime(path, (timevalue, timevalue))
     else:
-        os.utime(path, (time, time))
+        os.utime(path, (timevalue, timevalue))
 
 def file_is_older_than(path, seconds):
     return (time.time()-os.path.getmtime(path))>seconds
@@ -93,7 +95,7 @@ def sync(profile_output, output, compareTime=None):
         needSync=True
 
         if compareTime!=None:
-            if os.path.exists(profile_output+".sync"):
+            if os.path.exists(profile_output+".sync") and os.path.exists(output):
                 if float_trunc(os.path.getmtime(profile_output+".sync"),1) >= compareTime:
                     needSync=False
 
@@ -176,7 +178,7 @@ def switchProfile(project_path, profile):
         need_sync = True
         checkfile=os.path.join(project_path,"render","project.conf","profile.conf")
         lockfile=os.path.join(project_path,"render","project.conf","profile.lock")
-        prev_profile = ""
+        #prev_profile = ""
         if os.path.exists(checkfile):
             # Read previous profile
             f=open(checkfile)
