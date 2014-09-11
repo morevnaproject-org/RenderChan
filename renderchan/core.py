@@ -17,9 +17,10 @@ import subprocess
 class RenderChan():
     def __init__(self):
 
+        self.available_renderfarm_engines = ("puli")
         self.renderfarm_engine = ""
-        self.puliServer = ""
-        self.puliPort = 8004
+        self.renderfarm_host = "127.0.0.1"
+        self.renderfarm_port = 8004
 
         print "RenderChan initialized."
         self.projects = RenderChanProjectManager()
@@ -38,12 +39,12 @@ class RenderChan():
         self.childTask = None
 
     def setHost(self, host):
-        self.puliServer=host
+        self.renderfarm_host=host
 
     def setPort(self, port):
-        self.puliPort=port
+        self.renderfarm_port=port
 
-    def submit(self, taskfile, useDispatcher=True, dependenciesOnly=False, allocateOnly=False, stereo=""):
+    def submit(self, taskfile, dependenciesOnly=False, allocateOnly=False, stereo=""):
 
         """
 
@@ -97,16 +98,9 @@ class RenderChan():
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
-        if self.puliServer=="":
-            server="127.0.0.1"
-            # TODO: If no server address given, then try to run our own dispatcher
-            # ...
-        else:
-            server=self.puliServer
-
-        if useDispatcher:
-            # Submit to dispatcher host
-            self.graph.submit(server, self.puliPort)
+        if self.renderfarm_engine=="puli":
+            # Submit job to renderfarm
+            self.graph.submit(self.renderfarm_host, self.renderfarm_port)
 
     def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
         """

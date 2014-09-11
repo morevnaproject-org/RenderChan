@@ -35,12 +35,15 @@ def process_args():
             action="store",
             help=_("Output height."))
 
-    parser.add_option("--dispatcher-host", dest="dispatcherHost",
+    parser.add_option("--renderfarm", dest="renderfarmType",
             action="store",
-            help=_("Set remote dispatcher host."))
-    parser.add_option("--dispatcher-port", dest="dispatcherPort",
+            help=_("Set renderfarm engine type."))
+    parser.add_option("--host", dest="host",
             action="store",
-            help=_("Set remote dispatcher port."))
+            help=_("Set renderfarm server host."))
+    parser.add_option("--port", dest="port",
+            action="store",
+            help=_("Set renderfarm server port."))
 
     parser.add_option("--deps", dest="dependenciesOnly",
             action="store_true",
@@ -69,14 +72,17 @@ def main(argv):
     if options.profile:
         renderchan.projects.setProfile(options.profile)
 
-    useDispatcher=False
-    if options.dispatcherHost:
-        renderchan.setHost(options.dispatcherHost)
-        if options.dispatcherPort:
-            renderchan.setPort(options.dispatcherPort)
-        useDispatcher=True
-    elif options.dispatcherPort:
-        print "WARNING: No dispatcher host specified. Ignoring --dispatcher-port parameter."
+    if options.renderfarmType and options.renderfarmType in renderchan.available_renderfarm_engines:
+        renderchan.renderfarm_engine = options.renderfarmType
+        if options.host:
+            renderchan.setHost(options.host)
+        if options.port:
+            renderchan.setPort(options.port)
+    else:
+        if options.host:
+            print "WARNING: No renderfarm type given. Ignoring --host parameter."
+        if options.port:
+            print "WARNING: No renderfarm type given. Ignoring --port parameter."
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    renderchan.submit(taskfile, useDispatcher, options.dependenciesOnly, options.allocateOnly, options.stereo)
+    renderchan.submit(taskfile, options.dependenciesOnly, options.allocateOnly, options.stereo)
