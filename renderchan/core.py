@@ -17,7 +17,7 @@ import subprocess
 class RenderChan():
     def __init__(self):
 
-        self.available_renderfarm_engines = ("puli")
+        self.available_renderfarm_engines = ("puli","afanasy")
         self.renderfarm_engine = ""
         self.renderfarm_host = "127.0.0.1"
         self.renderfarm_port = 8004
@@ -51,7 +51,11 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
-        if self.renderfarm_engine=="puli":
+        if self.renderfarm_engine=="afanasy":
+            from af import Job as AfanasyJob
+            from af import Block as AfanasyBlock
+            self.graph = AfanasyJob('RenderChan job')
+        elif self.renderfarm_engine=="puli":
             from puliclient import Graph
             self.graph = Graph( 'RenderChan graph', poolName="default" )
 
@@ -71,7 +75,18 @@ class RenderChan():
             # Stitching altogether
             if self.renderfarm_engine=="":
                 self.job_merge_stereo(taskfile, stereo)
-            else:
+            elif self.renderfarm_engine=="afanasy":
+
+                name = "RenderChan (%s) - StereoPost - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H:%M:%S") )
+                block = AfanasyBlock(name, 'generic')
+                block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo ))
+                if taskfile.taskPost!=None:
+                    block.setDependMask(taskfile.taskPost)
+                block.setNumeric(1,1,100)
+
+                self.graph.blocks.append(block)
+
+            elif self.renderfarm_engine=="puli":
 
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
@@ -98,8 +113,12 @@ class RenderChan():
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
-        if self.renderfarm_engine=="puli":
-            # Submit job to renderfarm
+        # Submit job to renderfarm
+        if self.renderfarm_engine=="afanasy":
+            self.graph.output(True)
+            #FIXME: host and port ?
+            self.graph.send()
+        elif self.renderfarm_engine=="puli":
             self.graph.submit(self.renderfarm_host, self.renderfarm_port)
 
     def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
@@ -246,6 +265,63 @@ class RenderChan():
                     self.job_render(taskfile, taskfile.getFormat(), self.updateCompletion, start, end, compare_time)
 
                 self.job_merge(taskfile, taskfile.getFormat(), taskfile.project.getConfig("stereo"), compare_time)
+
+            elif self.renderfarm_engine=="afanasy":
+
+                from af import Block as AfanasyBlock
+
+                command = "renderchan-job-launcher %s --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                if self.projects.stereo!="":
+                    command += " --stereo %s" % (self.projects.stereo)
+                if taskfile.getPacketSize()>0:
+                    command += " --start @#@ --end @#@"
+
+                name = "(%s) - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                taskfile.taskPost = name
+
+                if taskfile.module.getName() in ("blender"):
+                    blocktype=taskfile.module.getName()
+                else:
+                    blocktype="generic"
+
+
+                block = AfanasyBlock(name, blocktype)
+                block.setCommand(command)
+                block.setErrorsTaskSameHost(-2)
+                if taskfile.getPacketSize()>0:
+                    block.setNumeric(taskfile.getStartFrame(),taskfile.getEndFrame(),taskfile.getPacketSize())
+                else:
+                    block.setNumeric(1,1,100)
+
+                depend_mask=[]
+                for dep_task in tasklist:
+                    depend_mask.append(dep_task)
+
+                if self.childTask!=None:
+                    depend_mask.append(self.childTask)
+                block.setDependMask("|".join(depend_mask))
+
+
+
+                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                if self.projects.stereo!="":
+                    command += " --stereo %s" % (self.projects.stereo)
+
+                #block.setCmdPost(command)
+
+                # Post workaround
+                self.graph.blocks.append(block)
+
+                name_post = "Post (%s) - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                taskfile.taskPost = name_post
+                block = AfanasyBlock(name_post, "generic")
+                block.setNumeric(1,1,100)
+                block.setCommand(command)
+                block.setDependMask(name)
+                block.setErrorsTaskSameHost(-2)
+
+
+                self.graph.blocks.append(block)
 
             elif self.renderfarm_engine=="puli":
 
