@@ -38,6 +38,8 @@ class RenderChan():
         # FIXME: The childTask is a dirty workaround, which we need because of broken taskgroups functionality (search for "taskgroups bug" string to get the commented code)
         self.childTask = None
 
+        self.AfanasyBlockClass=None
+
     def setHost(self, host):
         self.renderfarm_host=host
 
@@ -54,6 +56,7 @@ class RenderChan():
         if self.renderfarm_engine=="afanasy":
             from af import Job as AfanasyJob
             from af import Block as AfanasyBlock
+            self.AfanasyBlockClass=AfanasyBlock
             self.graph = AfanasyJob('RenderChan job')
         elif self.renderfarm_engine=="puli":
             from puliclient import Graph
@@ -78,7 +81,7 @@ class RenderChan():
             elif self.renderfarm_engine=="afanasy":
 
                 name = "RenderChan (%s) - StereoPost - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H:%M:%S") )
-                block = AfanasyBlock(name, 'generic')
+                block = self.AfanasyBlockClass(name, 'generic')
                 block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo ))
                 if taskfile.taskPost!=None:
                     block.setDependMask(taskfile.taskPost)
@@ -116,7 +119,6 @@ class RenderChan():
         # Submit job to renderfarm
         if self.renderfarm_engine=="afanasy":
             self.graph.output(True)
-            #FIXME: host and port ?
             self.graph.send()
         elif self.renderfarm_engine=="puli":
             self.graph.submit(self.renderfarm_host, self.renderfarm_port)
@@ -211,7 +213,7 @@ class RenderChan():
             compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
-        (isDirtyValue,tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
+        (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime)
 
         if isDirtyValue:
             isDirty = True
@@ -268,7 +270,7 @@ class RenderChan():
 
             elif self.renderfarm_engine=="afanasy":
 
-                from af import Block as AfanasyBlock
+                # Render block
 
                 command = "renderchan-job-launcher %s --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
                 if self.projects.stereo!="":
@@ -276,7 +278,7 @@ class RenderChan():
                 if taskfile.getPacketSize()>0:
                     command += " --start @#@ --end @#@"
 
-                name = "(%s) - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                name = "%s - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
                 taskfile.taskPost = name
 
                 if taskfile.module.getName() in ("blender"):
@@ -285,7 +287,7 @@ class RenderChan():
                     blocktype="generic"
 
 
-                block = AfanasyBlock(name, blocktype)
+                block = self.AfanasyBlockClass(name, blocktype)
                 block.setCommand(command)
                 block.setErrorsTaskSameHost(-2)
                 if taskfile.getPacketSize()>0:
@@ -307,14 +309,13 @@ class RenderChan():
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
 
-                #block.setCmdPost(command)
-
-                # Post workaround
                 self.graph.blocks.append(block)
 
-                name_post = "Post (%s) - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                # Post block
+
+                name_post = "Post %s - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
                 taskfile.taskPost = name_post
-                block = AfanasyBlock(name_post, "generic")
+                block = self.AfanasyBlockClass(name_post, "generic")
                 block.setNumeric(1,1,100)
                 block.setCommand(command)
                 block.setDependMask(name)
