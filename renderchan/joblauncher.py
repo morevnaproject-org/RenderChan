@@ -70,6 +70,13 @@ def main(argv):
     taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
     taskfile.setFormat(options.format)
 
+    (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
+    if isDirty:
+        print "ERROR: There are unrendered dependencies for this file!"
+        print "       (Project tree changed or job started too early?)"
+        print "       Aborting."
+        exit(1)
+
     if options.action == 'render':
         if options.start and options.end:
             renderchan.job_render(taskfile, taskfile.getFormat(), updateCompletion, int(options.start), int(options.end), compare_time)
