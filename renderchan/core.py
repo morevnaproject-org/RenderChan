@@ -634,7 +634,7 @@ class RenderChan():
                                 f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
                         f.close()
                         # Compatibility
-                        if params["projectVersion"] < 1:
+                        if taskfile.project.version < 1:
                             f = open(os.path.join(profile_output, "file.lst"), 'w')
                             f.write("FPS %s\n" % params["fps"])
                             for filename in sorted(os.listdir(profile_output)):
