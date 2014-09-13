@@ -11,7 +11,7 @@ from renderchan.file import RenderChanFile
 def process_args():
     parser = OptionParser(
         usage=_("""
-    %prog [FILE]               """))
+    %prog               """))
 
     parser.add_option("--freeze", dest="freezeList",
             action="append",
@@ -38,11 +38,13 @@ def main(argv):
             options.unfreezeList=[]
         frozenListChanged=False
         for filename in options.freezeList:
+            filename=os.path.abspath(filename)
             if not filename in options.unfreezeList:
                 taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
                 taskfile.setFrozen(True)
                 frozenListChanged=True
         for filename in options.unfreezeList:
+            filename=os.path.abspath(filename)
             if not filename in options.freezeList:
                 taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
                 taskfile.setFrozen(False)
