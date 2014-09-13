@@ -86,6 +86,7 @@ class RenderChan():
                 if taskfile.taskPost!=None:
                     block.setDependMask(taskfile.taskPost)
                 block.setNumeric(1,1,100)
+                block.setCapacity(100)
 
                 self.graph.blocks.append(block)
 
@@ -295,6 +296,9 @@ class RenderChan():
                 else:
                     block.setNumeric(1,1,100)
 
+                if taskfile.module.getName() in ("flac","mp3","vorbis"):
+                    block.setCapacity(50)
+
                 depend_mask=[]
                 for dep_task in tasklist:
                     depend_mask.append(dep_task)
@@ -320,6 +324,7 @@ class RenderChan():
                 block.setCommand(command)
                 block.setDependMask(name)
                 block.setErrorsTaskSameHost(-2)
+                block.setCapacity(50)
 
 
                 self.graph.blocks.append(block)
