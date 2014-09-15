@@ -146,6 +146,10 @@ class RenderChanBlenderModule(RenderChanModule):
                 break
             print line,
             sys.stdout.flush()
+
+            if line.startswith("CUDA error: Out of memory"):
+                raise Exception('  Blender command failed...')
+
             fn = frameNumberPattern.search(line)
             if fn:
                 currentFrame = float(fn.group(1).strip())
