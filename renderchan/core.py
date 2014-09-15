@@ -638,18 +638,32 @@ class RenderChan():
                             os.remove(profile_output + ".done")
 
                 if not uptodate:
+
+                    # Check if we really have all segments rendered correctly
+
+                    f = open(profile_output_list, 'r')
+                    segments=f.readlines()
+                    f.close()
+                    for i in range(len(segments)):
+                        segments[i] = segments[i].strip()
+                        segments[i] = segments[i][6:-1]
+
+                        output = segments[i]
+
+                        if os.path.exists(output+".done") and os.path.exists(output):
+                            if float_trunc(os.path.getmtime(output+".done"),1) >= float_trunc(os.path.getmtime(output),1):
+                                continue
+                        print "ERROR: Not all segments were rendered. Aborting."
+                        exit(1)
+
                     if format == "avi":
                         subprocess.check_call(
                             ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                     else:
                         # Merge all sequences into single directory
-                        f = open(profile_output_list, 'r')
-                        for line in f.readlines():
-                            line = line.strip()
-                            line = line[6:-1]
+                        for line in segments:
                             print line
                             copytree(line, profile_output, hardlinks=True)
-                        f.close()
                         # Add LST file
                         lst_path = os.path.splitext(profile_output)[0] + ".lst"
                         f = open(lst_path, 'w')
