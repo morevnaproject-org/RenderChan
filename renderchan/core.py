@@ -561,21 +561,27 @@ class RenderChan():
                 t=switchProfile(project, taskfile.project.getProfileDirName())
                 locks.append(t)
 
-            if os.path.isdir(output):
-                shutil.rmtree(output)
+            try:
+                if os.path.isdir(output):
+                    shutil.rmtree(output)
 
-            # TODO: Create file lock here
+                # TODO: Create file lock here
 
-            taskfile.module.render(taskfile.getPath(),
-                           output,
-                           int(start),
-                           int(end),
-                           format,
-                           updateCompletion,
-                           taskfile.getParams())
-            touch(output+".done",compare_time)
+                taskfile.module.render(taskfile.getPath(),
+                               output,
+                               int(start),
+                               int(end),
+                               format,
+                               updateCompletion,
+                               taskfile.getParams())
+                touch(output+".done",compare_time)
 
-            # TODO: Release file lock here
+                # TODO: Release file lock here
+                
+            except:
+                for lock in locks:
+                    lock.unlock()
+                exit(1)
 
             # Releasing PROJECT LOCK
             for lock in locks:
