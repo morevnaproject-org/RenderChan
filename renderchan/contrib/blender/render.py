@@ -66,6 +66,9 @@ def main():
         # Allow to set GPU device from RenderChan module settings
         # For information how to identify your GPU device from
         # a cluster console, see http://www.dalaifelinto.com/?p=746
+        if params[GPU_DEVICE]==None:
+            # That means we have to explicitly force CPU rendering
+            sce.cycles.device = 'CPU'
         if params[GPU_DEVICE]!="":
             print("Cycles: GPU configuration found")
             bpy.context.user_preferences.system.compute_device_type = 'CUDA'

@@ -13,6 +13,7 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf['binary']="blender"
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
+        self.conf["disable_gpu"]=False
         # Extra params
         self.extraParams["cycles_samples"]="0"
         self.extraParams["prerender_count"]="0"
@@ -83,6 +84,11 @@ class RenderChanBlenderModule(RenderChanModule):
         elif extraParams["stereo"]=="right":
             stereo_camera = "Right"
 
+        if self.conf["disable_gpu"] or 'BLENDER_DISABLE_GPU' in os.environ:
+            gpu_device='None'
+        else:
+            gpu_device='"'+self.conf["gpu_device"]+'"'
+
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
@@ -94,7 +100,7 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[FORMAT]", '"'+format+'"')\
            .replace("params[CYCLES_SAMPLES]",str(int(extraParams["cycles_samples"])))\
            .replace("params[PRERENDER_COUNT]",str(int(extraParams["prerender_count"])))\
-           .replace("params[GPU_DEVICE]",'"'+self.conf["gpu_device"]+'"')
+           .replace("params[GPU_DEVICE]",gpu_device)
         f = open(renderscript,'w')
         f.write(script)
         f.close()
