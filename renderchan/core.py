@@ -64,7 +64,7 @@ class RenderChan():
             from af import Job as AfanasyJob
             from af import Block as AfanasyBlock
             self.AfanasyBlockClass=AfanasyBlock
-            self.graph = AfanasyJob('RenderChan job')
+            self.graph = AfanasyJob('RenderChan - %s - %s' % (taskfile.localPath, taskfile.projectPath))
 
         elif self.renderfarm_engine=="puli":
             from puliclient import Graph
@@ -287,7 +287,10 @@ class RenderChan():
                 if taskfile.getPacketSize()>0:
                     command += " --start @#@ --end @#@"
 
-                name = "%s - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                if taskfile.project.path == self.projects.active.path:
+                    name = "%s - %f" % ( taskfile.localPath, time.time() )
+                else:
+                    name = "%s - %s - %f" % ( taskfile.localPath, taskfile.projectPath, time.time() )
                 taskfile.taskPost = name
 
                 if taskfile.module.getName() in ("blender"):
@@ -325,7 +328,10 @@ class RenderChan():
 
                 # Post block
 
-                name_post = "Post %s - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H-%M-%S") )
+                if taskfile.project.path == self.projects.active.path:
+                    name_post = "Post %s - %f" % ( taskfile.localPath, time.time() )
+                else:
+                    name_post = "Post %s - %s - %f" % ( taskfile.localPath, taskfile.projectPath, time.time() )
                 taskfile.taskPost = name_post
                 block = self.AfanasyBlockClass(name_post, "generic")
                 block.setNumeric(1,1,100)
@@ -577,7 +583,7 @@ class RenderChan():
                 touch(output+".done",compare_time)
 
                 # TODO: Release file lock here
-                
+
             except:
                 for lock in locks:
                     lock.unlock()
