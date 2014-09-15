@@ -23,6 +23,7 @@ class RenderChan():
         self.renderfarm_port = 8004
 
         print "RenderChan initialized."
+        self.start_time = time.time()
         self.projects = RenderChanProjectManager()
         self.modules = RenderChanModuleManager()
         self.modules.loadAll()
@@ -40,6 +41,19 @@ class RenderChan():
 
         self.AfanasyBlockClass=None
         self.cgru_location = "/opt/cgru"
+
+    def __del__(self):
+        if self.renderfarm_engine == "":
+            t = time.time()-self.start_time
+            hours = int(t/3600)
+            t = t - hours*3600
+            minutes = int(t/60)
+            t = t - minutes*60
+            seconds = int(t)
+            print
+            print
+            print "Execution time: %02d:%02d:%02d " % ( hours, minutes, seconds )
+            print
 
     def setHost(self, host):
         self.renderfarm_host=host
