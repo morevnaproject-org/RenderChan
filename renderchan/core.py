@@ -604,92 +604,110 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
-        params = taskfile.getParams()
+        # PROJECT LOCK
+        # Make sure our rendertree is in sync with current profile
+        locks=[]
+        for project in self.projects.list.keys():
+            t=switchProfile(project, taskfile.project.getProfileDirName())
+            locks.append(t)
 
-        suffix_list = [""]
-        if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
-            suffix_list.append("-alpha")
+        try:
 
-        for suffix in suffix_list:
+            params = taskfile.getParams()
 
-            output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
-            profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
-            profile_output_list = os.path.splitext(profile_output)[0] + ".txt"
+            suffix_list = [""]
+            if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+                suffix_list.append("-alpha")
 
-            if os.path.exists(profile_output_list):
+            for suffix in suffix_list:
 
-                # We need to merge the rendered files into single one
+                output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
+                profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+                profile_output_list = os.path.splitext(profile_output)[0] + ".txt"
 
-                print "Merging: %s" % profile_output
+                if os.path.exists(profile_output_list):
 
-                # But first let's check if we really need to do that
-                uptodate = False
-                if os.path.exists(profile_output):
-                    if os.path.exists(profile_output + ".done") and \
-                                    float_trunc(os.path.getmtime(profile_output + ".done"), 1) >= compare_time:
-                        # Hurray! No need to merge that piece.
-                        uptodate = True
-                    else:
-                        if os.path.isdir(profile_output):
-                            shutil.rmtree(profile_output)
+                    # We need to merge the rendered files into single one
+
+                    print "Merging: %s" % profile_output
+
+                    # But first let's check if we really need to do that
+                    uptodate = False
+                    if os.path.exists(profile_output):
+                        if os.path.exists(profile_output + ".done") and \
+                                        float_trunc(os.path.getmtime(profile_output + ".done"), 1) >= compare_time:
+                            # Hurray! No need to merge that piece.
+                            uptodate = True
                         else:
-                            os.remove(profile_output)
-                        if os.path.exists(profile_output + ".done"):
-                            os.remove(profile_output + ".done")
+                            if os.path.isdir(profile_output):
+                                shutil.rmtree(profile_output)
+                            else:
+                                os.remove(profile_output)
+                            if os.path.exists(profile_output + ".done"):
+                                os.remove(profile_output + ".done")
 
-                if not uptodate:
+                    if not uptodate:
 
-                    # Check if we really have all segments rendered correctly
+                        # Check if we really have all segments rendered correctly
 
-                    f = open(profile_output_list, 'r')
-                    segments=f.readlines()
-                    f.close()
-                    for i in range(len(segments)):
-                        segments[i] = segments[i].strip()
-                        segments[i] = segments[i][6:-1]
-
-                        output = segments[i]
-
-                        if os.path.exists(output+".done") and os.path.exists(output):
-                            if float_trunc(os.path.getmtime(output+".done"),1) >= float_trunc(os.path.getmtime(output),1):
-                                continue
-                        print "ERROR: Not all segments were rendered. Aborting."
-                        exit(1)
-
-                    if format == "avi":
-                        subprocess.check_call(
-                            ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
-                    else:
-                        # Merge all sequences into single directory
-                        for line in segments:
-                            print line
-                            copytree(line, profile_output, hardlinks=True)
-                        # Add LST file
-                        lst_path = os.path.splitext(profile_output)[0] + ".lst"
-                        f = open(lst_path, 'w')
-                        f.write("FPS %s\n" % params["fps"])
-                        for filename in sorted(os.listdir(profile_output)):
-                            if filename.endswith(format):
-                                f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
+                        f = open(profile_output_list, 'r')
+                        segments=f.readlines()
                         f.close()
-                        # Compatibility
-                        if taskfile.project.version < 1:
-                            f = open(os.path.join(profile_output, "file.lst"), 'w')
+                        for i in range(len(segments)):
+                            segments[i] = segments[i].strip()
+                            segments[i] = segments[i][6:-1]
+
+                            output = segments[i]
+
+                            if os.path.exists(output+".done") and os.path.exists(output):
+                                if float_trunc(os.path.getmtime(output+".done"),1) >= float_trunc(os.path.getmtime(output),1):
+                                    continue
+                            print "ERROR: Not all segments were rendered. Aborting."
+                            exit(1)
+
+                        if format == "avi":
+                            subprocess.check_call(
+                                ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                        else:
+                            # Merge all sequences into single directory
+                            for line in segments:
+                                print line
+                                copytree(line, profile_output, hardlinks=True)
+                            # Add LST file
+                            lst_path = os.path.splitext(profile_output)[0] + ".lst"
+                            f = open(lst_path, 'w')
                             f.write("FPS %s\n" % params["fps"])
                             for filename in sorted(os.listdir(profile_output)):
                                 if filename.endswith(format):
-                                    f.write("%s\n" % filename)
+                                    f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
                             f.close()
-                    os.remove(profile_output_list)
-                    touch(profile_output + ".done", float(compare_time))
-                else:
-                    print "  This chunk is already merged. Skipping."
-                #updateCompletion(0.5)
+                            # Compatibility
+                            if taskfile.project.version < 1:
+                                f = open(os.path.join(profile_output, "file.lst"), 'w')
+                                f.write("FPS %s\n" % params["fps"])
+                                for filename in sorted(os.listdir(profile_output)):
+                                    if filename.endswith(format):
+                                        f.write("%s\n" % filename)
+                                f.close()
+                        os.remove(profile_output_list)
+                        touch(profile_output + ".done", float(compare_time))
+                    else:
+                        print "  This chunk is already merged. Skipping."
+                    #updateCompletion(0.5)
 
-            sync(profile_output, output)
+                sync(profile_output, output)
 
-            #touch(output+".done",arguments["maxTime"])
-            touch(output, float(compare_time))
+                #touch(output+".done",arguments["maxTime"])
+                touch(output, float(compare_time))
+
+        except:
+            for lock in locks:
+                lock.unlock()
+            exit(1)
+
+        # Releasing PROJECT LOCK
+        for lock in locks:
+            lock.unlock()
 
         #updateCompletion(1)
 
