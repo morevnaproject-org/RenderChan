@@ -39,6 +39,7 @@ class RenderChan():
         self.childTask = None
 
         self.AfanasyBlockClass=None
+        self.cgru_location = "/opt/cgru"
 
     def setHost(self, host):
         self.renderfarm_host=host
@@ -54,10 +55,17 @@ class RenderChan():
         """
 
         if self.renderfarm_engine=="afanasy":
+
+            os.environ["CGRU_LOCATION"]=self.cgru_location
+            os.environ["AF_ROOT"]=os.path.join(self.cgru_location,"afanasy")
+            sys.path.insert(0, os.path.join(self.cgru_location,"lib","python"))
+            sys.path.insert(0, os.path.join(self.cgru_location,"afanasy","python"))
+
             from af import Job as AfanasyJob
             from af import Block as AfanasyBlock
             self.AfanasyBlockClass=AfanasyBlock
             self.graph = AfanasyJob('RenderChan job')
+
         elif self.renderfarm_engine=="puli":
             from puliclient import Graph
             self.graph = Graph( 'RenderChan graph', poolName="default" )

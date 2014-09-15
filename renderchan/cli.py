@@ -40,10 +40,13 @@ def process_args():
             help=_("Set renderfarm engine type."))
     parser.add_option("--host", dest="host",
             action="store",
-            help=_("Set renderfarm server host."))
+            help=_("Set renderfarm server host (Puli renderfarm)."))
     parser.add_option("--port", dest="port",
             action="store",
-            help=_("Set renderfarm server port."))
+            help=_("Set renderfarm server port (Puli renderfarm)."))
+    parser.add_option("--cgru-location", dest="cgru_location",
+            action="store",
+            help=_("Set cgru directory (Afanasy renderfarm)."))
 
     parser.add_option("--deps", dest="dependenciesOnly",
             action="store_true",
@@ -74,10 +77,20 @@ def main(argv):
 
     if options.renderfarmType and options.renderfarmType in renderchan.available_renderfarm_engines:
         renderchan.renderfarm_engine = options.renderfarmType
+
         if options.host:
-            renderchan.setHost(options.host)
+            if renderchan.renderfarm_engine in ("puli"):
+                renderchan.setHost(options.host)
+            else:
+                print "WARNING: The --host parameter cannot be set for this type of renderfarm."
         if options.port:
-            renderchan.setPort(options.port)
+            if renderchan.renderfarm_engine in ("puli"):
+                renderchan.setPort(options.port)
+            else:
+                print "WARNING: The --port parameter cannot be set for this type of renderfarm."
+
+        if options.cgru_location:
+            renderchan.cgru_location = options.cgru_location
     else:
         if options.host:
             print "WARNING: No renderfarm type given. Ignoring --host parameter."
