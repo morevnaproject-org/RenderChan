@@ -69,7 +69,7 @@ def main():
         if params[GPU_DEVICE]==None:
             # That means we have to explicitly force CPU rendering
             sce.cycles.device = 'CPU'
-        if params[GPU_DEVICE]!="":
+        elif params[GPU_DEVICE]!="":
             print("Cycles: GPU configuration found")
             bpy.context.user_preferences.system.compute_device_type = 'CUDA'
             if params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():

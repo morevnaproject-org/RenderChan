@@ -85,8 +85,10 @@ class RenderChanBlenderModule(RenderChanModule):
             stereo_camera = "Right"
 
         if self.conf["disable_gpu"] or 'BLENDER_DISABLE_GPU' in os.environ:
+            print "================= FORCE DISABLE GPU ===================="
             gpu_device='None'
         else:
+            print "==================== GPU ENABLED ======================="
             gpu_device='"'+self.conf["gpu_device"]+'"'
 
         random_string = "%08d" % (random.randint(0,99999999))
