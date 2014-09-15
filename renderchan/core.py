@@ -571,6 +571,9 @@ class RenderChan():
                 if os.path.isdir(output):
                     shutil.rmtree(output)
 
+                if os.path.exists(output+".done"):
+                    os.remove(output+".done")
+
                 # TODO: Create file lock here
 
                 taskfile.module.render(taskfile.getPath(),
@@ -660,8 +663,7 @@ class RenderChan():
                             output = segments[i]
 
                             if os.path.exists(output+".done") and os.path.exists(output):
-                                if float_trunc(os.path.getmtime(output+".done"),1) >= float_trunc(os.path.getmtime(output),1):
-                                    continue
+                                continue
                             print "ERROR: Not all segments were rendered. Aborting."
                             exit(1)
 
