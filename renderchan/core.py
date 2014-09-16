@@ -674,9 +674,9 @@ class RenderChan():
                             segments[i] = segments[i].strip()
                             segments[i] = segments[i][6:-1]
 
-                            output = segments[i]
+                            segment = segments[i]
 
-                            if os.path.exists(output+".done") and os.path.exists(output):
+                            if os.path.exists(segment+".done") and os.path.exists(segment):
                                 continue
                             print "ERROR: Not all segments were rendered. Aborting."
                             exit(1)
