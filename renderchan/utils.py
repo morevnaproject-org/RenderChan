@@ -182,10 +182,12 @@ def switchProfile(project_path, profile):
         if os.path.exists(checkfile):
             # Read previous profile
             f=open(checkfile)
-            prev_profile = f.readlines()[0].strip()
+            fcontent=f.readlines()
             f.close()
-            if prev_profile==profile:
-                need_sync = False
+            if len(fcontent)>0:
+                prev_profile = fcontent[0].strip()
+                if prev_profile==profile:
+                    need_sync = False
 
         if need_sync:
             if os.path.exists(lockfile):
