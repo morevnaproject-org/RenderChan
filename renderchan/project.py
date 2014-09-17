@@ -94,7 +94,39 @@ class RenderChanProject():
             self.version = 1
 
         self.activeProfile=None
-        self.cache=RenderChanCache(os.path.join(self.path, "render", "cache.sqlite"))
+
+
+        # PROJECT CACHE
+
+        # Check for cache version
+        self.cache_version = 1
+        cachepath = os.path.join(self.path, "render", "cache.sqlite")
+        if os.path.exists(os.path.join(self.path, "render", "cache.version")):
+            existing_cache_version=0
+            f=open(os.path.join(self.path, "render", "cache.version"))
+            content=f.readlines()
+            f.close()
+            if len(content)>0:
+                try:
+                    existing_cache_version=int(content[0].strip())
+                except:
+                    pass
+            if existing_cache_version!=self.cache_version:
+                os.remove(cachepath)
+        else:
+            if os.path.exists(cachepath):
+                # There is unversioned cache, remove it
+                os.remove(cachepath)
+
+        # Load cache
+        self.cache=RenderChanCache(cachepath)
+
+        # Save cache version
+        f = open(os.path.join(self.path, "render", "cache.version"),'w')
+        f.write(str(self.cache_version)+"\n")
+        f.close()
+
+
         # List of modules used in the project
         self.dependencies=[]
 
