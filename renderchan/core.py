@@ -139,6 +139,10 @@ class RenderChan():
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
+        # Make sure to close cache before submitting job to renderfarm
+        for path in self.projects.list.keys():
+            self.projects.list[path].cache.close()
+
         # Submit job to renderfarm
         if self.renderfarm_engine=="afanasy":
             self.graph.output(True)
