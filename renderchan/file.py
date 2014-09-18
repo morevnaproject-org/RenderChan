@@ -16,7 +16,6 @@ class RenderChanFile():
             print "Warning: File %s doesn't belong to any project." % (path)
 
         # Associated tasks
-        self.taskRender=None
         self.taskPost=None
 
         # Shows if we already had attempt to submit this file to the graph and stores the result

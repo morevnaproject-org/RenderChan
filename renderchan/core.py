@@ -309,7 +309,6 @@ class RenderChan():
                     name = "%s - %f" % ( taskfile.localPath, time.time() )
                 else:
                     name = "%s - %s - %f" % ( taskfile.localPath, taskfile.projectPath, time.time() )
-                taskfile.taskPost = name
 
                 if taskfile.module.getName() in ("blender"):
                     blocktype=taskfile.module.getName()
@@ -421,13 +420,8 @@ class RenderChan():
 
         tasklist=[]
 
-        self.loadedFiles[taskfile.getPath()]=taskfile
-
         if taskfile.isFrozen():
             return (False, [], 0)
-
-        if taskfile.project!=None and taskfile.module!=None:
-            self.loadedFiles[taskfile.getRenderPath()]=taskfile
 
         deps = taskfile.getDependencies()
 
@@ -455,6 +449,9 @@ class RenderChan():
                 if not os.path.exists(dependency.getPath()):
                     print "   Skipping file %s..." % path
                     continue
+                self.loadedFiles[dependency.getPath()]=dependency
+                if dependency.project!=None and dependency.module!=None:
+                    self.loadedFiles[dependency.getRenderPath()]=dependency
 
             # Check if this is a rendering dependency
             if path != dependency.getPath():
