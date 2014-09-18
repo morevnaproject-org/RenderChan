@@ -8,6 +8,7 @@ class RenderChanCache():
 
         self.path=path
         self.connection=None
+        self.closed = True
 
         try:
             self.connection=sqlite3.connect(path)
@@ -18,66 +19,90 @@ class RenderChanCache():
             cur.execute("CREATE TABLE IF NOT EXISTS Dependencies(Id INTEGER, Dependency TEXT);")
             self.connection.commit()
 
+            self.closed = False
+
         except sqlite3.Error, e:
 
             print "Error %s:" % e.args[0]
             sys.exit(1)
 
     def __del__(self):
+        if not self.closed:
+            self.close()
+
+    def close(self):
         self.connection.commit()
         self.connection.close()
+        self.closed = True
         print "Cache closed."
 
     def getInfo(self, path):
-        cur=self.connection.cursor()
-        cur.execute("SELECT * FROM Paths WHERE Path = ? ", (path,))
-        row = cur.fetchone()
-        if row:
-            info={}
-            info['timestamp']=row[2]
-            info['startFrame']=row[3]
-            info['endFrame']=row[4]
-            return info
-        else:
+        if self.closed:
+            return None
+        try:
+            cur=self.connection.cursor()
+            cur.execute("SELECT * FROM Paths WHERE Path = ? ", (path,))
+            row = cur.fetchone()
+            if row:
+                info={}
+                info['timestamp']=row[2]
+                info['startFrame']=row[3]
+                info['endFrame']=row[4]
+                return info
+            else:
+                return None
+        except:
+            print "ERROR: Cannot read from database."
             return None
 
     def getDependencies(self, path):
-        cur=self.connection.cursor()
-        cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
-        result = cur.fetchone()
-        if result:
-            id=result[0]
-            dependencies=[]
-            projectroot=os.path.dirname(os.path.dirname(self.path))
-            cur.execute("SELECT * FROM Dependencies WHERE Id=%s" % (id))
-            rows = cur.fetchall()
-            for row in rows:
-                dependencies.append(os.path.join(projectroot, row[1]))
-            return dependencies
-        else:
+        if self.closed:
+            return None
+        try:
+            cur=self.connection.cursor()
+            cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
+            result = cur.fetchone()
+            if result:
+                id=result[0]
+                dependencies=[]
+                projectroot=os.path.dirname(os.path.dirname(self.path))
+                cur.execute("SELECT * FROM Dependencies WHERE Id=%s" % (id))
+                rows = cur.fetchall()
+                for row in rows:
+                    dependencies.append(os.path.join(projectroot, row[1]))
+                return dependencies
+            else:
+                return None
+        except:
+            print "ERROR: Cannot read from database."
             return None
 
     def write(self, path, timestamp, start, end, dependencies):
+        if self.closed:
+            print "ERROR: Database is closed. Writing isn't possible."
+            return None
+        try:
+            cur=self.connection.cursor()
 
-        cur=self.connection.cursor()
+            # First, delete all records for given path if present
+            cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
+            rows = cur.fetchall()
+            for row in rows:
+                cur.execute("DELETE FROM Paths WHERE Id=%s" % (row[0]))
+                cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (row[0]))
+            self.connection.commit()
 
-        # First, delete all records for given path if present
-        cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
-        rows = cur.fetchall()
-        for row in rows:
-            cur.execute("DELETE FROM Paths WHERE Id=%s" % (row[0]))
-            cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (row[0]))
-        self.connection.commit()
+            # Now, write the data
+            cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End) VALUES(?, ?, ?, ?)", (path, timestamp, start, end))
+            id = cur.lastrowid
 
-        # Now, write the data
-        cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End) VALUES(?, ?, ?, ?)", (path, timestamp, start, end))
-        id = cur.lastrowid
+            # Again, make sure we have no associated data in dependency table
+            cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (id))
 
-        # Again, make sure we have no associated data in dependency table
-        cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (id))
-
-        # Write a list of dependencies
-        for dep in dependencies:
-            relpath=os.path.relpath(os.path.realpath(dep), os.path.realpath(os.path.dirname(os.path.dirname(self.path))))
-            cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
-        self.connection.commit()
+            # Write a list of dependencies
+            for dep in dependencies:
+                relpath=os.path.relpath(os.path.realpath(dep), os.path.realpath(os.path.dirname(os.path.dirname(self.path))))
+                cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
+            self.connection.commit()
+        except:
+            print "ERROR: Cannot write into database."
