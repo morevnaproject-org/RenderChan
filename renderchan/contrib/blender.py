@@ -85,7 +85,7 @@ class RenderChanBlenderModule(RenderChanModule):
             stereo_camera = "Right"
 
         if self.conf["disable_gpu"] or 'BLENDER_DISABLE_GPU' in os.environ:
-            print "================= FORCE DISABLE GPU ===================="
+            print "================== FORCE DISABLE GPU ====================="
             gpu_device='None'
         else:
             gpu_device='"'+self.conf["gpu_device"]+'"'
@@ -147,6 +147,7 @@ class RenderChanBlenderModule(RenderChanModule):
             sys.stdout.flush()
 
             if line.startswith("CUDA error: Out of memory"):
+                out.kill()
                 raise Exception('  Blender command failed...')
 
             fn = frameNumberPattern.search(line)

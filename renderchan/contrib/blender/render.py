@@ -95,6 +95,7 @@ def main():
             sce.cycles.debug_use_spatial_splits = False
         else:
             print("Cycles: CPU device used")
+            bpy.context.user_preferences.system.compute_device_type = 'NONE'
             sce.render.tile_x = 64
             sce.render.tile_y = 64
             sce.cycles.debug_use_spatial_splits = True
