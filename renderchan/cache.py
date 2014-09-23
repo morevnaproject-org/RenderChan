@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os, sys
 import sqlite3
+from renderchan.utils import mkdirs
 
 class RenderChanCache():
     def __init__(self, path):
@@ -11,6 +12,10 @@ class RenderChanCache():
         self.closed = True
 
         try:
+
+            if not os.path.exists(os.path.dirname(path)):
+                mkdirs(os.path.dirname(path))
+
             self.connection=sqlite3.connect(path)
             self.connection.text_factory = str
             cur=self.connection.cursor()
