@@ -148,7 +148,7 @@ class RenderChan():
 
             # Wait a moment to make sure cache is closed properly
             # (this allows to avoid issues with shared nfs drives)
-            time.sleep(2)
+            time.sleep(1)
 
             self.graph.output(True)
             self.graph.send()

@@ -2,19 +2,34 @@ __author__ = 'Konstantin Dmitriev'
 
 import os, sys
 import sqlite3
+import random
+import shutil
 from renderchan.utils import mkdirs
 
 class RenderChanCache():
-    def __init__(self, path):
+    def __init__(self, path, readonly=False):
 
-        self.path=path
         self.connection=None
         self.closed = True
+        self.readonly=readonly
+
+        if not os.path.exists(os.path.dirname(path)):
+            mkdirs(os.path.dirname(path))
+
+        if self.readonly:
+            random_num = "%08d" % (random.randint(0,99999999))
+            tmp_path="/tmp/renderchan-cache-"+random_num+".sqlite"
+            if os.path.exists(path):
+                shutil.copy(path,tmp_path)
+            self.path=tmp_path
+        else:
+            self.path=path
+
+
 
         try:
 
-            if not os.path.exists(os.path.dirname(path)):
-                mkdirs(os.path.dirname(path))
+
 
             self.connection=sqlite3.connect(path)
             self.connection.text_factory = str
@@ -39,6 +54,14 @@ class RenderChanCache():
         self.connection.commit()
         self.connection.close()
         self.closed = True
+
+        if self.readonly:
+            try:
+                if os.path.exists(self.path):
+                    os.remove(self.path)
+            except:
+                pass
+
         print "Cache closed."
 
     def getInfo(self, path):

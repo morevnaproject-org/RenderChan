@@ -53,6 +53,7 @@ def main(argv):
     options, args = process_args()
 
     renderchan = RenderChan()
+    renderchan.projects.readonly = True
 
     if options.profile:
         renderchan.projects.setProfile(options.profile)

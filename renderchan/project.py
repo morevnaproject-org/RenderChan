@@ -19,9 +19,12 @@ class RenderChanProjectManager():
         # Stereo mode to apply
         self.stereo = ""
 
+        # Determines if projects should be loaded readonly
+        self.readonly = False
+
     def load(self, path):
 
-        self.list[path]=RenderChanProject(path)
+        self.list[path]=RenderChanProject(path, self.readonly)
 
         # All projects should inherit render configuration of active project
         if self.getActive()==None:
@@ -77,7 +80,7 @@ class RenderChanProjectManager():
 
 
 class RenderChanProject():
-    def __init__(self, path):
+    def __init__(self, path, readonly=False):
 
         self.path=path
 
@@ -101,25 +104,26 @@ class RenderChanProject():
         # Check for cache version
         self.cache_version = 1
         cachepath = os.path.join(self.path, "render", "cache.sqlite")
-        if os.path.exists(os.path.join(self.path, "render", "cache.version")):
-            existing_cache_version=0
-            f=open(os.path.join(self.path, "render", "cache.version"))
-            content=f.readlines()
-            f.close()
-            if len(content)>0:
-                try:
-                    existing_cache_version=int(content[0].strip())
-                except:
-                    pass
-            if existing_cache_version!=self.cache_version:
-                os.remove(cachepath)
-        else:
-            if os.path.exists(cachepath):
-                # There is unversioned cache, remove it
-                os.remove(cachepath)
+        if not readonly:
+            if os.path.exists(os.path.join(self.path, "render", "cache.version")):
+                existing_cache_version=0
+                f=open(os.path.join(self.path, "render", "cache.version"))
+                content=f.readlines()
+                f.close()
+                if len(content)>0:
+                    try:
+                        existing_cache_version=int(content[0].strip())
+                    except:
+                        pass
+                if existing_cache_version!=self.cache_version:
+                    os.remove(cachepath)
+            else:
+                if os.path.exists(cachepath):
+                    # There is unversioned cache, remove it
+                    os.remove(cachepath)
 
         # Load cache
-        self.cache=RenderChanCache(cachepath)
+        self.cache=RenderChanCache(cachepath, readonly)
 
         # Save cache version
         f = open(os.path.join(self.path, "render", "cache.version"),'w')
