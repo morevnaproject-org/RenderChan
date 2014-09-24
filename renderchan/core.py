@@ -145,8 +145,14 @@ class RenderChan():
 
         # Submit job to renderfarm
         if self.renderfarm_engine=="afanasy":
+
+            # Wait a moment to make sure cache is closed properly
+            # (this allows to avoid issues with shared nfs drives)
+            time.sleep(2)
+
             self.graph.output(True)
             self.graph.send()
+
         elif self.renderfarm_engine=="puli":
             self.graph.submit(self.renderfarm_host, self.renderfarm_port)
 
