@@ -18,7 +18,8 @@ class RenderChanCache():
 
         if self.readonly:
             random_num = "%08d" % (random.randint(0,99999999))
-            tmp_path="/tmp/renderchan-cache-"+random_num+".sqlite"
+            tmp_path="renderchan-cache-"+random_num+".sqlite"
+            tmp_path=os.path.join(os.path.dirname(path),tmp_path)
             if os.path.exists(path):
                 shutil.copy(path,tmp_path)
             self.path=tmp_path
