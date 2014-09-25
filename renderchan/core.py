@@ -152,7 +152,7 @@ class RenderChan():
         # Snapshot
         if self.snapshot_path:
             if stereo in ("vertical","v","horizontal","h"):
-                output_file = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+"."+format
+                output_file = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+"."+os.path.splitext(taskfile.getRenderPath())[1]
             else:
                 output_file = taskfile.getRenderPath()
 
