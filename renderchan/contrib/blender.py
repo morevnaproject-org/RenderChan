@@ -13,11 +13,11 @@ class RenderChanBlenderModule(RenderChanModule):
         self.conf['binary']="blender"
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
-        self.conf["disable_gpu"]=False
         # Extra params
         self.extraParams["cycles_samples"]="0"
         self.extraParams["prerender_count"]="0"
         self.extraParams["single"]="None"
+        self.extraParams["disable_gpu"]=False
 
     def getInputFormats(self):
         return ["blend"]
@@ -84,7 +84,7 @@ class RenderChanBlenderModule(RenderChanModule):
         elif extraParams["stereo"]=="right":
             stereo_camera = "Right"
 
-        if self.conf["disable_gpu"] or 'BLENDER_DISABLE_GPU' in os.environ:
+        if (extraParams["disable_gpu"]!=False) or ('BLENDER_DISABLE_GPU' in os.environ):
             print "================== FORCE DISABLE GPU ====================="
             gpu_device='None'
         else:
