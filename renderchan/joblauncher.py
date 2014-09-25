@@ -68,7 +68,7 @@ def main(argv):
         compare_time=float(options.compare_time)
     else:
         compare_time=None
-    if not ( options.action and options.action in ['render','merge'] ):
+    if not ( options.action and options.action in ['render','merge','snapshot'] ):
         options.action = 'render'
 
     taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
