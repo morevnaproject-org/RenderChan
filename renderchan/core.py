@@ -108,7 +108,7 @@ class RenderChan():
 
                 name = "StereoPost - %f" % ( time.time() )
                 block = self.AfanasyBlockClass(name, 'generic')
-                block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo ))
+                block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() ))
                 if taskfile.taskPost!=None:
                     block.setDependMask(taskfile.taskPost)
                 block.setNumeric(1,1,100)
@@ -123,7 +123,7 @@ class RenderChan():
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                 # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo )
+                command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
                 stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                 # Dummy task
