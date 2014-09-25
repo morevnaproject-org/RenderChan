@@ -56,6 +56,9 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Don't do the actual render, just allocate a placeholder for file."))
+    parser.add_option("--snapshot-to", dest="snapshot_to",
+            action="store",
+            help=_("Write a snapshot into specified directory."))
 
     options, args = parser.parse_args()
 
@@ -96,6 +99,9 @@ def main(argv):
             print "WARNING: No renderfarm type given. Ignoring --host parameter."
         if options.port:
             print "WARNING: No renderfarm type given. Ignoring --port parameter."
+
+    if options.snapshot_to:
+        renderchan.snapshot_path = options.snapshot_to
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
     renderchan.submit(taskfile, options.dependenciesOnly, options.allocateOnly, options.stereo)

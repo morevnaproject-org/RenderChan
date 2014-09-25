@@ -30,7 +30,7 @@ class RenderChan():
 
         self.loadedFiles = {}
 
-        self.graph = None  # used by Puli
+        self.graph = None  # used by renderfarm
         # == taskgroups bug / commented ==
         # The following are the special taskgroups used for managing stereo rendering
         #self.taskgroupLeft = None
@@ -41,6 +41,8 @@ class RenderChan():
 
         self.AfanasyBlockClass=None
         self.cgru_location = "/opt/cgru"
+
+        self.snapshot_path = None
 
     def __del__(self):
         if self.renderfarm_engine == "":
@@ -84,6 +86,8 @@ class RenderChan():
             from puliclient import Graph
             self.graph = Graph( 'RenderChan graph', poolName="default" )
 
+        last_task = None
+
         if stereo in ("vertical","v","horizontal","h"):
 
             # Left eye graph
@@ -102,7 +106,7 @@ class RenderChan():
                 self.job_merge_stereo(taskfile, stereo)
             elif self.renderfarm_engine=="afanasy":
 
-                name = "RenderChan (%s) - StereoPost - %s" % ( taskfile.getPath(), time.strftime("%Y-%m-%d %H:%M:%S") )
+                name = "StereoPost - %f" % ( time.time() )
                 block = self.AfanasyBlockClass(name, 'generic')
                 block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s" % ( taskfile.getPath(), self.projects.profile, stereo ))
                 if taskfile.taskPost!=None:
@@ -111,6 +115,8 @@ class RenderChan():
                 block.setCapacity(100)
 
                 self.graph.blocks.append(block)
+
+                last_task = name
 
             elif self.renderfarm_engine=="puli":
 
@@ -132,12 +138,52 @@ class RenderChan():
                 if taskfile.taskPost!=None:
                     self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
 
+                last_task = stereoTask
+
         else:
             if stereo in ("left","l"):
                 self.projects.setStereoMode("left")
             elif stereo in ("right","r"):
                 self.projects.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+
+            last_task = taskfile.taskPost
+
+        # Snapshot
+        if self.snapshot_path:
+            if stereo in ("vertical","v","horizontal","h"):
+                output_file = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+"."+format
+            else:
+                output_file = taskfile.getRenderPath()
+
+
+            if self.renderfarm_engine=="":
+
+                self.job_snapshot(output_file, self.snapshot_path)
+
+            elif self.renderfarm_engine=="afanasy":
+
+                name = "Snapshot - %f" % ( time.time() )
+                block = self.AfanasyBlockClass(name, 'generic')
+                block.setCommand("renderchan-job-launcher %s --action snapshot --snapshot-path %s" % ( taskfile.getPath(), self.snapshot_path ))
+                if last_task!=None:
+                    block.setDependMask(last_task)
+                block.setNumeric(1,1,100)
+                block.setCapacity(50)
+
+                self.graph.blocks.append(block)
+
+            elif self.renderfarm_engine=="puli":
+
+                runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
+
+                # Add parent task which composes results and places it into valid destination
+                command = "renderchan-job-launcher %s --action snapshot --snapshot-path %s" % ( taskfile.getPath(), self.snapshot_path )
+                snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
+
+                if last_task!=None:
+                    self.graph.addEdges( [(last_task, snapshotTask)] )
+
 
         # Make sure to close cache before submitting job to renderfarm
         for path in self.projects.list.keys():
@@ -736,12 +782,7 @@ class RenderChan():
 
     def job_merge_stereo(self, taskfile, mode, format="avi"):
 
-        output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo"
-        if mode[0:1]=='v':
-            output+="-v"
-        else:
-            output+="-h"
-        output+="."+format
+        output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+mode[0:1]+"."+format
 
         prev_mode = self.projects.stereo
         self.projects.setStereoMode("left")
@@ -791,7 +832,30 @@ class RenderChan():
         else:
             print "  This chunk is already merged. Skipping."
 
-        #updateCompletion(1.0)
+
+    def job_snapshot(self, renderpath, snapshot_dir):
+
+        if not os.path.exists(snapshot_dir):
+            mkdirs(snapshot_dir)
+
+        time_string = "%s" % ( time.strftime("%Y%m%d-%H%M%S") )
+        filename = os.path.splitext(os.path.basename(renderpath))[0] + "-" + time_string + "." + os.path.splitext(renderpath)[1]
+        snapshot_path = os.path.join(snapshot_dir, filename)
+
+        print
+        print "Creating snapshot to %s ..." % (filename)
+        print
+
+        if os.path.isdir(snapshot_path):
+            try:
+                copytree(renderpath, snapshot_dir, hardlinks=True)
+            except:
+                copytree(renderpath, snapshot_dir, hardlinks=False)
+        else:
+            try:
+                os.link(renderpath, snapshot_path)
+            except:
+                shutil.copy2(renderpath, snapshot_path)
 
 
     def decompose(self, start, end, packetSize, framesList=""):
