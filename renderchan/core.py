@@ -287,6 +287,8 @@ class RenderChan():
             # If no rendering exists, then obviously rendering is required
             isDirty = True
             compareTime = None
+            if os.environ.get('DEBUG'):
+                print "DEBUG: Dirty = 1 (no rendering exists)"
         else:
             # Otherwise we have to check against the time of the last rendering
             compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
@@ -533,8 +535,18 @@ class RenderChan():
 
                     if compareTime is None:
                         isDirty = True
+                        if os.environ.get('DEBUG'):
+                            print "DEBUG: %s:" % taskfile.localPath
+                            print "DEBUG: Dirty = 1 (no compare time)"
+                            print
                     elif timestamp > compareTime:
                         isDirty = True
+                        if os.environ.get('DEBUG'):
+                            print "DEBUG: %s:" % taskfile.localPath
+                            print "DEBUG: Dirty = 1 (dependency timestamp is higher)"
+                            print "DEBUG:            compareTime     = %f" % (compareTime)
+                            print "DEBUG:            dependency time = %f" % (timestamp)
+                            print
                     if timestamp>maxTime:
                         maxTime=timestamp
 
@@ -552,9 +564,19 @@ class RenderChan():
         if not isDirty:
             timestamp = float_trunc(taskfile.getTime(), 1)
             if compareTime is None:
+                if os.environ.get('DEBUG'):
+                    print "DEBUG: %s:" % taskfile.localPath
+                    print "DEBUG: Dirty = 1 (no compare time)"
+                    print
                 isDirty = True
             elif timestamp > compareTime:
                 isDirty = True
+                if os.environ.get('DEBUG'):
+                    print "DEBUG: %s:" % taskfile.localPath
+                    print "DEBUG: Dirty = 1 (source timestamp is higher)"
+                    print "DEBUG:            compareTime     = %f" % (compareTime)
+                    print "DEBUG:            source time = %f" % (timestamp)
+                    print
             if timestamp>maxTime:
                 maxTime=timestamp
 
