@@ -152,20 +152,20 @@ class RenderChan():
         # Snapshot
         if self.snapshot_path:
             if stereo in ("vertical","v","horizontal","h"):
-                output_file = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+"."+os.path.splitext(taskfile.getRenderPath())[1]
+                snapshot_source = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+os.path.splitext(taskfile.getRenderPath())[1]
             else:
-                output_file = taskfile.getRenderPath()
+                snapshot_source = taskfile.getProfileRenderPath()
 
 
             if self.renderfarm_engine=="":
 
-                self.job_snapshot(output_file, self.snapshot_path)
+                self.job_snapshot(snapshot_source, self.snapshot_path)
 
             elif self.renderfarm_engine=="afanasy":
 
                 name = "Snapshot - %f" % ( time.time() )
                 block = self.AfanasyBlockClass(name, 'generic')
-                block.setCommand("renderchan-job-launcher %s --action snapshot --snapshot-file %s --target-dir %s --compare-time %f" % ( taskfile.getPath(), output_file, self.snapshot_path, time.time()))
+                block.setCommand("renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source,  self.snapshot_path))
                 if last_task!=None:
                     block.setDependMask(last_task)
                 block.setNumeric(1,1,100)
@@ -178,7 +178,7 @@ class RenderChan():
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                 # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action snapshot --snapshot-file %s --target-dir %s --compare-time %f" % ( taskfile.getPath(), output_file, self.snapshot_path, time.time())
+                command = "renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source, self.snapshot_path)
                 snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                 if last_task!=None:

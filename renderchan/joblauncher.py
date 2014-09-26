@@ -33,12 +33,9 @@ def process_args():
     parser.add_option("--compare-time", dest="compare_time",
             action="store",
             help=_("Don't render if there is an existing file and it is newer than specified time."))
-    parser.add_option("--target-dir", dest="target_dir",
+    parser.add_option("--target-dir", dest="snapshot_target",
             action="store", default=None,
-            help=_("Target directory for snapshot."))
-    parser.add_option("--snapshot-file", dest="snapshot_file",
-            action="store", default=None,
-            help=_("Snapshot file."))
+            help=_("Target directory for snapshots."))
 
     options, args = parser.parse_args()
 
@@ -74,18 +71,19 @@ def main(argv):
     if not ( options.action and options.action in ['render','merge','snapshot'] ):
         options.action = 'render'
 
-    taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
-    taskfile.setFormat(options.format)
+    if options.action != 'snapshot':
+        taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
+        taskfile.setFormat(options.format)
 
-    if options.action == 'merge' and options.stereo and ( options.stereo[0:1]=="v" or options.stereo[0:1]=="h" ):
-        pass
-    else:
-        (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
-        if isDirty:
-            print "ERROR: There are unrendered dependencies for this file!"
-            print "       (Project tree changed or job started too early?)"
-            print "       Aborting."
-            exit(1)
+        if options.action == 'merge' and options.stereo and ( options.stereo[0:1]=="v" or options.stereo[0:1]=="h" ):
+            pass
+        else:
+            (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
+            if isDirty:
+                print "ERROR: There are unrendered dependencies for this file!"
+                print "       (Project tree changed or job started too early?)"
+                print "       Aborting."
+                exit(1)
 
     if options.action == 'render':
         if options.start and options.end:
@@ -98,9 +96,7 @@ def main(argv):
         else:
             renderchan.job_merge(taskfile, taskfile.getFormat(), renderchan.projects.stereo, compare_time)
     elif options.action == 'snapshot':
-        if not options.target_dir:
-            print  "ERROR: Please specify output directory using --target-dir option."
-        if not options.snapshot_file:
-            options.snapshot_file=taskfile.getRenderPath()
-        renderchan.job_snapshot(options.snapshot_file, os.path.abspath(options.target_dir))
+        if not options.snapshot_target:
+            print  "ERROR: Please specify output filename using --target-dir option."
+        renderchan.job_snapshot(options.filename, os.path.abspath(options.snapshot_target))
 
