@@ -77,12 +77,15 @@ def main(argv):
     taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
     taskfile.setFormat(options.format)
 
-    (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
-    if isDirty:
-        print "ERROR: There are unrendered dependencies for this file!"
-        print "       (Project tree changed or job started too early?)"
-        print "       Aborting."
-        exit(1)
+    if options.action == 'merge' and options.stereo and ( options.stereo[0:1]=="v" or options.stereo[0:1]=="h" ):
+        pass
+    else:
+        (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
+        if isDirty:
+            print "ERROR: There are unrendered dependencies for this file!"
+            print "       (Project tree changed or job started too early?)"
+            print "       Aborting."
+            exit(1)
 
     if options.action == 'render':
         if options.start and options.end:
