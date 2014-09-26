@@ -33,9 +33,12 @@ def process_args():
     parser.add_option("--compare-time", dest="compare_time",
             action="store",
             help=_("Don't render if there is an existing file and it is newer than specified time."))
-    parser.add_option("--snapshot-path", dest="snapshot_path",
+    parser.add_option("--target-dir", dest="target_dir",
             action="store", default=None,
-            help=_("Snapshot path.."))
+            help=_("Target directory for snapshot."))
+    parser.add_option("--snapshot-file", dest="snapshot_file",
+            action="store", default=None,
+            help=_("Snapshot file."))
 
     options, args = parser.parse_args()
 
@@ -92,7 +95,9 @@ def main(argv):
         else:
             renderchan.job_merge(taskfile, taskfile.getFormat(), renderchan.projects.stereo, compare_time)
     elif options.action == 'snapshot':
-        if not options.snapshot_path:
-            print  "ERROR: Please specify output directory using --snapshot-path option."
-        renderchan.job_snapshot(taskfile.getRenderPath(), os.path.abspath(options.snapshot_path))
+        if not options.target_dir:
+            print  "ERROR: Please specify output directory using --target-dir option."
+        if not options.snapshot_file:
+            options.snapshot_file=taskfile.getRenderPath()
+        renderchan.job_snapshot(options.snapshot_file, os.path.abspath(options.target_dir))
 

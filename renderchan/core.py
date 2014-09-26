@@ -165,7 +165,7 @@ class RenderChan():
 
                 name = "Snapshot - %f" % ( time.time() )
                 block = self.AfanasyBlockClass(name, 'generic')
-                block.setCommand("renderchan-job-launcher %s --action snapshot --snapshot-path %s --compare-time %f" % ( taskfile.getPath(), self.snapshot_path, time.time()))
+                block.setCommand("renderchan-job-launcher %s --action snapshot --snapshot-file %s --target-dir %s --compare-time %f" % ( taskfile.getPath(), output_file, self.snapshot_path, time.time()))
                 if last_task!=None:
                     block.setDependMask(last_task)
                 block.setNumeric(1,1,100)
@@ -178,7 +178,7 @@ class RenderChan():
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                 # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action snapshot --snapshot-path %s --compare-time %f" % ( taskfile.getPath(), self.snapshot_path, time.time())
+                command = "renderchan-job-launcher %s --action snapshot --snapshot-file %s --target-dir %s --compare-time %f" % ( taskfile.getPath(), output_file, self.snapshot_path, time.time())
                 snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                 if last_task!=None:
