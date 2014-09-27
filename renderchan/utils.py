@@ -237,7 +237,11 @@ def switchProfile(project_path, profile):
         else:
             if os.path.exists(lockfile):
                  f=open(lockfile)
-                 prev_profile = f.readlines()[0].strip()
+                 fcontent=f.readlines()
+                 if len(fcontent)>0:
+                     prev_profile = fcontent[0].strip()
+                 else:
+                     prev_profile = None
                  f.close()
                  if not(prev_profile==profile or file_is_older_than(lockfile, 6.0)):
                      # someone tries to switch profile right now, let's wait and try again
