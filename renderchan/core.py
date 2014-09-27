@@ -63,6 +63,39 @@ class RenderChan():
     def setPort(self, port):
         self.renderfarm_port=port
 
+    def setStereoMode(self, mode):
+        self.setProfile(self.projects.profile, mode)
+
+    def setProfile(self, profile, stereo=None):
+        """
+
+        :type profile: str
+        """
+
+        if stereo == None:
+            stereo=self.projects.stereo
+
+        if self.projects.active:
+
+            # Update root project
+            self.projects.active.config["stereo"]=stereo
+            self.projects.active.loadRenderConfig(profile)
+
+            # Update child projects
+            for key in self.projects.list.keys():
+                project = self.projects.list[key]
+                project.config=self.projects.active.config.copy()
+                project.loadRenderConfig(self.projects.profile)
+                # Reload module configuration
+                loaded_modules = project.dependencies[:]
+                project.dependencies = []
+                for module_name in loaded_modules:
+                    module = self.modules.get(module_name)
+                    project.registerModule(module)
+
+        self.projects.profile=profile
+        self.projects.stereo=stereo
+
     def submit(self, taskfile, dependenciesOnly=False, allocateOnly=False, stereo=""):
 
         """
@@ -91,14 +124,14 @@ class RenderChan():
         if stereo in ("vertical","v","horizontal","h"):
 
             # Left eye graph
-            self.projects.setStereoMode("left")
+            self.setStereoMode("left")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
             if self.renderfarm_engine!="":
                 self.childTask = taskfile.taskPost
 
             # Right eye graph
-            self.projects.setStereoMode("right")
+            self.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
             # Stitching altogether
@@ -142,9 +175,9 @@ class RenderChan():
 
         else:
             if stereo in ("left","l"):
-                self.projects.setStereoMode("left")
+                self.setStereoMode("left")
             elif stereo in ("right","r"):
-                self.projects.setStereoMode("right")
+                self.setStereoMode("right")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
             last_task = taskfile.taskPost
@@ -807,11 +840,11 @@ class RenderChan():
         output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+mode[0:1]+"."+format
 
         prev_mode = self.projects.stereo
-        self.projects.setStereoMode("left")
+        self.setStereoMode("left")
         input_left = taskfile.getProfileRenderPath()
-        self.projects.setStereoMode("right")
+        self.setStereoMode("right")
         input_right = taskfile.getProfileRenderPath()
-        self.projects.setStereoMode(prev_mode)
+        self.setStereoMode(prev_mode)
 
         print "Merging: %s" % output
 

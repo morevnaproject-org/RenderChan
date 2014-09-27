@@ -59,11 +59,11 @@ def main(argv):
     renderchan.projects.readonly = True
 
     if options.profile:
-        renderchan.projects.setProfile(options.profile)
+        renderchan.setProfile(options.profile)
     if options.stereo in ("left","l"):
-        renderchan.projects.setStereoMode("left")
+        renderchan.setStereoMode("left")
     elif options.stereo in ("right","r"):
-        renderchan.projects.setStereoMode("right")
+        renderchan.setStereoMode("right")
     if options.compare_time:
         compare_time=float(options.compare_time)
     else:

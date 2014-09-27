@@ -29,11 +29,10 @@ class RenderChanProjectManager():
         # All projects should inherit render configuration of active project
         if self.getActive()==None:
             self.setActive(self.list[path])
-            if self.profile:
-                self.setProfile(self.profile)
-            else:
+            if not self.profile:
                 self.profile = self.active.activeProfile
             self.active.config["stereo"]=self.stereo
+            self.active.loadRenderConfig(self.profile)
         else:
             self.list[path].config=self.active.config[:]
             self.list[path].activeProfile=self.active.activeProfile
@@ -55,28 +54,11 @@ class RenderChanProjectManager():
     def getActive(self):
         return self.active
 
-    def setProfile(self, profile):
-        """
-
-        :type profile: str
-        """
-        if self.active:
-            self.active.config["stereo"]=self.stereo
-            self.active.loadRenderConfig(profile)
-            self.updateChildProjects()
-        self.profile=profile
-
-    def setStereoMode(self, mode):
-        if self.active:
-            self.active.config["stereo"]=mode
-            self.active.loadRenderConfig(self.profile)
-            self.updateChildProjects()
-        self.stereo=mode
-
     def updateChildProjects(self):
         for key in self.list.keys():
             self.list[key].config=self.active.config.copy()
             self.list[key].activeProfile=self.active.activeProfile
+            self.list[key].loadRenderConfig(self.profile)
 
 
 class RenderChanProject():

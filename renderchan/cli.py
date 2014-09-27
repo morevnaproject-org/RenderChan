@@ -76,7 +76,7 @@ def main(argv):
 
     renderchan = RenderChan()
     if options.profile:
-        renderchan.projects.setProfile(options.profile)
+        renderchan.setProfile(options.profile)
 
     if options.renderfarmType and options.renderfarmType in renderchan.available_renderfarm_engines:
         renderchan.renderfarm_engine = options.renderfarmType
