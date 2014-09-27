@@ -698,14 +698,18 @@ class RenderChan():
 
                 # TODO: Create file lock here
 
+                params = taskfile.getParams()
                 taskfile.module.render(taskfile.getPath(),
                                output,
                                int(start),
                                int(end),
                                format,
                                updateCompletion,
-                               taskfile.getParams())
+                               params)
                 touch(output+".done",compare_time)
+                if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+                    alpha_output = os.path.splitext(output)[0] + "-alpha" + os.path.splitext(output)[1]
+                    touch(alpha_output+".done",compare_time)
 
                 # TODO: Release file lock here
 
