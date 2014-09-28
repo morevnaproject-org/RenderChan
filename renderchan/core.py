@@ -3,7 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 import sys
 from renderchan.file import RenderChanFile
 from renderchan.project import RenderChanProjectManager
-from renderchan.module import RenderChanModuleManager
+from renderchan.module import RenderChanModuleManager, RenderChanModule
 from renderchan.utils import mkdirs
 from renderchan.utils import float_trunc
 from renderchan.utils import sync
@@ -801,27 +801,35 @@ class RenderChan():
                             for line in segments:
                                 print line
                                 copytree(line, profile_output, hardlinks=True)
-                            # Add LST file
-                            lst_path = os.path.splitext(profile_output)[0] + ".lst"
-                            f = open(lst_path, 'w')
-                            f.write("FPS %s\n" % params["fps"])
-                            for filename in sorted(os.listdir(profile_output)):
-                                if filename.endswith(format):
-                                    f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
-                            f.close()
-                            # Compatibility
-                            if taskfile.project.version < 1:
-                                f = open(os.path.join(profile_output, "file.lst"), 'w')
-                                f.write("FPS %s\n" % params["fps"])
-                                for filename in sorted(os.listdir(profile_output)):
-                                    if filename.endswith(format):
-                                        f.write("%s\n" % filename)
-                                f.close()
+
                         os.remove(profile_output_list)
                         touch(profile_output + ".done", float(compare_time))
                     else:
                         print "  This chunk is already merged. Skipping."
                     #updateCompletion(0.5)
+
+                # Add LST file
+                if format in RenderChanModule.imageExtensions:
+                    lst_profile_path = os.path.splitext(profile_output)[0] + ".lst"
+                    lst_path = os.path.splitext(output)[0] + ".lst"
+                    f = open(lst_profile_path, 'w')
+                    f.write("FPS %s\n" % params["fps"])
+                    for filename in sorted(os.listdir(profile_output)):
+                        if filename.endswith(format):
+                            f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
+                    f.close()
+                    sync(lst_profile_path, lst_path)
+                    # Compatibility
+                    if taskfile.project.version < 1:
+                        lst_profile_path = os.path.join(profile_output, "file.lst")
+                        lst_path = os.path.join(output, "file.lst")
+                        f = open(lst_profile_path, 'w')
+                        f.write("FPS %s\n" % params["fps"])
+                        for filename in sorted(os.listdir(profile_output)):
+                            if filename.endswith(format):
+                                f.write("%s\n" % filename)
+                        f.close()
+                        sync(lst_profile_path, lst_path)
 
                 sync(profile_output, output)
 
