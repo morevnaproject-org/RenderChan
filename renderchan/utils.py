@@ -122,10 +122,13 @@ def sync(profile_output, output, compareTime=None):
                 os.rename(output_tmp, output)
             else:
                 if os.path.exists(output):
-                    if os.path.isdir(output):
-                        shutil.rmtree(output)
-                    else:
-                        os.remove(output)
+                    try:
+                        if os.path.isdir(output):
+                            shutil.rmtree(output)
+                        else:
+                            os.remove(output)
+                    except:
+                        pass
                 try:
                     os.link(profile_output, output)
                 except:
