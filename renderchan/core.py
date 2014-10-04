@@ -809,7 +809,7 @@ class RenderChan():
                     #updateCompletion(0.5)
 
                 # Add LST file
-                if format in RenderChanModule.imageExtensions:
+                if format in RenderChanModule.imageExtensions and os.path.isdir(profile_output):
                     lst_profile_path = os.path.splitext(profile_output)[0] + ".lst"
                     lst_path = os.path.splitext(output)[0] + ".lst"
                     f = open(lst_profile_path, 'w')
