@@ -144,7 +144,7 @@ class RenderChanSynfigModule(RenderChanModule):
             outputPath=os.path.join(outputPath, "file."+format)
 
 
-        commandline=[self.conf['binary'], "-o",outputPath, "-w", str(extraParams["width"]), "-h", str(extraParams["height"])]
+        commandline=[self.conf['binary'], "-o",outputPath, "-w", str(int(extraParams["width"])), "-h", str(int(extraParams["height"]))]
 
         if format == "avi":
             commandline.append("-t")

@@ -226,24 +226,29 @@ class RenderChanFile():
 
         # Basic project values
         for key in self.project.defaults.keys():
-            if self.config.has_key(key):
-                params[key]=self.config[key]
-            elif self.project:
+            if self.project:
                 if self.module.getName()+"."+key in self.project.config.keys():
                     params[key]=self.project.getConfig(self.module.getName()+"."+key)
                 else:
                     params[key]=self.project.getConfig(key)
+            if self.config.has_key(key):
+                if self.config[key].startswith("*"):
+                    params[key]=float(self.config[key][1:])*float(params[key])
+                else:
+                    params[key]=self.config[key]
 
         # Module-specific configuration
         for key in self.module.extraParams.keys():
-            if key in self.config.keys():
-                params[key]=self.config[key]
-            elif self.module.getName()+"."+key in self.project.config.keys():
-                params[key]=self.project.config[self.module.getName()+"."+key]
-            elif key in self.project.config.keys():
+            params[key]=self.module.extraParams[key]
+            if key in self.project.config.keys():
                 params[key]=self.project.config[key]
-            else:
-                params[key]=self.module.extraParams[key]
+            if self.module.getName()+"."+key in self.project.config.keys():
+                params[key]=self.project.config[self.module.getName()+"."+key]
+            if key in self.config.keys():
+                if self.config[key].startswith("*"):
+                    params[key]=float(self.config[key][1:])*float(params[key])
+                else:
+                    params[key]=self.config[key]
 
         # File-specific configuration
         #params["filename"]=self.getPath()

@@ -95,8 +95,8 @@ class RenderChanBlenderModule(RenderChanModule):
         renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
         script=script.replace("params[UPDATE]","False")\
-           .replace("params[WIDTH]", str(extraParams["width"]))\
-           .replace("params[HEIGHT]", str(extraParams["height"]))\
+           .replace("params[WIDTH]", str(int(extraParams["width"])))\
+           .replace("params[HEIGHT]", str(int(extraParams["height"])))\
            .replace("params[STEREO_CAMERA]", '"'+stereo_camera+'"')\
            .replace("params[AUDIOFILE]", '"'+os.path.splitext(outputPath)[0]+'.wav"')\
            .replace("params[FORMAT]", '"'+format+'"')\
