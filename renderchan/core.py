@@ -541,6 +541,9 @@ class RenderChan():
                 self.loadedFiles[dependency.getPath()]=dependency
                 if dependency.project!=None and dependency.module!=None:
                     self.loadedFiles[dependency.getRenderPath()]=dependency
+                    # Alpha
+                    renderpath_alpha=os.path.splitext(dependency.getRenderPath())[0]+"-alpha."+dependency.getFormat()
+                    self.loadedFiles[renderpath_alpha]=dependency
 
             # Check if this is a rendering dependency
             if path != dependency.getPath():
