@@ -888,16 +888,14 @@ class RenderChan():
                 subprocess.check_call(
                         ["ffmpeg", "-y", "-i", input_right, "-i", input_left,
                          "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw:ih*2[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=0:h",
-                         "-c:v", "libx264", "-c:a", "aac",
-                         "-strict", "experimental",
+                         "-c:v", "libx264", "-c:a", "copy",
                          "-pix_fmt", "yuv420p", "-qp", "0",
                          output])
             else:
                 subprocess.check_call(
                         ["ffmpeg", "-y", "-i", input_left, "-i", input_right,
                          "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw*2:ih[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=w",
-                         "-c:v", "libx264", "-c:a", "aac",
-                         "-strict", "experimental",
+                         "-c:v", "libx264", "-c:a", "copy",
                          "-pix_fmt", "yuv420p", "-qp", "0",
                          output])
             touch(output + ".done", os.path.getmtime(output))
