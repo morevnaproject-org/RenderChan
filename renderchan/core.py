@@ -668,11 +668,12 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
-        output = taskfile.getProfileRenderPath(start,end)
-
         if start==None or end==None:
+            output = taskfile.getProfileRenderPath(0,0)
             start=taskfile.getStartFrame()
             end=taskfile.getEndFrame()
+        else:
+            output = taskfile.getProfileRenderPath(start,end)
 
         if not os.path.exists(os.path.dirname(output)):
             os.makedirs(os.path.dirname(output))
@@ -759,59 +760,70 @@ class RenderChan():
                 profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
                 profile_output_list = os.path.splitext(profile_output)[0] + ".txt"
 
-                if os.path.exists(profile_output_list):
+                # We need to merge the rendered files into single one
 
-                    # We need to merge the rendered files into single one
+                print "Merging: %s" % profile_output
 
-                    print "Merging: %s" % profile_output
-
-                    # But first let's check if we really need to do that
-                    uptodate = False
-                    if os.path.exists(profile_output):
-                        if os.path.exists(profile_output + ".done") and \
-                                        float_trunc(os.path.getmtime(profile_output + ".done"), 1) >= compare_time:
-                            # Hurray! No need to merge that piece.
-                            uptodate = True
-                        else:
-                            if os.path.isdir(profile_output):
-                                shutil.rmtree(profile_output)
-                            else:
-                                os.remove(profile_output)
-                            if os.path.exists(profile_output + ".done"):
-                                os.remove(profile_output + ".done")
-
-                    if not uptodate:
-
-                        # Check if we really have all segments rendered correctly
-
-                        f = open(profile_output_list, 'r')
-                        segments=f.readlines()
-                        f.close()
-                        for i in range(len(segments)):
-                            segments[i] = segments[i].strip()
-                            segments[i] = segments[i][6:-1]
-
-                            segment = segments[i]
-
-                            if os.path.exists(segment+".done") and os.path.exists(segment):
-                                continue
-                            print "ERROR: Not all segments were rendered. Aborting."
-                            exit(1)
-
-                        if format == "avi":
-                            subprocess.check_call(
-                                ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
-                        else:
-                            # Merge all sequences into single directory
-                            for line in segments:
-                                print line
-                                copytree(line, profile_output, hardlinks=True)
-
-                        os.remove(profile_output_list)
-                        touch(profile_output + ".done", float(compare_time))
+                # But first let's check if we really need to do that
+                uptodate = False
+                if os.path.exists(profile_output):
+                    if os.path.exists(profile_output + ".done") and \
+                                    float_trunc(os.path.getmtime(profile_output + ".done"), 1) >= compare_time:
+                        # Hurray! No need to merge that piece.
+                        uptodate = True
                     else:
-                        print "  This chunk is already merged. Skipping."
-                    #updateCompletion(0.5)
+                        if os.path.isdir(profile_output):
+                            shutil.rmtree(profile_output)
+                        else:
+                            os.remove(profile_output)
+                        if os.path.exists(profile_output + ".done"):
+                            os.remove(profile_output + ".done")
+
+                if not uptodate:
+
+                    if taskfile.getPacketSize() > 0:
+
+                        if os.path.exists(profile_output_list):
+
+                            # Check if we really have all segments rendered correctly
+
+                            f = open(profile_output_list, 'r')
+                            segments=f.readlines()
+                            f.close()
+                            for i in range(len(segments)):
+                                segments[i] = segments[i].strip()
+                                segments[i] = segments[i][6:-1]
+
+                                segment = segments[i]
+
+                                if os.path.exists(segment+".done") and os.path.exists(segment):
+                                    continue
+                                print "ERROR: Not all segments were rendered. Aborting."
+                                exit(1)
+
+                            if format == "avi":
+                                subprocess.check_call(
+                                    ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                            else:
+                                # Merge all sequences into single directory
+                                for line in segments:
+                                    print line
+                                    copytree(line, profile_output, hardlinks=True)
+
+                            os.remove(profile_output_list)
+                            touch(profile_output + ".done", float(compare_time))
+                        else:
+                            print "  This chunk is already merged. Skipping."
+                        #updateCompletion(0.5)
+
+                    else:
+                        segment = os.path.splitext( taskfile.getProfileRenderPath(0,0) )[0] + suffix + "." + format
+                        if os.path.exists(segment+".done") and os.path.exists(segment):
+                                os.rename(segment, profile_output)
+                                touch(profile_output + ".done", float(compare_time))
+                        else:
+                                print "ERROR: Not all segments were rendered. Aborting."
+                                exit(1)
 
                 # Add LST file
                 if format in RenderChanModule.imageExtensions and os.path.isdir(profile_output):
