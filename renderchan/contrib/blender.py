@@ -38,8 +38,7 @@ class RenderChanBlenderModule(RenderChanModule):
         commandline=[self.conf['binary'], "-b",filename, "-P",script]
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-        rc = None
-        while rc is None:
+        while True:
             line = out.stdout.readline()
             if not line:
                 break
@@ -59,9 +58,6 @@ class RenderChanBlenderModule(RenderChanModule):
                 info["endFrame"]=end.group(1).strip()
 
 
-            rc = out.poll()
-
-        out.communicate()
         rc = out.poll()
 
         if rc != 0:
