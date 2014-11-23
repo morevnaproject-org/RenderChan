@@ -211,7 +211,11 @@ def switchProfile(project_path, profile):
             # Sanity check
             if os.path.exists(lockfile):
                 f=open(lockfile)
-                prev_profile = f.readlines()[0].strip()
+                fcontent=f.readlines()
+                if len(fcontent)>0:
+                    prev_profile = fcontent[0].strip()
+                else:
+                     prev_profile = None
                 f.close()
                 if not (prev_profile==profile):
                     # someone have modified the file in the meantime, let's wait and try again
@@ -258,7 +262,11 @@ def switchProfile(project_path, profile):
             # Sanity check
             if os.path.exists(lockfile):
                 f=open(lockfile)
-                prev_profile = f.readlines()[0].strip()
+                fcontent=f.readlines()
+                if len(fcontent)>0:
+                    prev_profile = fcontent[0].strip()
+                else:
+                     prev_profile = None
                 f.close()
                 if not (prev_profile==profile):
                     # someone have modified the file in the meantime, let's wait and try again
