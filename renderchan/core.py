@@ -898,7 +898,7 @@ class RenderChan():
         if not uptodate:
             if mode[0:1]=='v':
                 subprocess.check_call(
-                        ["ffmpeg", "-y", "-i", input_right, "-i", input_left,
+                        ["ffmpeg", "-y", "-i", input_left, "-i", input_right,
                          "-filter_complex", "[0:v]setpts=PTS-STARTPTS, pad=iw:ih*2[bg]; [1:v]setpts=PTS-STARTPTS[fg]; [bg][fg]overlay=0:h",
                          "-c:v", "libx264", "-c:a", "copy",
                          "-pix_fmt", "yuv420p", "-qp", "0",
