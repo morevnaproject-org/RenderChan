@@ -864,7 +864,7 @@ class RenderChan():
 
         #updateCompletion(1)
 
-    def job_merge_stereo(self, taskfile, mode, format="avi"):
+    def job_merge_stereo(self, taskfile, mode, format="mp4"):
 
         output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+mode[0:1]+"."+format
 
