@@ -143,7 +143,7 @@ def main():
         rend.image_settings.file_format = "H264"
         rend.ffmpeg.format = "H264"
         rend.ffmpeg.use_lossless_output=True
-        rend.ffmpeg.audio_codec="AAC"
+        #rend.ffmpeg.audio_codec="AAC"
 
     # Update .blend file if permitted and we have width or height changed
     if update and ( size_x != rend.resolution_x or size_y != rend.resolution_y or fps != rend.fps ):
