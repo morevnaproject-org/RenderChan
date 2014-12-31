@@ -36,7 +36,7 @@ def main():
         found=False
 
         for ob in sce.objects:
-            if ob.name == params[STEREO_CAMERA]:
+            if ob.name == params[STEREO_CAMERA] and ob.type == 'CAMERA':
                 sce.camera = ob
                 found=True
                 break
@@ -44,7 +44,7 @@ def main():
         if not found:
             basename = sce.camera.name
             for ob in sce.objects:
-                if ob.name == basename+"."+params[STEREO_CAMERA]:
+                if ob.name == basename+"."+params[STEREO_CAMERA] and ob.type == 'CAMERA':
                     sce.camera = ob
                     break
 
