@@ -34,7 +34,7 @@ class RenderChanProjectManager():
             self.active.config["stereo"]=self.stereo
             self.active.loadRenderConfig(self.profile)
         else:
-            self.list[path].config=self.active.config[:]
+            self.list[path].config=self.active.config.copy()
             self.list[path].activeProfile=self.active.activeProfile
 
     def get(self, path):
