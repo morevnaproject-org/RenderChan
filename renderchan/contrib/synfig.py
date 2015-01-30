@@ -145,6 +145,8 @@ class RenderChanSynfigModule(RenderChanModule):
 
 
         commandline=[self.conf['binary'], "-o",outputPath, "-w", str(int(extraParams["width"])), "-h", str(int(extraParams["height"]))]
+        commandline.append("--sequence-separator")
+        commandline.append(".")
 
         if format == "avi":
             commandline.append("-t")
