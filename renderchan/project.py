@@ -189,11 +189,11 @@ class RenderChanProject():
 
 
         # Store project configuration - we need that to track configuration changes
+        profilepath = self.getProfilePath()
+        if not os.path.isdir(profilepath):
+            mkdirs(profilepath)
 
-        if not os.path.isdir(os.path.join(self.path,"render","project.conf",self.getProfileDirName())):
-            mkdirs(os.path.join(self.path,"render","project.conf",self.getProfileDirName()))
-
-        filename=os.path.join(self.path,"render","project.conf",self.getProfileDirName(),"core.conf")
+        filename=os.path.join(profilepath,"core.conf")
         oldconfig={}
         if os.path.exists(filename):
             cp = ConfigParser.SafeConfigParser()
@@ -239,7 +239,7 @@ class RenderChanProject():
         self.dependencies.append(name)
 
         # Store module configuration - we need that for configuration changes detection
-        filename=os.path.join(self.path,"render","project.conf",self.getProfileDirName(),name+".conf")
+        filename=os.path.join(self.getProfilePath(),name+".conf")
         oldconfig={}
         if os.path.exists(filename):
             cp = ConfigParser.SafeConfigParser()
@@ -273,6 +273,9 @@ class RenderChanProject():
             return self.defaults[key]
         else:
             return None
+
+    def getProfilePath(self):
+        return os.path.join(self.path,'render','project.conf',self.getProfileDirName())
 
     def getProfileDirName(self):
         if self.version == 0:

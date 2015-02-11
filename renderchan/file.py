@@ -165,11 +165,10 @@ class RenderChanFile():
             return None
 
     def getProfileRenderPath(self, start=None, end=None):
-        profile = self.project.getProfileDirName()
         if start==None or end==None:
-            path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"."+self.getFormat() )
+            path=os.path.join(self.project.getProfilePath(), self.localPath+"."+self.getFormat() )
         else:
-            path=os.path.join(self.projectPath, "render", "project.conf", profile, self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
+            path=os.path.join(self.project.getProfilePath(), self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
@@ -270,11 +269,11 @@ class RenderChanFile():
 
         if self.module:
 
-            projectconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileDirName(),'core.conf')
+            projectconf=os.path.join(self.project.getProfilePath(),'core.conf')
             if os.path.exists(projectconf):
                 result.append(projectconf)
 
-            moduleconf=os.path.join(self.project.path,'render','project.conf',self.project.getProfileDirName(),self.module.getName()+'.conf')
+            moduleconf=os.path.join(self.project.getProfilePath(),self.module.getName()+'.conf')
             if os.path.exists(moduleconf):
                 result.append(moduleconf)
 
