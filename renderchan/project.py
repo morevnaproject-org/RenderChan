@@ -1,8 +1,9 @@
 __author__ = 'Konstantin Dmitriev'
 
 import os.path
+import time
 import ConfigParser
-from renderchan.utils import mkdirs, PlainConfigFileWrapper
+from renderchan.utils import mkdirs, sync, file_is_older_than, PlainConfigFileWrapper, LockThread
 from renderchan.cache import RenderChanCache
 
 class RenderChanProjectManager():
@@ -322,3 +323,127 @@ class RenderChanProject():
         else:
             if path in self.frozenPaths:
                 self.frozenPaths.remove(path)
+
+    def switchProfile(self, profile):
+
+        def _sync_path(src, dest):
+            names = os.listdir(src)
+            for name in names:
+                path = os.path.join(src, name)
+                if os.path.isdir(path):
+                    _sync_path(path, os.path.join(dest,name))
+                else:
+                    if name.endswith(".sync"):
+                        name = name[:-5]
+                        sync( os.path.join(src,name), os.path.join(dest,name) )
+
+
+        msg=""
+        while True:
+            if msg!="":
+                print msg
+            msg="The rendertree is locked by other process. Waiting..."
+            # Check if we are on correct profile
+            need_sync = True
+            checkfile=os.path.join(self.path,"render","project.conf","profile.conf")
+            lockfile=os.path.join(self.path,"render","project.conf","profile.lock")
+            #prev_profile = ""
+            if os.path.exists(checkfile):
+                # Read previous profile
+                f=open(checkfile)
+                fcontent=f.readlines()
+                f.close()
+                if len(fcontent)>0:
+                    prev_profile = fcontent[0].strip()
+                    if prev_profile==profile:
+                        need_sync = False
+
+            if need_sync:
+                if os.path.exists(lockfile):
+                    if not(file_is_older_than(lockfile, 6.0)):
+                         # the profile is locked, we can't switch it now
+                         time.sleep(5)
+                         continue
+
+                # the lockfile is old enough
+
+                f = open(lockfile,'w')
+                f.write(profile+"\n")
+                f.close()
+
+                # let's wait to make sure the lock is ours
+                time.sleep(1)
+
+                # Sanity check
+                if os.path.exists(lockfile):
+                    f=open(lockfile)
+                    fcontent=f.readlines()
+                    if len(fcontent)>0:
+                        prev_profile = fcontent[0].strip()
+                    else:
+                         prev_profile = None
+                    f.close()
+                    if not (prev_profile==profile):
+                        # someone have modified the file in the meantime, let's wait and try again
+                        time.sleep(5)
+                        continue
+                else:
+                    # something is wrong, because file is vanished
+                    time.sleep(5)
+                    continue
+
+                # Start update thread
+                t = LockThread(lockfile)
+                t.start()
+
+                # Switch the profile
+                renderpath=os.path.join(self.path,"render")
+                _sync_path(self.getProfilePath(), renderpath)
+
+                # Finally update profile.conf
+                f = open(checkfile,'w')
+                f.write(profile+"\n")
+                f.close()
+
+                return t
+            else:
+                if os.path.exists(lockfile):
+                     f=open(lockfile)
+                     fcontent=f.readlines()
+                     if len(fcontent)>0:
+                         prev_profile = fcontent[0].strip()
+                     else:
+                         prev_profile = None
+                     f.close()
+                     if not(prev_profile==profile or file_is_older_than(lockfile, 6.0)):
+                         # someone tries to switch profile right now, let's wait and try again
+                         time.sleep(5)
+                         continue
+
+                f = open(lockfile,'w')
+                f.write(profile+"\n")
+                f.close()
+
+                # Sanity check
+                if os.path.exists(lockfile):
+                    f=open(lockfile)
+                    fcontent=f.readlines()
+                    if len(fcontent)>0:
+                        prev_profile = fcontent[0].strip()
+                    else:
+                         prev_profile = None
+                    f.close()
+                    if not (prev_profile==profile):
+                        # someone have modified the file in the meantime, let's wait and try again
+                        time.sleep(5)
+                        continue
+                else:
+                    # something is wrong, because file is vanished
+                    time.sleep(5)
+                    continue
+
+                # Start update thread
+                t = LockThread(lockfile)
+                t.start()
+
+                return t

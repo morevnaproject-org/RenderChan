@@ -7,7 +7,6 @@ from renderchan.module import RenderChanModuleManager, RenderChanModule
 from renderchan.utils import mkdirs
 from renderchan.utils import float_trunc
 from renderchan.utils import sync
-from renderchan.utils import switchProfile
 from renderchan.utils import touch
 from renderchan.utils import copytree
 import os, time
@@ -294,7 +293,7 @@ class RenderChan():
 
         # First, let's ensure, that we are in sync with profile data
 
-        t=switchProfile(taskfile.project.path, taskfile.project.getProfileDirName())
+        t=taskfile.project.switchProfile(taskfile.project.getProfileDirName())
 
         checkTime=None
         if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
@@ -691,8 +690,8 @@ class RenderChan():
             # PROJECT LOCK
             # Make sure our rendertree is in sync with current profile
             locks=[]
-            for project in self.projects.list.keys():
-                t=switchProfile(project, taskfile.project.getProfileDirName())
+            for project in self.projects.list.values():
+                t=project.switchProfile(taskfile.project.getProfileDirName())
                 locks.append(t)
 
             try:
@@ -742,8 +741,8 @@ class RenderChan():
         # PROJECT LOCK
         # Make sure our rendertree is in sync with current profile
         locks=[]
-        for project in self.projects.list.keys():
-            t=switchProfile(project, taskfile.project.getProfileDirName())
+        for project in self.projects.list.values():
+            t=project.switchProfile(taskfile.project.getProfileDirName())
             locks.append(t)
 
         try:
