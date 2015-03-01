@@ -338,6 +338,9 @@ class RenderChanProject():
                         sync( os.path.join(src,name), os.path.join(dest,name) )
 
 
+        if not os.path.isdir(self.getProfilePath()):
+            mkdirs(self.getProfilePath())
+
         msg=""
         while True:
             if msg!="":
