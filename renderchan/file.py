@@ -38,7 +38,8 @@ class RenderChanFile():
             if self.project:
                 self.project.registerModule(self.module)
 
-            if os.path.exists(self.getPath()):
+            sourcepath = self.getPath()
+            if os.path.exists(sourcepath):
 
                 output_str=os.path.relpath(path)
                 if len(output_str)>60:
@@ -104,15 +105,23 @@ class RenderChanFile():
             localpath=path[len(self.projectPath):]
 
             # cleanup
-            while localpath.startswith('/'):
-                localpath=localpath[1:]
+            if os.name=='nt':
+                while localpath.startswith('\\'):
+                    localpath=localpath[1:]
+            else:
+                while localpath.startswith('/'):
+                    localpath=localpath[1:]
 
             if localpath.startswith("render") and not localpath.startswith(os.path.join("render","project.conf")):
                 localpath=localpath[6:]
 
                 # cleanup
-                while localpath.startswith('/'):
-                    localpath=localpath[1:]
+                if os.name=='nt':
+                    while localpath.startswith('\\'):
+                        localpath=localpath[1:]
+                else:
+                    while localpath.startswith('/'):
+                        localpath=localpath[1:]
 
                 # now, let's have some heuristics...
 

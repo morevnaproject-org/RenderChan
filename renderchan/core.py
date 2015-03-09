@@ -9,6 +9,7 @@ from renderchan.utils import float_trunc
 from renderchan.utils import sync
 from renderchan.utils import touch
 from renderchan.utils import copytree
+from renderchan.utils import which
 import os, time
 import shutil
 import subprocess
@@ -42,6 +43,20 @@ class RenderChan():
         self.cgru_location = "/opt/cgru"
 
         self.snapshot_path = None
+
+        self.ffmpeg_binary = ''
+        if os.name == 'nt':
+            ffmpeg_path = os.path.join(os.path.dirname(__file__),"..\\..\\ffmpeg\\bin\\ffmpeg.exe")
+            avconv_path = os.path.join(os.path.dirname(__file__),"..\\..\\avconv\\bin\\avconv.exe")
+        else:
+            ffmpeg_path = 'ffmpeg'
+            avconv_path = 'avconv'
+        if which(ffmpeg_path) != None:
+            self.ffmpeg_binary = ffmpeg_path
+        elif which(avconv_path) != None:
+            self.ffmpeg_binary = avconv_path
+        if self.ffmpeg_binary == '':
+            raise Exception('ERROR: No ffmpeg binary found. Please install ffmpeg.')
 
     def __del__(self):
         if self.renderfarm_engine == "":
@@ -802,7 +817,7 @@ class RenderChan():
 
                             if format == "avi":
                                 subprocess.check_call(
-                                    ["ffmpeg", "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                                    [self.ffmpeg_binary, "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                             else:
                                 # Merge all sequences into single directory
                                 for line in segments:

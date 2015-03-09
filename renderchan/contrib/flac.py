@@ -12,8 +12,12 @@ import random
 class RenderChanFlacModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.conf['binary']="flac"
-        self.conf['sox_binary']="sox"
+        if os.name == 'nt':
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\flac\\win32\\flac.exe")
+            self.conf['sox_binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\sox\\sox.exe")
+        else:
+            self.conf['binary']="flac"
+            self.conf['sox_binary']="sox"
         self.conf["packetSize"]=0
 
     def getInputFormats(self):

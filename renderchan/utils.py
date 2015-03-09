@@ -5,10 +5,17 @@ import random
 import time
 import threading
 
+if os.name == 'nt':
+    import ctypes
+    kdll = ctypes.windll.LoadLibrary("kernel32.dll")
+
 def which(program):
 
     def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+        if os.name=='nt':
+            return os.path.isfile(fpath) or os.path.isfile(fpath+".exe") or os.path.isfile(fpath+".bat")
+        else:
+            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
     fpath, fname = os.path.split(program)
     if fpath:
@@ -130,9 +137,22 @@ def sync(profile_output, output, compareTime=None):
                     except:
                         pass
                 try:
-                    os.link(profile_output, output)
+                    if os.name == 'nt':
+                        kdll.CreateSymbolicLinkA(profile_output, output, 0)
+                    else:
+                        os.link(profile_output, output)
                 except:
-                    print "Error: file already exists"
+                    print "Warning: Cannot create a symlink."
+                    if os.name == 'nt':
+                        print "    Note for Windows users: "
+                        print "    This feature requires Windows Vista or above."
+                        print "    Your account should have privilege for creating symlinks,"
+                        print "    see http://stackoverflow.com/a/8464306 for details."
+                        print "    Alternatively, you can run RenderChan with administrator privileges."
+                    try:
+                        shutil.copyfile(profile_output, output)
+                    except:
+                        raise Exception('ERROR: Cannot sync profile data.')
 
             # Remember the time of the last sync
             touch(profile_output+".sync", time.time())

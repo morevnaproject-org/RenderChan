@@ -5,12 +5,16 @@ import subprocess
 import os, sys
 import re
 import random
+import tempfile
 
 
 class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.conf['binary']="blender"
+        if os.name == 'nt':
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\blender\\blender.exe")
+        else:
+            self.conf['binary']="blender"
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
         # Extra params
@@ -88,7 +92,7 @@ class RenderChanBlenderModule(RenderChanModule):
             gpu_device='"'+self.conf["gpu_device"]+'"'
 
         random_string = "%08d" % (random.randint(0,99999999))
-        renderscript="/tmp/renderchan-"+os.path.basename(filename)+"-"+random_string+".py"
+        renderscript=os.path.join(tempfile.gettempdir(),"renderchan-"+os.path.basename(filename)+"-"+random_string+".py")
         script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
         script=script.replace("params[UPDATE]","False")\
            .replace("params[WIDTH]", str(int(extraParams["width"])))\

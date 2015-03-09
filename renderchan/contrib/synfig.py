@@ -10,7 +10,10 @@ import errno
 class RenderChanSynfigModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.conf['binary']="synfig"
+        if os.name == 'nt':
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\synfig\\bin\\synfig.exe")
+        else:
+            self.conf['binary']="synfig"
         self.conf["packetSize"]=100
         self.conf["maxNbCores"]=1
 
@@ -196,6 +199,9 @@ class RenderChanSynfigModule(RenderChanModule):
         print '  Synfig command returns with code %d' % rc
         print '===================================================='
         if rc != 0:
-            print '  Synfig command failed...'
-            raise Exception('  Synfig command failed...')
+            if os.name == 'nt' and rc == -1073741819:
+                pass
+            else:
+                print '  Synfig command failed...'
+                raise Exception('  Synfig command failed...')
         updateCompletion(1)
