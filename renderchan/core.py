@@ -117,6 +117,12 @@ class RenderChan():
         :type taskfile: RenderChanFile
         """
 
+        if taskfile.project == None:
+            print
+            print "ERROR: Cant' render a file which is not a part of renderchan project."
+            print
+            return 1
+
         if self.renderfarm_engine=="afanasy":
 
             os.environ["CGRU_LOCATION"]=self.cgru_location
