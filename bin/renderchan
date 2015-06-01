@@ -12,21 +12,23 @@ import string
 import locale
 import gettext
 
-localedir = ""
-
+localedir = "@LOCALEDIR@"
+datadir = "@DATADIR@"
 
 def _configure_python_path():
     global localedir
-    dir = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
-        root = os.path.dirname(dir)
-        localedir = os.path.join(root, 'locale')
-        if not root in sys.path:
-            sys.path.insert(0, root)
 
-        pulidir = os.path.join(root, 'puli')
-        if os.path.exists(os.path.join(pulidir, 'puliclient', '__init__.py')) and not pulidir in sys.path:
-            sys.path.insert(0, pulidir)
+    if not os.path.exists(localedir):
+        dir = os.path.dirname(os.path.abspath(__file__))
+        if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
+            root = os.path.dirname(dir)
+            localedir = os.path.join(root, 'locale')
+            if not root in sys.path:
+                sys.path.insert(0, root)
+
+            pulidir = os.path.join(root, 'puli')
+            if os.path.exists(os.path.join(pulidir, 'puliclient', '__init__.py')) and not pulidir in sys.path:
+                sys.path.insert(0, pulidir)
 
 
 
@@ -46,8 +48,12 @@ def _configure_python_path():
 def _start_renderchan():
     import renderchan.cli as cli
 
+    global datadir
+    if not os.path.exists(datadir):
+        datadir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+
     # Start the real application, with given arguments.
-    sys.exit(cli.main(sys.argv))
+    sys.exit(cli.main(datadir, sys.argv))
 
 
 if __name__ == "__main__":

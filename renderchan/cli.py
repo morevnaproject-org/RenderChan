@@ -65,7 +65,7 @@ def process_args():
     return options, args
 
 
-def main(argv):
+def main(datadir, argv):
     options, args = process_args()
 
     if len(args)<1:
@@ -75,6 +75,9 @@ def main(argv):
     filename = os.path.abspath(args[0])
 
     renderchan = RenderChan()
+
+    renderchan.datadir = datadir
+
     if options.profile:
         renderchan.setProfile(options.profile)
 
