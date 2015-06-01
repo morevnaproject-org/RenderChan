@@ -17,6 +17,8 @@ import subprocess
 class RenderChan():
     def __init__(self):
 
+        self.datadir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+
         self.available_renderfarm_engines = ("puli","afanasy")
         self.renderfarm_engine = ""
         self.renderfarm_host = "127.0.0.1"
@@ -556,7 +558,21 @@ class RenderChan():
             else:
                 dependency = RenderChanFile(path, self.modules, self.projects)
                 if not os.path.exists(dependency.getPath()):
-                    print "   Skipping file %s..." % path
+                    # TODO: Add an option to specify how to deal with missing files: create empty placeholder (default), create warning placeholder, none (most likely throw an erros) or raise exception.
+                    if not os.path.exists(path):
+                        # Let's look if we have a placeholder template
+                        ext = os.path.splitext(path)[1]
+                        placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
+                        if os.path.exists(placeholder):
+                            print "   Creating an empty placeholder for %s..." % path
+                            mkdirs(os.path.dirname(path))
+                            shutil.copy(placeholder, path)
+                            t = time.mktime(time.strptime('01.01.1960 00:00:00', '%d.%m.%Y %H:%M:%S'))
+                            os.utime(path,(t,t))
+                        else:
+                            print "   Skipping file %s..." % path
+                    else:
+                        print "   Skipping file %s..." % path
                     continue
                 self.loadedFiles[dependency.getPath()]=dependency
                 if dependency.project!=None and dependency.module!=None:
