@@ -7,6 +7,7 @@ from renderchan.utils import float_trunc, PlainConfigFileWrapper
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
+        path = os.path.abspath(path)
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
         self.project=None
