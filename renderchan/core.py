@@ -559,7 +559,7 @@ class RenderChan():
                 dependency = RenderChanFile(path, self.modules, self.projects)
                 if not os.path.exists(dependency.getPath()):
                     # TODO: Add an option to specify how to deal with missing files: create empty placeholder (default), create warning placeholder, none (most likely throw an erros) or raise exception.
-                    if not os.path.exists(path):
+                    if ( not os.path.exists(path) ) and ( dependency.projectPath!='' ):
                         # Let's look if we have a placeholder template
                         ext = os.path.splitext(path)[1]
                         placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
