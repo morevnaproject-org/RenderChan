@@ -549,6 +549,7 @@ class RenderChan():
 
         isDirty=False
         for path in deps:
+            path = os.path.abspath(path)
             if path in self.loadedFiles.keys():
                 dependency = self.loadedFiles[path]
                 if dependency.pending:

@@ -47,7 +47,9 @@ class RenderChanFile():
                     output_str="..."+output_str[-60:]
                 print ". Analyzing file: %s" % output_str
 
-                info=self.project.cache.getInfo(self.localPath)
+                info=None
+                if self.project:
+                    info=self.project.cache.getInfo(self.localPath)
                 if info and info["timestamp"]>=self.getTime():
                     print ". . Cache found"
                     self.startFrame=int(info["startFrame"])
@@ -64,7 +66,8 @@ class RenderChanFile():
                         self.endFrame=int(info["endFrame"])
 
                     # Write cache
-                    self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies)
+                    if self.project:
+                        self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies)
 
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):
@@ -279,18 +282,19 @@ class RenderChanFile():
 
         if self.module:
 
-            projectconf=os.path.join(self.project.getProfilePath(),'core.conf')
-            if os.path.exists(projectconf):
-                result.append(projectconf)
+            if self.project:
+                projectconf=os.path.join(self.project.getProfilePath(),'core.conf')
+                if os.path.exists(projectconf):
+                    result.append(projectconf)
 
-            moduleconf=os.path.join(self.project.getProfilePath(),self.module.getName()+'.conf')
-            if os.path.exists(moduleconf):
-                result.append(moduleconf)
+                moduleconf=os.path.join(self.project.getProfilePath(),self.module.getName()+'.conf')
+                if os.path.exists(moduleconf):
+                    result.append(moduleconf)
 
-            # This is commented, because it shouldn't influence maxTime
-            #profileconf=os.path.join(self.project.path,"render","project.conf","profile.conf")
-            #if os.path.exists(profileconf):
-            #    result.append(profileconf)
+                # This is commented, because it shouldn't influence maxTime
+                #profileconf=os.path.join(self.project.path,"render","project.conf","profile.conf")
+                #if os.path.exists(profileconf):
+                #    result.append(profileconf)
 
             fileconf=self.getPath()+'.conf'
             if os.path.exists(fileconf):
