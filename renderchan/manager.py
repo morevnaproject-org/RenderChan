@@ -6,6 +6,7 @@ import os.path
 
 from renderchan.core import RenderChan
 from renderchan.file import RenderChanFile
+from renderchan.project import RenderChanProject
 
 
 def process_args():
@@ -19,6 +20,9 @@ def process_args():
     parser.add_option("--unfreeze", dest="unfreezeList",
             action="append",
             help=_("Un-freeze path."))
+    parser.add_option("--lang", dest="setLanguage",
+            action="store", nargs=1,
+            help=_("Switch project language."))
 
     options, args = parser.parse_args()
 
@@ -51,3 +55,7 @@ def main(argv):
                 frozenListChanged=True
         if frozenListChanged:
             taskfile.project.saveFrozenPaths()
+
+    if options.setLanguage:
+        project = RenderChanProject(os.getcwd())
+        project.switchLanguage(options.setLanguage)

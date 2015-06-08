@@ -3,6 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 import time
 import ConfigParser
+import shutil
 from renderchan.utils import mkdirs, sync, file_is_older_than, PlainConfigFileWrapper, LockThread
 from renderchan.cache import RenderChanCache
 
@@ -323,6 +324,46 @@ class RenderChanProject():
         else:
             if path in self.frozenPaths:
                 self.frozenPaths.remove(path)
+
+    def switchLanguage(self, language):
+
+        localedir = "locale"
+        localedirpath = os.path.join(self.path, localedir)
+        if not os.path.exists(os.path.join(localedirpath,'lang.conf')):
+            print("Error: The \"locale\" directory isn't configured for localization.")
+            return False
+        else:
+            with open(os.path.join(localedirpath,'lang.conf'), 'r') as f:
+                current_language = f.readline().strip()
+
+        if language==current_language:
+            print("Error: This language is already active.")
+            return False
+
+        if not os.path.exists(localedirpath+"."+language):
+            print("Error: No such language (%s)." % language)
+            return False
+        else:
+            # do directory switch
+            os.rename(localedirpath, localedirpath+"."+current_language)
+            os.remove(os.path.join(localedirpath+"."+current_language, "lang.conf"))
+            os.rename(localedirpath+"."+language, localedirpath)
+            f = open(os.path.join(localedirpath,'lang.conf'), 'w')
+            f.write(language+"\n")
+            f.close()
+
+            # cleanup renderings
+            if os.path.exists(os.path.join(self.path,'render',localedir)):
+                shutil.rmtree(os.path.join(self.path,'render',localedir))
+            profiles_location = os.path.join(self.path,'render','project.conf','profiles')
+            profiledirs=os.listdir(profiles_location)
+            for path in profiledirs:
+                path = os.path.join(profiles_location,path)
+                if os.path.isdir(path) and os.path.exists(os.path.join(path,localedir)):
+                    shutil.rmtree(os.path.join(path,localedir))
+
+
+
 
     def switchProfile(self, profile):
 
