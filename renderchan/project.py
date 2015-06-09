@@ -150,6 +150,8 @@ class RenderChanProject():
         if needCleanup and os.path.exists(os.path.join(self.path,'render',localedir)):
             print "The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir)
             shutil.rmtree(os.path.join(self.path,'render',localedir))
+            mkdirs(os.path.join(self.path,'render',localedir))
+            shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
         # profiles
         profiles_location = os.path.join(self.path,'render','project.conf','profiles')
         profiledirs=os.listdir(profiles_location)
@@ -164,6 +166,8 @@ class RenderChanProject():
             if needCleanup and os.path.exists(os.path.join(p,localedir)):
                 print "The language data is inconsistent in %s. Cleaning..." % os.path.join(p,localedir)
                 shutil.rmtree(os.path.join(p,localedir))
+                mkdirs(os.path.join(p,localedir))
+                shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(p,localedir,'lang.conf'))
 
 
     def loadRenderConfig(self, profile=None):
