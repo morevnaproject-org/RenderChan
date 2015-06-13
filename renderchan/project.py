@@ -127,6 +127,21 @@ class RenderChanProject():
             'stereo':'',
         }
 
+        # Check the consistency of localization
+        localedir = "locale"
+        self.language=self.getLanguage()
+        # render dir
+        needCleanup=True
+        if os.path.exists(os.path.join(self.path,'render',localedir,'lang.conf')):
+            with open(os.path.join(self.path,'render',localedir,'lang.conf'), 'r') as f:
+                current_language = f.readline().strip()
+            if self.language == current_language:
+                needCleanup=False
+        if needCleanup and os.path.exists(os.path.join(self.path,'render',localedir)):
+            print "The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir)
+            shutil.rmtree(os.path.join(self.path,'render',localedir))
+            mkdirs(os.path.join(self.path,'render',localedir))
+            shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
 
         # Project configuration
 
@@ -136,38 +151,6 @@ class RenderChanProject():
         # Load list of frozen files
         self.frozenPaths=[]
         self.loadFrozenPaths()
-
-        # Check the consistency of localization
-        localedir = "locale"
-        language=self.getLanguage()
-        # render dir
-        needCleanup=True
-        if os.path.exists(os.path.join(self.path,'render',localedir,'lang.conf')):
-            with open(os.path.join(self.path,'render',localedir,'lang.conf'), 'r') as f:
-                current_language = f.readline().strip()
-            if language == current_language:
-                needCleanup=False
-        if needCleanup and os.path.exists(os.path.join(self.path,'render',localedir)):
-            print "The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir)
-            shutil.rmtree(os.path.join(self.path,'render',localedir))
-            mkdirs(os.path.join(self.path,'render',localedir))
-            shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
-        # profiles
-        profiles_location = os.path.join(self.path,'render','project.conf','profiles')
-        profiledirs=os.listdir(profiles_location)
-        for p in profiledirs:
-            needCleanup=True
-            p = os.path.join(profiles_location,p)
-            if os.path.isdir(p) and os.path.exists(os.path.join(p,localedir,'lang.conf')):
-                with open(os.path.join(p,localedir,'lang.conf'), 'r') as f:
-                    current_language = f.readline().strip()
-                if language == current_language:
-                    needCleanup=False
-            if needCleanup and os.path.exists(os.path.join(p,localedir)):
-                print "The language data is inconsistent in %s. Cleaning..." % os.path.join(p,localedir)
-                shutil.rmtree(os.path.join(p,localedir))
-                mkdirs(os.path.join(p,localedir))
-                shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(p,localedir,'lang.conf'))
 
 
     def loadRenderConfig(self, profile=None):
@@ -317,6 +300,8 @@ class RenderChanProject():
             result="%sx%s" % (self.getConfig("width"), self.getConfig("height"))
         else:
             result="%sx%s.%s"  % (self.getConfig("width"), self.getConfig("height"), self.activeProfile)
+        if self.language!='':
+            result=result+'.'+self.language
         if self.getConfig("stereo")!='':
             result=result+"."+self.getConfig("stereo")
         return result
@@ -364,7 +349,7 @@ class RenderChanProject():
         localedirpath = os.path.join(self.path, localedir)
         current_language = ''
         if not os.path.exists(os.path.join(localedirpath,'lang.conf')):
-            print("Error: The \"locale\" directory isn't configured for localization.")
+            print("Warning: The \"locale\" directory isn't configured for localization.")
         else:
             with open(os.path.join(localedirpath,'lang.conf'), 'r') as f:
                 current_language = f.readline().strip()
@@ -401,14 +386,6 @@ class RenderChanProject():
                 shutil.rmtree(os.path.join(self.path,'render',localedir))
                 mkdirs(os.path.join(self.path,'render',localedir))
                 shutil.copy2(os.path.join(localedirpath,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
-            profiles_location = os.path.join(self.path,'render','project.conf','profiles')
-            profiledirs=os.listdir(profiles_location)
-            for path in profiledirs:
-                path = os.path.join(profiles_location,path)
-                if os.path.isdir(path) and os.path.exists(os.path.join(path,localedir)):
-                    shutil.rmtree(os.path.join(path,localedir))
-                    mkdirs(os.path.join(path,localedir))
-                    shutil.copy2(os.path.join(localedirpath,'lang.conf'),os.path.join(path,localedir,'lang.conf'))
 
 
 
