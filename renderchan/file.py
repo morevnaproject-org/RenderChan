@@ -178,10 +178,14 @@ class RenderChanFile():
             return None
 
     def getProfileRenderPath(self, start=None, end=None):
-        if start==None or end==None:
-            path=os.path.join(self.project.getProfilePath(), self.localPath+"."+self.getFormat() )
+        if self.config.has_key('render_cache_dir'):
+            profiles_path = self.config['render_cache_dir']
         else:
-            path=os.path.join(self.project.getProfilePath(), self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
+            profiles_path = None
+        if start==None or end==None:
+            path=os.path.join(self.project.getProfilePath(profiles_path), self.localPath+"."+self.getFormat() )
+        else:
+            path=os.path.join(self.project.getProfilePath(profiles_path), self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
