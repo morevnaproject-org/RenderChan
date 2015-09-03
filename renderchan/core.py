@@ -28,7 +28,6 @@ class RenderChan():
         self.start_time = time.time()
         self.projects = RenderChanProjectManager()
         self.modules = RenderChanModuleManager()
-        self.modules.loadAll()
 
         self.loadedFiles = {}
 
@@ -1024,3 +1023,55 @@ class RenderChan():
                     result.append((packetStart, end))
 
         return result
+
+    def loadFile(self, filename):
+        return RenderChanFile(filename, self.modules, self.projects)
+
+class Attribution():
+    def __init__(self, filename, moduleManager=None, projectManager=None):
+        self.modules = moduleManager
+        if self.modules==None:
+            self.modules = RenderChanModuleManager()
+
+        self.projects = projectManager
+        if self.projects==None:
+            self.projects = RenderChanProjectManager()
+
+        self.licenses = {}
+        self.freesound_items = {}  # author:[title1,title2,...]
+
+        taskfile = RenderChanFile(filename, self.modules, self.projects)
+        self.parse(taskfile)
+
+    def parse(self, taskfile):
+
+        for dep in taskfile.getDependencies():
+            t = RenderChanFile(dep, self.modules, self.projects)
+            metadata = t.getMetadata()
+            if "freesound" in metadata.sources:
+                for author in metadata.authors:
+                    if not self.freesound_items.has_key(author):
+                        self.freesound_items[author]=[]
+                    if not metadata.title in self.freesound_items[author]:
+                        self.freesound_items[author].append(metadata.title)
+            if not metadata.license == None:
+                if not self.licenses.has_key(metadata.license):
+                    self.licenses[metadata.license]=[]
+                self.licenses[metadata.license].append(t.getPath())
+
+            self.parse(t)
+
+    def output(self):
+        print
+        print "== Sound FX =="
+        print "This video uses these sounds from freesound:"
+        print
+        for author in self.freesound_items.keys():
+            print '"'+'", "'.join(self.freesound_items[author])+'" by '+author
+        print
+        print "== Licenses =="
+        print ", ".join(self.licenses.keys())
+        print
+
+
+

@@ -5,6 +5,7 @@ from optparse import OptionParser
 import os.path
 
 from renderchan.core import RenderChan
+from renderchan.core import Attribution
 from renderchan.file import RenderChanFile
 from renderchan.project import RenderChanProject
 
@@ -23,6 +24,9 @@ def process_args():
     parser.add_option("--lang", dest="setLanguage",
             action="store", nargs=1,
             help=_("Switch project language."))
+    parser.add_option("--attribution", dest="getAttribution",
+            action="store", nargs=1,
+            help=_("Get attribution information from file."))
 
     options, args = parser.parse_args()
 
@@ -32,10 +36,9 @@ def process_args():
 def main(argv):
     options, args = process_args()
 
-    renderchan = RenderChan()
-
     # Parse frozen parameters
     if options.freezeList or options.unfreezeList:
+        renderchan = RenderChan()
         if not options.freezeList:
             options.freezeList=[]
         if not options.unfreezeList:
@@ -59,3 +62,8 @@ def main(argv):
     if options.setLanguage:
         project = RenderChanProject(os.getcwd())
         project.switchLanguage(options.setLanguage)
+
+    if options.getAttribution:
+        filename=os.path.abspath(options.getAttribution)
+        info = Attribution(filename)
+        info.output()

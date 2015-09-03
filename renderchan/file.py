@@ -4,6 +4,7 @@ import os.path
 import ConfigParser
 from renderchan.module import RenderChanModule
 from renderchan.utils import float_trunc, PlainConfigFileWrapper
+from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
@@ -31,6 +32,7 @@ class RenderChanFile():
         self.dependencies=[]
         self.startFrame=-1
         self.endFrame=-1
+        self.metadata=None
 
         self.config={}
 
@@ -330,3 +332,27 @@ class RenderChanFile():
         else:
             if value:
                 print "ERROR: Cannot freeze file which is not a part of any project."
+
+    def getMetadata(self):
+        if self.metadata==None:
+            self.metadata=self._loadMetadata()
+        return self.metadata
+
+    def _loadMetadata(self):
+        soundExtensions = ['wav','flac','mp3','aiff']
+        ext = os.path.splitext(self.localPath)[1][1:]
+
+        # TODO: This is dirty temporary hack, should be properly arranged using metadata modules
+        if ext in soundExtensions:
+            # Freesound Query
+            from renderchan.contrib.metadata.freesound import parse as FreesoundParse
+            metadata = FreesoundParse(self.getPath())
+        else:
+            metadata = RenderChanMetadata()
+
+
+        # TODO: Here we should query metadata from file modules and merge it
+        # ...
+
+        return metadata
+

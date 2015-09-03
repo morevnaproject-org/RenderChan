@@ -2,15 +2,14 @@ __author__ = 'Konstantin Dmitriev'
 
 from importlib import import_module
 from renderchan.utils import which
-from renderchan.utils import touch
-from renderchan.utils import float_trunc
-import os, shutil, sys
+import os, sys
 import inspect
 import ConfigParser
 
 class RenderChanModuleManager():
     def __init__(self):
         self.list = {}
+        self.loadAll()
 
     def load(self, name):
         try:
