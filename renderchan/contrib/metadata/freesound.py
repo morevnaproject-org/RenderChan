@@ -25,6 +25,10 @@ class MyHTMLParser(HTMLParser):
                     self.license = "cc-0"
                 elif value.startswith("http://creativecommons.org/licenses/by/"):
                     self.license = "cc-by"
+                elif value.startswith("http://creativecommons.org/licenses/by-nc"):
+                    self.license = "cc-by-nc"
+                elif value.startswith("http://creativecommons.org/licenses/sampling+"):
+                    self.license = "cc-sampling+"
                 else:
                     print "Error: Unknown license - %s" % value
             self._license_block = False
