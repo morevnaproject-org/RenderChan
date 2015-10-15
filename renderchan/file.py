@@ -276,7 +276,7 @@ class RenderChanFile():
         #params["packetSize"]=self.getPacketSize()
         #params["start"]=self.getStartFrame()
         #params["end"]=self.getEndFrame()
-        #params["dependencies"]=self.getDependencies()
+        params["dependencies"]=self.getDependencies()
         params["projectVersion"]=self.project.version
         #params["profileDir"]=self.project.getProfileDirName()
         #params["projects"] = []
