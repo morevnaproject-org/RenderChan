@@ -19,10 +19,10 @@ class RenderChanInkscapeModule(RenderChanModule):
         self.conf["packetSize"]=0
 
     def getInputFormats(self):
-        return ["svg"]
+        return ["svg", "svgz", "ai", "cdr", "vsd"]
 
     def getOutputFormats(self):
-        return ["png"]
+        return ["png", "ps", "eps", "pdf", "emf", "wmf"]
 
     def analyze(self, filename):
         #TODO: Consider embeded images dependencies
@@ -44,8 +44,7 @@ class RenderChanInkscapeModule(RenderChanModule):
         comp = 0.0
         updateCompletion(comp)
 
-        print(format)
-        commandline=[self.conf['binary'], "--file=" + filename, "--without-gui", "--export-png=" + outputPath]
+        commandline=[self.conf['binary'], "--file=" + filename, "--without-gui", "--export-%s=%s" % (format, outputPath)]
         subprocess.check_call(commandline)
 
         updateCompletion(1.0)
