@@ -44,7 +44,7 @@ class RenderChanInkscapeModule(RenderChanModule):
         comp = 0.0
         updateCompletion(comp)
 
-        commandline=[self.conf['binary'], "--file=" + filename, "--without-gui", "--export-%s=%s" % (format, outputPath)]
+        commandline=[self.conf['binary'], "--file=" + filename, "--without-gui", "--export-width=" + extraParams["width"], "--export-height=" + extraParams["height"], "--export-%s=%s" % (format, outputPath)]
         subprocess.check_call(commandline)
 
         updateCompletion(1.0)
