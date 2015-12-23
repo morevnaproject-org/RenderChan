@@ -24,16 +24,6 @@ class RenderChanPencil2dModule(RenderChanModule):
     def getOutputFormats(self):
         return ["png"]
 
-    def checkRequirements(self):
-        for key in ['binary']:
-            if which(self.conf[key]) == None:
-                self.active=False
-                print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf[key])
-                print "    Please install pencil2d package."
-                return False
-        self.active=True
-        return True
-
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0

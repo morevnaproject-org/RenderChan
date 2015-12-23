@@ -42,15 +42,6 @@ class RenderChanInkscapeModule(RenderChanModule):
 
         return info
 
-    def checkRequirements(self):
-        if which(self.conf['binary']) == None:
-            self.active=False
-            print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf["binary"])
-            print "    Please install inkscape package."
-        else:
-            self.active=True
-        return self.active
-
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0

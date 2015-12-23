@@ -27,12 +27,16 @@ class RenderChanVorbisModule(RenderChanModule):
         return ["wav"]
 
     def checkRequirements(self):
-        for key in ['binary','sox_binary']:
-            if which(self.conf[key]) == None:
-                self.active=False
-                print "Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf[key])
-                print "    Please install vorbis-tools package."
-                return False
+        if which(self.conf['binary']) == None:
+            self.active=False
+            print "Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf[key])
+            print "    Please install vorbis-tools package."
+            return False
+        if which(self.conf['sox_binary']) == None:
+            self.active=False
+            print "Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf[key])
+            print "    Please install sox package."
+            return False
         self.active=True
         return True
 

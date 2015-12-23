@@ -61,7 +61,7 @@ class RenderChanModule():
     imageExtensions = ['png','exr']
     def __init__(self):
         self.conf = {}
-        self.conf['binary']="foo"
+        self.conf['binary']=""
         self.conf["packetSize"]=20
         self.conf["compatVersion"]=1
         self.conf["maxNbCores"]=0
@@ -103,10 +103,18 @@ class RenderChanModule():
             self.conf[key] = conf[key]
 
     def checkRequirements(self):
-        if which(self.conf['binary']) == None:
-            self.active=False
+        if self.conf['binary']:
+            binary_path = which(self.conf['binary'])
+            if binary_path == None:
+                self.active=False
+                print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf["binary"])
+                print "    Please install %s package." % (self.getName())
+            else:
+                # Workaround because some applications (gimp) cannot be executed via symlink
+                self.conf['binary'] = binary_path
+                self.active=True
         else:
-            self.active=True
+            self.active=False
         return self.active
 
     def getInputFormats(self):
