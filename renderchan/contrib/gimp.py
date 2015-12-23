@@ -71,8 +71,9 @@ class RenderChanGimpModule(RenderChanModule):
         # Determine paramters
         if format == "png":
             # PNG get special treatment because default parameters can be fetched from GIMP
-            saveParameters=" ".join(subprocess.check_output([self.conf['binary'], "-i", "-b", "(let ((str \"\") (defaults (file-png-get-defaults))) (gimp-message (do ((i 0 (+ i 1))) ((= i 9) str) (set! str (string-append str (number->string (nth i defaults)))))))", "-b", "(gimp-quit 0)"], stderr=subprocess.STDOUT)[19:28])
-            #saveParameters="0 9 0 0 0 1 0 0 0"
+            #saveParameters=" ".join(subprocess.check_output([self.conf['binary'], "-i", "-b", "(let ((str \"\") (defaults (file-png-get-defaults))) (gimp-message (do ((i 0 (+ i 1))) ((= i 9) str) (set! str (string-append str (number->string (nth i defaults)))))))", "-b", "(gimp-quit 0)"], stderr=subprocess.STDOUT)[19:28])
+            #print saveParameters
+            saveParameters="0 9 0 0 0 1 0 0 0"
         elif format in ("jpg", "jpeg"):
             saveParameters=".9 0 0 0 \" \" 0 1 0 1"
         elif format == "pdf":
