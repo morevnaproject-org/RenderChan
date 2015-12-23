@@ -16,11 +16,7 @@ class RenderChanGimpModule(RenderChanModule):
         if os.name == 'nt':
             self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\gimp\\gimp.exe")
         else:
-            binaryPath=find_executable("gimp")
-            # Workaround because the gimp binary cannot be executed via symlink
-            if os.path.islink(binaryPath):
-                binaryPath=os.path.abspath(os.readlink(binaryPath))
-            self.conf['binary']=binaryPath
+            self.conf['binary']="gimp"
         self.conf["packetSize"]=0
 
     def getInputFormats(self):
@@ -30,12 +26,15 @@ class RenderChanGimpModule(RenderChanModule):
         return ["png", "jpg", "jpeg", "pdf", "psd", "tif", "tiff", "bmp", "ico", "txt", "html", "gif", "mng"]
 
     def checkRequirements(self):
-        if which(self.conf['binary']) == None:
+        binary_path = which(self.conf['binary'])
+        if binary_path == None:
             self.active=False
             print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf["binary"])
             print "    Please install GIMP package."
         else:
             self.active=True
+            # Workaround because the gimp binary cannot be executed via symlink
+            self.conf['binary'] = binary_path
         return self.active
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
