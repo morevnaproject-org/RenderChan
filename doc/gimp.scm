@@ -49,7 +49,6 @@
 
 ; Portable network graphics (.png)
 ; options: interlace, compression, bkgd, gama, offs, phys, time, comment, svtrans
-; TODO use default parameters found with file-png-get-defaults
 (let*
 	(
 		(filename "<input>")
@@ -123,7 +122,6 @@
 
 ; Motion PNG (.mng)
 ; options: interlace, compression, quality, smoothing, loop, default-delay, default-chunks, default-dispose, bkgd, gama, offs, phys, time, comment, svtrans
-; TODO use default parameters found with file-png-get-defaults
 (let*
 	(
 		(filename "<input>")
@@ -134,4 +132,22 @@
 	
 	(file-mng-save RUN-NONINTERACTIVE image drawable outpath outpath 0 9 .9 0 1 100 2 1 0 0 1 0)
 	(gimp-image-delete image)
+)
+
+; Get PNG defaults
+(let
+	(
+		(str "")
+		(defaults (file-png-get-defaults))
+	)
+	
+	(gimp-message (do
+					(
+						(i 0 (+ i 1))
+					)
+					((= i 9) str)
+		
+					(set! str (string-append str (number->string (nth i defaults))))
+				)
+	)
 )

@@ -42,7 +42,6 @@ class RenderChanGimpModule(RenderChanModule):
 
         comp=0.0
         updateCompletion(comp)
-        print "test"
         
         # Determines drawable (depending on layer support)
         if format in ("gif", "ico", "mng", "psd"):
@@ -70,11 +69,11 @@ class RenderChanGimpModule(RenderChanModule):
         else:
             saveProcedure="gimp-file-save"
         
-        print saveProcedure
-        
         # Determine paramters
         if format == "png":
-            saveParameters="0 9 0 0 0 1 0 0 0"
+            # PNG get special treatment because default parameters can be fetched from GIMP
+            saveParameters=" ".join(subprocess.check_output([self.conf['binary'], "-i", "-b", "(let ((str \"\") (defaults (file-png-get-defaults))) (gimp-message (do ((i 0 (+ i 1))) ((= i 9) str) (set! str (string-append str (number->string (nth i defaults)))))))", "-b", "(gimp-quit 0)"], stderr=subprocess.STDOUT)[19:28])
+            #saveParameters="0 9 0 0 0 1 0 0 0"
         elif format in ("jpg", "jpeg"):
             saveParameters=".9 0 0 0 \" \" 0 1 0 1"
         elif format == "pdf":
@@ -93,15 +92,10 @@ class RenderChanGimpModule(RenderChanModule):
             saveParameters="0 9 .9 0 1 100 2 1 0 0 1 0"
         else:
             saveParameters=""
-        print saveParameters
 
-        print type(extraParams['width'])
-        print extraParams['height']
-
-        # See docs for readable lisp code
+        # See docs for readable script-fu code
         commandline=[self.conf['binary'], "-i", "-b", "(let*  ((filename \"%s\") (outpath \"%s\") (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename))) (drawable (car (%s)))) %s (gimp-image-scale image %s %s) (%s RUN-NONINTERACTIVE image drawable outpath outpath %s) (gimp-image-delete image))" % (filename, outputPath, drawable, preprocedure, extraParams['width'], extraParams['height'], saveProcedure, saveParameters), "-b", "(gimp-quit 0)"]
 
-        print commandline
         subprocess.check_call(commandline)
 
         updateCompletion(1.0)
