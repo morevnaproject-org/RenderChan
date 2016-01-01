@@ -120,7 +120,7 @@ class RenderChan():
 
         if taskfile.project == None:
             print
-            print "ERROR: Cant' render a file which is not a part of renderchan project."
+            print "ERROR: Can't render a file which is not a part of renderchan project."
             print
             return 1
 
