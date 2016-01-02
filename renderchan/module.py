@@ -4,7 +4,7 @@ from importlib import import_module
 from renderchan.utils import which
 import os, sys
 import inspect
-import ConfigParser
+import configparser
 
 class RenderChanModuleManager():
     def __init__(self):
@@ -15,7 +15,7 @@ class RenderChanModuleManager():
         try:
             #module = __import__(moduleName, fromlist=[cls])
             module = import_module("renderchan.contrib."+name)
-        except ImportError, error:
+        except ImportError as error:
             raise ImportError("No module '%s' on PYTHONPATH:\n%s. (%s)" % (name, "\n".join(sys.path), error))
 
         cls = name.capitalize()
@@ -32,7 +32,7 @@ class RenderChanModuleManager():
         module = moduleClass()
         module.loadConfiguration()
         if not module.checkRequirements():
-            print "Warning: Unable load module - %s." % (name)
+            print("Warning: Unable load module - %s." % (name))
         self.list[name]=module
 
     def loadAll(self):
@@ -45,13 +45,13 @@ class RenderChanModuleManager():
                 self.load(filename)
 
     def get(self, name):
-        if not self.list.has_key(name):
+        if name not in self.list:
             self.load(name)
 
         return self.list[name]
 
     def getByExtension(self, ext):
-        for key,item in self.list.items():
+        for key,item in list(self.list.items()):
             if ext in item.getInputFormats():
                 if item.active:
                     return item
@@ -81,7 +81,7 @@ class RenderChanModule():
 
         if os.path.exists(filename):
 
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(filename)
 
             if config.has_section(self.getName()):
@@ -93,12 +93,12 @@ class RenderChanModule():
         return self.conf
 
     def setConfiguration(self, conf):
-        for key,value in conf.items():
-            if not self.conf.has_key(key):
-                print "Module %s doesn't accept configuration key '%s': No such entry." % (self.__class__.__name__, key)
+        for key,value in list(conf.items()):
+            if key not in self.conf:
+                print("Module %s doesn't accept configuration key '%s': No such entry." % (self.__class__.__name__, key))
                 continue
             if not type(self.conf[key]).__name__ == type(conf[key]).__name__:
-                print "Module %s doesn't accept configuration value for key '%s': Wrong type." % (self.__class__.__name__, key)
+                print("Module %s doesn't accept configuration value for key '%s': Wrong type." % (self.__class__.__name__, key))
                 continue
             self.conf[key] = conf[key]
 
@@ -107,8 +107,8 @@ class RenderChanModule():
             binary_path = which(self.conf['binary'])
             if binary_path == None:
                 self.active=False
-                print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf["binary"])
-                print "    Please install %s package." % (self.getName())
+                print("Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf["binary"]))
+                print("    Please install %s package." % (self.getName()))
             else:
                 # Workaround because some applications (gimp) cannot be executed via symlink
                 self.conf['binary'] = binary_path

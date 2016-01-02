@@ -32,7 +32,7 @@ class RenderChanSynfigModule(RenderChanModule):
         def _decode_callback(matches):
             id = matches.group(1)
             try:
-                return unichr(int(id,16))
+                return chr(int(id,16))
             except:
                 return id
 
@@ -184,7 +184,7 @@ class RenderChanSynfigModule(RenderChanModule):
             line = out.stdout.readline()
             if not line:
                 break
-            print line,
+            print(line, end=' ')
             sys.stdout.flush()
             fn = frameNumberPattern.search(line)
             if fn:
@@ -195,13 +195,13 @@ class RenderChanSynfigModule(RenderChanModule):
 
         out.communicate()
         rc = out.poll()
-        print '===================================================='
-        print '  Synfig command returns with code %d' % rc
-        print '===================================================='
+        print('====================================================')
+        print('  Synfig command returns with code %d' % rc)
+        print('====================================================')
         if rc != 0:
             if os.name == 'nt' and rc == -1073741819:
                 pass
             else:
-                print '  Synfig command failed...'
+                print('  Synfig command failed...')
                 raise Exception('  Synfig command failed...')
         updateCompletion(1)
