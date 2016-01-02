@@ -29,13 +29,13 @@ class RenderChanMp3Module(RenderChanModule):
     def checkRequirements(self):
         if which(self.conf['binary']) == None:
             self.active=False
-            print "Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf['binary'])
-            print "    Please install mpg123 package."
+            print("Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf['binary']))
+            print("    Please install mpg123 package.")
             return False
         if which(self.conf['sox_binary']) == None:
             self.active=False
-            print "Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf['sox_binary'])
-            print "    Please install sox package."
+            print("Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf['sox_binary']))
+            print("    Please install sox package.")
             return False
         self.active=True
         return True

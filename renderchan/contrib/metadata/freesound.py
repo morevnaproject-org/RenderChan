@@ -1,8 +1,9 @@
 __author__ = 'zelgadis'
 
 import os
-from urllib2 import HTTPError, urlopen, Request
-from HTMLParser import HTMLParser
+from urllib.error import HTTPError
+from urllib.request import urlopen, Request
+from html.parser import HTMLParser
 from renderchan.metadata import RenderChanMetadata
 
 class MyHTMLParser(HTMLParser):
@@ -30,7 +31,7 @@ class MyHTMLParser(HTMLParser):
                 elif value.startswith("http://creativecommons.org/licenses/sampling+"):
                     self.license = "cc-sampling+"
                 else:
-                    print "Error: Unknown license - %s" % value
+                    print("Error: Unknown license - %s" % value)
             self._license_block = False
         if (tag == 'div'):
             if attrs[0][0] == 'id' and attrs[0][1] == 'sound_license':
@@ -55,7 +56,7 @@ def parse(filename):
 
     if True:
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
-        print "Fetching data from %s ..." % url
+        print("Fetching data from %s ..." % url)
         error = None
         req = Request(url)
         try:
@@ -66,7 +67,7 @@ def parse(filename):
     if error!=None:
         user = user_alt
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
-        print "Fetching data from %s ..." % url
+        print("Fetching data from %s ..." % url)
         error = None
         req = Request(url)
         try:
