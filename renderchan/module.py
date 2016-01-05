@@ -62,13 +62,21 @@ class RenderChanModule():
     def __init__(self):
         self.conf = {}
         self.conf['binary']=""
+        #TODO: "packetSize" should be renamed to "extra_params" and merged with self.extraParams?
         self.conf["packetSize"]=20
         self.conf["compatVersion"]=1
         self.conf["maxNbCores"]=0
 
         # Extra params - additional rendering parameters. supplied through the project.conf and
         # file-specific .conf files.
+        #TODO: ExtraParams should be registered in a special way
+        #TODO:    So, if a module registers its own extra param we should now it isn't already registered as global extraParam.
         self.extraParams={}
+        #   'use_own_dimensions' - Don't use project dimensions, use image dimensions defined it the source file
+        #   'proxy_scale' - Apply scale factor to resulting image. Valid only if 'use_own_dimensions' == 1.
+        #  Those options are applied in RenderChanFile.getParams() - file.py.
+        self.extraParams['use_own_dimensions']='0'
+        self.extraParams['proxy_scale']='1.0'
 
         self.active=False
 
@@ -124,6 +132,8 @@ class RenderChanModule():
         return []
 
     def analyze(self, filename):
+        #TODO: Return a special structure object (RenderChanFileInfo) instead of ordinary dictionary
+        #TODO:     RenderChanFileInfo = {'dependencies': [], 'start': -1, 'end': -1, 'width':-1, 'height':-1}
         return {}
 
     def getPacketSize(self):
