@@ -66,7 +66,7 @@ class RenderChanFile():
                 else:
                     info=self.module.analyze(self.getPath())
                     if "dependencies" in info.keys():
-                        self.dependencies=set(info["dependencies"])
+                        self.dependencies=list(set(info["dependencies"]))
 
                     if "startFrame" in info.keys():
                         self.startFrame=int(info["startFrame"])

@@ -656,7 +656,7 @@ class RenderChan():
 
         taskfile.pending=False
 
-        return (isDirty, tasklist, maxTime)
+        return (isDirty, list(tasklist), maxTime)
 
     def updateCompletion(self, value):
         print("Rendering: %s" % (value*100))

@@ -217,7 +217,7 @@ class RenderChanProject():
             cp = configparser.ConfigParser()
             cp.read(filename)
 
-            for key in cp['main']:
+            for key in cp.options('main'):
                 oldconfig[key]=cp.get('main', key)
 
         newconfig=self.defaults.copy()
@@ -230,7 +230,7 @@ class RenderChanProject():
             config.add_section('main')
             for key in newconfig.keys():
                 config.set('main', key, newconfig[key])
-            with open(filename, 'wb') as configfile:
+            with open(filename, 'w') as configfile:
                 config.write(configfile)
 
         # Store current profile
@@ -263,7 +263,9 @@ class RenderChanProject():
             cp = configparser.ConfigParser()
             cp.read(filename)
 
-            for key in cp['main']:
+            print(filename)
+            
+            for key in cp.options('main'):
                 oldconfig[key]=cp.get('main', key)
 
         newconfig={}
@@ -281,7 +283,7 @@ class RenderChanProject():
             for key in newconfig.keys():
                 if newconfig[key]!=None:
                     config.set('main', key, str(newconfig[key]))
-            with open(filename, 'wb') as configfile:
+            with open(filename, 'w') as configfile:
                 config.write(configfile)
 
     def getConfig(self, key):

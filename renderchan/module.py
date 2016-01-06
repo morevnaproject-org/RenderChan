@@ -51,7 +51,7 @@ class RenderChanModuleManager():
         return self.list[name]
 
     def getByExtension(self, ext):
-        for key,item in list(self.list.items()):
+        for key,item in self.list.items():
             if ext in item.getInputFormats():
                 if item.active:
                     return item
