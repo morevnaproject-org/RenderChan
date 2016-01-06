@@ -32,7 +32,7 @@ class RenderChanInkscapeModule(RenderChanModule):
             f=open(filename)
 
         linkPattern = re.compile(".*sodipodi:absref=\"(.*?)\".*")
-        for line in f.readlines():
+        for line in f:
             pat=linkPattern.search(line)
             if pat:
                 info["dependencies"].append(pat.group(1).strip())
