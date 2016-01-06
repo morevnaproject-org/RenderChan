@@ -43,7 +43,7 @@ class RenderChanBlenderModule(RenderChanModule):
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         while True:
-            line = out.stdout.readline()
+            line = out.stdout.readline().decode("utf-8")
             if not line:
                 break
             #print line,
@@ -142,7 +142,7 @@ class RenderChanBlenderModule(RenderChanModule):
         rc = None
         currentFrame = None
         while rc is None:
-            line = out.stdout.readline()
+            line = out.stdout.readline().decode("utf-8")
             if not line:
                 break
             print(line, end=' ')

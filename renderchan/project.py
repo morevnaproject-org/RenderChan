@@ -4,7 +4,7 @@ import os.path
 import time
 import configparser
 import shutil
-from renderchan.utils import mkdirs, sync, file_is_older_than, PlainConfigFileWrapper, LockThread
+from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread
 from renderchan.cache import RenderChanCache
 
 class RenderChanProjectManager():
@@ -168,7 +168,7 @@ class RenderChanProject():
             # Old project format, used by Remake
 
             config = configparser.ConfigParser()
-            config.readfp(PlainConfigFileWrapper(open(self.confPath)))
+            config.read_file(ini_wrapper(self.confPath))
 
             for key in config.options('default'):
                 self.config[key]=config.get('default', key)

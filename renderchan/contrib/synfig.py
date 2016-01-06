@@ -181,7 +181,7 @@ class RenderChanSynfigModule(RenderChanModule):
         rc = None
         #currentFrame = None
         while rc is None:
-            line = out.stdout.readline()
+            line = out.stdout.readline().decode("utf-8")
             if not line:
                 break
             print(line, end=' ')

@@ -4,6 +4,7 @@ import os, shutil, errno
 import random
 import time
 import threading
+import io
 
 if os.name == 'nt':
     import ctypes
@@ -179,15 +180,6 @@ class LockThread(threading.Thread):
     def unlock(self):
         self.active = False
 
-class PlainConfigFileWrapper(object):
-    def __init__(self, fp):
-        self.fp = fp
-        self.sechead = '[default]\n'
-    def readline(self):
-        if self.sechead:
-            try:
-                return self.sechead
-            finally:
-                self.sechead = None
-        else:
-            return self.fp.readline()
+def ini_wrapper(filename):
+    ini_str = '[default]\n' + open(filename, 'r').read()
+    return io.StringIO(ini_str)

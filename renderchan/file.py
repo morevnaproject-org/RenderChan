@@ -3,7 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 import configparser
 from renderchan.module import RenderChanModule
-from renderchan.utils import float_trunc, PlainConfigFileWrapper
+from renderchan.utils import float_trunc, ini_wrapper
 from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
@@ -105,7 +105,7 @@ class RenderChanFile():
     def _loadConfig(self, filename):
 
         config = configparser.ConfigParser()
-        config.read_file(PlainConfigFileWrapper(open(filename)))
+        config.read_file(ini_wrapper(filename))
 
         for key in config.options('default'):
             self.config[key]=config.get('default', key)
