@@ -170,7 +170,7 @@ class RenderChanProject():
             config = configparser.ConfigParser()
             config.readfp(PlainConfigFileWrapper(open(self.confPath)))
 
-            for key in config['default']:
+            for key in config.options('default'):
                 self.config[key]=config.get('default', key)
         else:
 
@@ -195,7 +195,7 @@ class RenderChanProject():
 
             profile=profile.replace(".","")
 
-            for key in config[profile]:
+            for key in config.options(profile):
                 self.config[key]=config.get(profile, key)
 
             # check for correct values
@@ -262,8 +262,6 @@ class RenderChanProject():
         if os.path.exists(filename):
             cp = configparser.ConfigParser()
             cp.read(filename)
-
-            print(filename)
             
             for key in cp.options('main'):
                 oldconfig[key]=cp.get('main', key)
