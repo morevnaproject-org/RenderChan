@@ -4,6 +4,7 @@ import os, shutil, errno
 import random
 import time
 import threading
+import io
 
 if os.name == 'nt':
     import ctypes
@@ -114,7 +115,7 @@ def sync(profile_output, output, compareTime=None):
                 output_str=output
                 if len(output_str)>60:
                     output_str="..."+output_str[-60:]
-                print ". . Syncing profile data for %s" % output_str
+                print(". . Syncing profile data for %s" % output_str)
 
             if not os.path.exists(os.path.dirname(output)):
                     mkdirs(os.path.dirname(output))
@@ -144,13 +145,13 @@ def sync(profile_output, output, compareTime=None):
                     else:
                         os.link(profile_output, output)
                 except:
-                    print "Warning: Cannot create a symlink."
+                    print("Warning: Cannot create a symlink.")
                     if os.name == 'nt':
-                        print "    Note for Windows users: "
-                        print "    This feature requires Windows Vista or above."
-                        print "    Your account should have privilege for creating symlinks,"
-                        print "    see http://stackoverflow.com/a/8464306 for details."
-                        print "    Alternatively, you can run RenderChan with administrator privileges."
+                        print("    Note for Windows users: ")
+                        print("    This feature requires Windows Vista or above.")
+                        print("    Your account should have privilege for creating symlinks,")
+                        print("    see http://stackoverflow.com/a/8464306 for details.")
+                        print("    Alternatively, you can run RenderChan with administrator privileges.")
                     try:
                         shutil.copyfile(profile_output, output)
                     except:
@@ -179,15 +180,6 @@ class LockThread(threading.Thread):
     def unlock(self):
         self.active = False
 
-class PlainConfigFileWrapper(object):
-    def __init__(self, fp):
-        self.fp = fp
-        self.sechead = '[default]\n'
-    def readline(self):
-        if self.sechead:
-            try:
-                return self.sechead
-            finally:
-                self.sechead = None
-        else:
-            return self.fp.readline()
+def ini_wrapper(filename):
+    ini_str = '[default]\n' + open(filename, 'r').read()
+    return io.StringIO(ini_str)

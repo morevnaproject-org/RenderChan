@@ -1,9 +1,9 @@
 __author__ = 'Konstantin Dmitriev'
 
 import os.path
-import ConfigParser
+import configparser
 from renderchan.module import RenderChanModule
-from renderchan.utils import float_trunc, PlainConfigFileWrapper
+from renderchan.utils import float_trunc, ini_wrapper
 from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
@@ -15,7 +15,7 @@ class RenderChanFile():
         if self.projectPath!='':
             self.project=projects.get(self.projectPath)
         else:
-            print "Warning: File %s doesn't belong to any project." % (path)
+            print("Warning: File %s doesn't belong to any project." % (path))
 
         # Associated tasks
         self.taskPost=None
@@ -49,13 +49,13 @@ class RenderChanFile():
                 output_str=os.path.relpath(path)
                 if len(output_str)>60:
                     output_str="..."+output_str[-60:]
-                print ". Analyzing file: %s" % output_str
+                print(". Analyzing file: %s" % output_str)
 
                 info=None
                 if self.project:
                     info=self.project.cache.getInfo(self.localPath)
                 if info and info["timestamp"]>=self.getTime():
-                    print ". . Cache found"
+                    print(". . Cache found")
                     self.startFrame=int(info["startFrame"])
                     self.endFrame=int(info["endFrame"])
                     self.dependencies=self.project.cache.getDependencies(self.localPath)
@@ -100,12 +100,12 @@ class RenderChanFile():
                     self.setFormat(ext)
 
             else:
-                print "Warning: No source file found for %s" % path
+                print("Warning: No source file found for %s" % path)
 
     def _loadConfig(self, filename):
 
-        config = ConfigParser.SafeConfigParser()
-        config.readfp(PlainConfigFileWrapper(open(filename)))
+        config = configparser.ConfigParser()
+        config.read_file(ini_wrapper(filename))
 
         for key in config.options('default'):
             self.config[key]=config.get('default', key)
@@ -196,7 +196,7 @@ class RenderChanFile():
             return None
 
     def getProfileRenderPath(self, start=None, end=None):
-        if self.config.has_key('render_cache_dir'):
+        if 'render_cache_dir' in self.config:
             profiles_path = self.config['render_cache_dir']
         else:
             profiles_path = None
@@ -212,15 +212,15 @@ class RenderChanFile():
 
         size=-1
 
-        if self.config.has_key("single") and self.config["single"]!="None":
+        if "single" in self.config and self.config["single"]!="None":
             return 0
 
         # Let conf files override packet size
-        if self.config.has_key("packet_size"):
+        if "packet_size" in self.config:
             size=int(self.config["packet_size"])
-        elif self.project.config.has_key(self.module.getName()+".packet_size"):
+        elif self.module.getName()+".packet_size" in self.project.config:
             size=int(self.project.config[self.module.getName()+".packet_size"])
-        elif self.project.config.has_key("packet_size"):
+        elif "packet_size" in self.project.config:
             size=int(self.project.config["packet_size"])
 
         if size!=-1:
@@ -243,7 +243,7 @@ class RenderChanFile():
 
     def getFormat(self):
         key="format"
-        if self.config.has_key(key):
+        if key in self.config:
             format=self.config[key]
         elif self.project:
             if self.module.getName()+"."+key in self.project.config.keys():
@@ -265,7 +265,7 @@ class RenderChanFile():
                     params[key]=self.project.getConfig(self.module.getName()+"."+key)
                 else:
                     params[key]=self.project.getConfig(key)
-            if self.config.has_key(key):
+            if key in self.config:
                 if self.config[key].startswith("*"):
                     params[key]=float(self.config[key][1:])*float(params[key])
                 else:
@@ -292,13 +292,13 @@ class RenderChanFile():
                     try:
                         proxy_scale = float(params['proxy_scale'])
                     except:
-                        print "WARNING: Wrong value for 'proxy scale' (%s)." % self.getPath()
+                        print("WARNING: Wrong value for 'proxy scale' (%s)." % self.getPath())
                         proxy_scale = 1.0
                     width=int(params['width'])
                     height=int(params['height'])
                     if ((width*proxy_scale) % 1) != 0 or ((height*proxy_scale) % 1) != 0:
-                        print "WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath()
-                        print "         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale)
+                        print("WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath())
+                        print("         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale))
                     else:
                         params['width'] = str(width*proxy_scale)
                         params['height'] = str(height*proxy_scale)
@@ -366,7 +366,7 @@ class RenderChanFile():
             self.project.setFrozen(self.localPath, value)
         else:
             if value:
-                print "ERROR: Cannot freeze file which is not a part of any project."
+                print("ERROR: Cannot freeze file which is not a part of any project.")
 
     def getMetadata(self):
         if self.metadata==None:

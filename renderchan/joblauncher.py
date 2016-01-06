@@ -43,13 +43,13 @@ def process_args():
     if args:
         options.filename=os.path.abspath(args[0])
     else:
-        print "ERROR: Please provide input filename"
+        print("ERROR: Please provide input filename")
         exit(1)
 
     return options, args
 
 def updateCompletion(value):
-    print "Rendering: %s" % (value*100)
+    print("Rendering: %s" % (value*100))
 
 
 def main(argv):
@@ -80,9 +80,9 @@ def main(argv):
         else:
             (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
             if isDirty:
-                print "ERROR: There are unrendered dependencies for this file!"
-                print "       (Project tree changed or job started too early?)"
-                print "       Aborting."
+                print("ERROR: There are unrendered dependencies for this file!")
+                print("       (Project tree changed or job started too early?)")
+                print("       Aborting.")
                 exit(1)
 
     if options.action == 'render':
@@ -97,6 +97,6 @@ def main(argv):
             renderchan.job_merge(taskfile, taskfile.getFormat(), renderchan.projects.stereo, compare_time)
     elif options.action == 'snapshot':
         if not options.snapshot_target:
-            print  "ERROR: Please specify output filename using --target-dir option."
+            print("ERROR: Please specify output filename using --target-dir option.")
         renderchan.job_snapshot(options.filename, os.path.abspath(options.snapshot_target))
 

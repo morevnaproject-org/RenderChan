@@ -43,7 +43,7 @@ class RenderChanBlenderModule(RenderChanModule):
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         while True:
-            line = out.stdout.readline()
+            line = out.stdout.readline().decode("utf-8")
             if not line:
                 break
             #print line,
@@ -65,7 +65,7 @@ class RenderChanBlenderModule(RenderChanModule):
         rc = out.poll()
 
         if rc != 0:
-            print '  Blender command failed...'
+            print('  Blender command failed...')
 
         return info
 
@@ -86,7 +86,7 @@ class RenderChanBlenderModule(RenderChanModule):
             stereo_camera = "Right"
 
         if (extraParams["disable_gpu"]!="False") or ('BLENDER_DISABLE_GPU' in os.environ):
-            print "================== FORCE DISABLE GPU ====================="
+            print("================== FORCE DISABLE GPU =====================")
             gpu_device='None'
         else:
             gpu_device='"'+self.conf["gpu_device"]+'"'
@@ -115,9 +115,9 @@ class RenderChanBlenderModule(RenderChanModule):
             else:
                 outputPath=os.path.join(outputPath, "file")+".#####"
 
-        print '===================================================='
-        print '  Output Path: %s' % outputPath
-        print '===================================================='
+        print('====================================================')
+        print('  Output Path: %s' % outputPath)
+        print('====================================================')
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
@@ -142,10 +142,10 @@ class RenderChanBlenderModule(RenderChanModule):
         rc = None
         currentFrame = None
         while rc is None:
-            line = out.stdout.readline()
+            line = out.stdout.readline().decode("utf-8")
             if not line:
                 break
-            print line,
+            print(line, end=' ')
             sys.stdout.flush()
 
             if line.startswith("CUDA error: Out of memory"):
@@ -169,9 +169,9 @@ class RenderChanBlenderModule(RenderChanModule):
 
         out.communicate()
         rc = out.poll()
-        print '===================================================='
-        print '  Blender command returns with code %d' % rc
-        print '===================================================='
+        print('====================================================')
+        print('  Blender command returns with code %d' % rc)
+        print('====================================================')
 
         if format in RenderChanModule.imageExtensions and extraParams["single"]!="None":
             outputPath=outputPath[:-7]
@@ -179,7 +179,7 @@ class RenderChanBlenderModule(RenderChanModule):
             os.rename(tmp, outputPath)
 
         if rc != 0:
-            print '  Blender command failed...'
+            print('  Blender command failed...')
             raise Exception('  Blender command failed...')
 
         os.remove(renderscript)
