@@ -27,12 +27,13 @@ class RenderChanInkscapeModule(RenderChanModule):
         info={"dependencies":[]}
 
         if filename.endswith(".svgz"):
-            f=gzip.open(filename, 'r')
+            f=gzip.open(filename, 'rb')
         else:
-            f=open(filename, 'r')
+            f=open(filename, 'rb')
 
         linkPattern = re.compile(".*sodipodi:absref=\"(.*?)\".*")
         for line in f:
+            line = line.decode("utf-8")
             pat=linkPattern.search(line)
             if pat:
                 info["dependencies"].append(pat.group(1).strip())

@@ -54,11 +54,13 @@ class RenderChanSynfigModule(RenderChanModule):
         fps=-1
 
         if filename.endswith(".sifz"):
-            f=gzip.open(filename, 'r')
+            f=gzip.open(filename, 'rb')
         else:
-            f=open(filename, 'r')
+            f=open(filename, 'rb')
         prev_line=""
         for line in f.readlines():
+
+            line = line.decode("utf-8")
 
             if fps==-1:
                 pat=fpsPattern.search(line)

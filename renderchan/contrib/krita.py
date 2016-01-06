@@ -63,7 +63,7 @@ class RenderChanKritaModule(RenderChanModule):
         commandline=[self.conf['zip_binary'], "-j", "-d", tmpPath, filename, "maindoc.xml"]
         subprocess.check_call(commandline)
 
-        f=open(os.path.join(tmpPath,"maindoc.xml"))
+        f=open(os.path.join(tmpPath,"maindoc.xml"), "rb")
 
         #TODO: Consider file layers as dependencies
         #...
@@ -72,6 +72,7 @@ class RenderChanKritaModule(RenderChanModule):
         imagePattern = re.compile(".*<IMAGE .*>.*")
 
         for line in f.readlines():
+            line = line.decode("utf-8")
             pat=imagePattern.search(line)
             if pat:
                 widthPattern = re.compile(".*width=\"(.*?)\".*")
