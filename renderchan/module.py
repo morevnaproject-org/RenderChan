@@ -89,7 +89,7 @@ class RenderChanModule():
 
         if os.path.exists(filename):
 
-            config = configparser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.read(filename)
 
             if config.has_section(self.getName()):
