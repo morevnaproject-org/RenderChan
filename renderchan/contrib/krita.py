@@ -6,6 +6,7 @@ import random
 import os
 import shutil
 import re
+from renderchan.utils import which
 from renderchan.utils import mkdirs
 
 class RenderChanKritaModule(RenderChanModule):
@@ -31,6 +32,25 @@ class RenderChanKritaModule(RenderChanModule):
 
     def getOutputFormats(self):
         return ["png"]
+
+    def checkRequirements(self):
+        if which(self.conf['binary']) == None:
+            self.active=False
+            print("Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf['binary']))
+            print("    Please install krita package.")
+            return False
+        if which(self.conf['zip_binary']) == None:
+            self.active=False
+            print("Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf['zip_binary']))
+            print("    Please install unzip package.")
+            return False
+        if which(self.conf['convert_binary']) == None:
+            self.active=False
+            print("Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf['convert_binary']))
+            print("    Please install ImageMagick package.")
+            return False
+        self.active=True
+        return True
 
     def analyze(self, filename):
         info={'dependencies':[], 'width':0, 'height':0}
