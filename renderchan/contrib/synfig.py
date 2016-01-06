@@ -54,9 +54,9 @@ class RenderChanSynfigModule(RenderChanModule):
         fps=-1
 
         if filename.endswith(".sifz"):
-            f=gzip.open(filename)
+            f=gzip.open(filename, 'r')
         else:
-            f=open(filename)
+            f=open(filename, 'r')
         prev_line=""
         for line in f.readlines():
 
