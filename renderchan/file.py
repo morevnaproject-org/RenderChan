@@ -292,13 +292,13 @@ class RenderChanFile():
                     try:
                         proxy_scale = float(params['proxy_scale'])
                     except:
-                        print "WARNING: Wrong value for 'proxy scale' (%s)." % self.getPath()
+                        print("WARNING: Wrong value for 'proxy scale' (%s)." % self.getPath())
                         proxy_scale = 1.0
                     width=int(params['width'])
                     height=int(params['height'])
                     if ((width*proxy_scale) % 1) != 0 or ((height*proxy_scale) % 1) != 0:
-                        print "WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath()
-                        print "         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale)
+                        print("WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath())
+                        print("         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale))
                     else:
                         params['width'] = str(width*proxy_scale)
                         params['height'] = str(height*proxy_scale)
