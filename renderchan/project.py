@@ -167,16 +167,16 @@ class RenderChanProject():
 
             # Old project format, used by Remake
 
-            config = configparser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.readfp(PlainConfigFileWrapper(open(self.confPath)))
 
-            for key in config.options('default'):
+            for key in config['default']:
                 self.config[key]=config.get('default', key)
         else:
 
             # Native RenderChan project format
 
-            config = configparser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.readfp(open(self.confPath))
 
             # sanity check
@@ -195,7 +195,7 @@ class RenderChanProject():
 
             profile=profile.replace(".","")
 
-            for key in config.options(profile):
+            for key in config[profile]:
                 self.config[key]=config.get(profile, key)
 
             # check for correct values
@@ -214,10 +214,10 @@ class RenderChanProject():
         filename=os.path.join(profilepath,"core.conf")
         oldconfig={}
         if os.path.exists(filename):
-            cp = configparser.SafeConfigParser()
+            cp = configparser.ConfigParser()
             cp.read(filename)
 
-            for key in cp.options('main'):
+            for key in cp['main']:
                 oldconfig[key]=cp.get('main', key)
 
         newconfig=self.defaults.copy()
@@ -226,7 +226,7 @@ class RenderChanProject():
                 newconfig[key]=self.config[key]
 
         if newconfig!=oldconfig:
-            config = configparser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.add_section('main')
             for key in newconfig.keys():
                 config.set('main', key, newconfig[key])
@@ -260,10 +260,10 @@ class RenderChanProject():
         filename=os.path.join(self.getProfilePath(),name+".conf")
         oldconfig={}
         if os.path.exists(filename):
-            cp = configparser.SafeConfigParser()
+            cp = configparser.ConfigParser()
             cp.read(filename)
 
-            for key in cp.options('main'):
+            for key in cp['main']:
                 oldconfig[key]=cp.get('main', key)
 
         newconfig={}
@@ -276,7 +276,7 @@ class RenderChanProject():
                 newconfig[key]=module.extraParams[key]
 
         if newconfig!=oldconfig:
-            config = configparser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.add_section('main')
             for key in newconfig.keys():
                 if newconfig[key]!=None:

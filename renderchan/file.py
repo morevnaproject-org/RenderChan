@@ -104,8 +104,8 @@ class RenderChanFile():
 
     def _loadConfig(self, filename):
 
-        config = configparser.SafeConfigParser()
-        config.readfp(PlainConfigFileWrapper(open(filename)))
+        config = configparser.ConfigParser()
+        config.read_file(PlainConfigFileWrapper(open(filename)))
 
         for key in config.options('default'):
             self.config[key]=config.get('default', key)
