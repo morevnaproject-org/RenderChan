@@ -103,7 +103,7 @@ class RenderChanCache():
                     dependencies.append(os.path.join(projectroot, row[1]))
                 return dependencies
             else:
-                return []
+                return None
         except:
             print("ERROR: Cannot read from database.")
             return None
