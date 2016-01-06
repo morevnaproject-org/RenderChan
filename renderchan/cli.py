@@ -69,7 +69,7 @@ def main(datadir, argv):
     options, args = process_args()
 
     if len(args)<1:
-        print "Please specify filename for rendering."
+        print("Please specify filename for rendering.")
         sys.exit(0)
 
     filename = os.path.abspath(args[0])
@@ -88,20 +88,20 @@ def main(datadir, argv):
             if renderchan.renderfarm_engine in ("puli"):
                 renderchan.setHost(options.host)
             else:
-                print "WARNING: The --host parameter cannot be set for this type of renderfarm."
+                print("WARNING: The --host parameter cannot be set for this type of renderfarm.")
         if options.port:
             if renderchan.renderfarm_engine in ("puli"):
                 renderchan.setPort(options.port)
             else:
-                print "WARNING: The --port parameter cannot be set for this type of renderfarm."
+                print("WARNING: The --port parameter cannot be set for this type of renderfarm.")
 
         if options.cgru_location:
             renderchan.cgru_location = options.cgru_location
     else:
         if options.host:
-            print "WARNING: No renderfarm type given. Ignoring --host parameter."
+            print("WARNING: No renderfarm type given. Ignoring --host parameter.")
         if options.port:
-            print "WARNING: No renderfarm type given. Ignoring --port parameter."
+            print("WARNING: No renderfarm type given. Ignoring --port parameter.")
 
     if options.snapshot_to:
         renderchan.snapshot_path = options.snapshot_to

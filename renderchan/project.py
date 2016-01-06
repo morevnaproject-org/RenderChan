@@ -2,7 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os.path
 import time
-import ConfigParser
+import configparser
 import shutil
 from renderchan.utils import mkdirs, sync, file_is_older_than, PlainConfigFileWrapper, LockThread
 from renderchan.cache import RenderChanCache
@@ -40,7 +40,7 @@ class RenderChanProjectManager():
             self.list[path].activeProfile=self.active.activeProfile
 
     def get(self, path):
-        if not self.list.has_key(path):
+        if path not in self.list:
             self.load(path)
 
         return self.list[path]
@@ -138,7 +138,7 @@ class RenderChanProject():
             if self.language == current_language:
                 needCleanup=False
         if needCleanup and os.path.exists(os.path.join(self.path,'render',localedir)):
-            print "The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir)
+            print("The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir))
             shutil.rmtree(os.path.join(self.path,'render',localedir))
             mkdirs(os.path.join(self.path,'render',localedir))
             shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
@@ -167,7 +167,7 @@ class RenderChanProject():
 
             # Old project format, used by Remake
 
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.readfp(PlainConfigFileWrapper(open(self.confPath)))
 
             for key in config.options('default'):
@@ -176,13 +176,13 @@ class RenderChanProject():
 
             # Native RenderChan project format
 
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.readfp(open(self.confPath))
 
             # sanity check
             for section in config.sections():
                 if "." in section:
-                    print "Warning: Incorrect profile name found (%s) - dots are not allowed." % (section)
+                    print("Warning: Incorrect profile name found (%s) - dots are not allowed." % (section))
 
             if profile==None:
                 if config.has_option("main", "active_profile"):
@@ -214,7 +214,7 @@ class RenderChanProject():
         filename=os.path.join(profilepath,"core.conf")
         oldconfig={}
         if os.path.exists(filename):
-            cp = ConfigParser.SafeConfigParser()
+            cp = configparser.ConfigParser()
             cp.read(filename)
 
             for key in cp.options('main'):
@@ -226,11 +226,11 @@ class RenderChanProject():
                 newconfig[key]=self.config[key]
 
         if newconfig!=oldconfig:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.add_section('main')
             for key in newconfig.keys():
                 config.set('main', key, newconfig[key])
-            with open(filename, 'wb') as configfile:
+            with open(filename, 'w') as configfile:
                 config.write(configfile)
 
         # Store current profile
@@ -260,28 +260,28 @@ class RenderChanProject():
         filename=os.path.join(self.getProfilePath(),name+".conf")
         oldconfig={}
         if os.path.exists(filename):
-            cp = ConfigParser.SafeConfigParser()
+            cp = configparser.ConfigParser()
             cp.read(filename)
-
+            
             for key in cp.options('main'):
                 oldconfig[key]=cp.get('main', key)
 
         newconfig={}
         for key in module.extraParams:
-            if self.config.has_key(module.getName()+"."+key):
+            if module.getName()+"."+key in self.config:
                 newconfig[key]=self.config[module.getName()+"."+key]
-            elif self.config.has_key(key):
+            elif key in self.config:
                 newconfig[key]=self.config[key]
             else:
                 newconfig[key]=module.extraParams[key]
 
         if newconfig!=oldconfig:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.ConfigParser()
             config.add_section('main')
             for key in newconfig.keys():
                 if newconfig[key]!=None:
                     config.set('main', key, str(newconfig[key]))
-            with open(filename, 'wb') as configfile:
+            with open(filename, 'w') as configfile:
                 config.write(configfile)
 
     def getConfig(self, key):
@@ -413,7 +413,7 @@ class RenderChanProject():
         msg=""
         while True:
             if msg!="":
-                print msg
+                print(msg)
             msg="The rendertree is locked by other process. Waiting..."
             # Check if we are on correct profile
             need_sync = True

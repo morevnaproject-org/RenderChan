@@ -24,7 +24,7 @@ class RenderChan():
         self.renderfarm_host = "127.0.0.1"
         self.renderfarm_port = 8004
 
-        print "RenderChan initialized."
+        print("RenderChan initialized.")
         self.start_time = time.time()
         self.projects = RenderChanProjectManager()
         self.modules = RenderChanModuleManager()
@@ -67,10 +67,10 @@ class RenderChan():
             minutes = int(t/60)
             t = t - minutes*60
             seconds = int(t)
-            print
-            print
-            print "Execution time: %02d:%02d:%02d " % ( hours, minutes, seconds )
-            print
+            print()
+            print()
+            print("Execution time: %02d:%02d:%02d " % ( hours, minutes, seconds ))
+            print()
 
     def setHost(self, host):
         self.renderfarm_host=host
@@ -119,9 +119,9 @@ class RenderChan():
         """
 
         if taskfile.project == None:
-            print
-            print "ERROR: Can't render a file which is not a part of renderchan project."
-            print
+            print()
+            print("ERROR: Can't render a file which is not a part of renderchan project.")
+            print()
             return 1
 
         if self.renderfarm_engine=="afanasy":
@@ -289,7 +289,7 @@ class RenderChan():
         elif allocateOnly:
 
             if os.path.exists(taskfile.getRenderPath()):
-                print "File is already allocated."
+                print("File is already allocated.")
                 sys.exit(0)
             taskfile.dependencies=[]
             taskfile.endFrame = taskfile.startFrame + 2
@@ -342,7 +342,7 @@ class RenderChan():
             isDirty = True
             compareTime = None
             if os.environ.get('DEBUG'):
-                print "DEBUG: Dirty = 1 (no rendering exists)"
+                print("DEBUG: Dirty = 1 (no rendering exists)")
         else:
             # Otherwise we have to check against the time of the last rendering
             compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
@@ -378,7 +378,7 @@ class RenderChan():
                     f = open(output_list, 'a')
                     f.write("file '%s'\n" % (chunk_name))
                     f.close()
-                    if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+                    if "extract_alpha" in params and params["extract_alpha"] == "1":
 
                         f = open(output_list_alpha, 'a')
                         alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
@@ -553,7 +553,7 @@ class RenderChan():
                 dependency = self.loadedFiles[path]
                 if dependency.pending:
                     # Avoid circular dependencies
-                    print "Warning: Circular dependency detected for %s. Skipping." % (path)
+                    print("Warning: Circular dependency detected for %s. Skipping." % (path))
                     continue
             else:
                 dependency = RenderChanFile(path, self.modules, self.projects)
@@ -564,15 +564,15 @@ class RenderChan():
                         ext = os.path.splitext(path)[1]
                         placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
                         if os.path.exists(placeholder):
-                            print "   Creating an empty placeholder for %s..." % path
+                            print("   Creating an empty placeholder for %s..." % path)
                             mkdirs(os.path.dirname(path))
                             shutil.copy(placeholder, path)
                             t = time.mktime(time.strptime('01.01.1960 00:00:00', '%d.%m.%Y %H:%M:%S'))
                             os.utime(path,(t,t))
                         else:
-                            print "   Skipping file %s..." % path
+                            print("   Skipping file %s..." % path)
                     else:
-                        print "   Skipping file %s..." % path
+                        print("   Skipping file %s..." % path)
                     continue
                 self.loadedFiles[dependency.getPath()]=dependency
                 if dependency.project!=None and dependency.module!=None:
@@ -610,17 +610,17 @@ class RenderChan():
                     if compareTime is None:
                         isDirty = True
                         if os.environ.get('DEBUG'):
-                            print "DEBUG: %s:" % taskfile.localPath
-                            print "DEBUG: Dirty = 1 (no compare time)"
-                            print
+                            print("DEBUG: %s:" % taskfile.localPath)
+                            print("DEBUG: Dirty = 1 (no compare time)")
+                            print()
                     elif timestamp > compareTime:
                         isDirty = True
                         if os.environ.get('DEBUG'):
-                            print "DEBUG: %s:" % taskfile.localPath
-                            print "DEBUG: Dirty = 1 (dependency timestamp is higher)"
-                            print "DEBUG:            compareTime     = %f" % (compareTime)
-                            print "DEBUG:            dependency time = %f" % (timestamp)
-                            print
+                            print("DEBUG: %s:" % taskfile.localPath)
+                            print("DEBUG: Dirty = 1 (dependency timestamp is higher)")
+                            print("DEBUG:            compareTime     = %f" % (compareTime))
+                            print("DEBUG:            dependency time = %f" % (timestamp))
+                            print()
                     if timestamp>maxTime:
                         maxTime=timestamp
 
@@ -639,18 +639,18 @@ class RenderChan():
             timestamp = float_trunc(taskfile.getTime(), 1)
             if compareTime is None:
                 if os.environ.get('DEBUG'):
-                    print "DEBUG: %s:" % taskfile.localPath
-                    print "DEBUG: Dirty = 1 (no compare time)"
-                    print
+                    print("DEBUG: %s:" % taskfile.localPath)
+                    print("DEBUG: Dirty = 1 (no compare time)")
+                    print()
                 isDirty = True
             elif timestamp > compareTime:
                 isDirty = True
                 if os.environ.get('DEBUG'):
-                    print "DEBUG: %s:" % taskfile.localPath
-                    print "DEBUG: Dirty = 1 (source timestamp is higher)"
-                    print "DEBUG:            compareTime     = %f" % (compareTime)
-                    print "DEBUG:            source time = %f" % (timestamp)
-                    print
+                    print("DEBUG: %s:" % taskfile.localPath)
+                    print("DEBUG: Dirty = 1 (source timestamp is higher)")
+                    print("DEBUG:            compareTime     = %f" % (compareTime))
+                    print("DEBUG:            source time = %f" % (timestamp))
+                    print()
             if timestamp>maxTime:
                 maxTime=timestamp
 
@@ -659,7 +659,7 @@ class RenderChan():
         return (isDirty, list(tasklist), maxTime)
 
     def updateCompletion(self, value):
-        print "Rendering: %s" % (value*100)
+        print("Rendering: %s" % (value*100))
 
     def __not_used__syncProfileData(self, renderpath):
 
@@ -667,12 +667,12 @@ class RenderChan():
             taskfile = self.loadedFiles[renderpath]
             if taskfile.pending:
                 # Avoid circular dependencies
-                print "Warning: Circular dependency detected for %s. Skipping." % (renderpath)
+                print("Warning: Circular dependency detected for %s. Skipping." % (renderpath))
                 return
         else:
             taskfile = RenderChanFile(renderpath, self.modules, self.projects)
             if not os.path.exists(taskfile.getPath()):
-                print "   No source file for %s. Skipping." % renderpath
+                print("   No source file for %s. Skipping." % renderpath)
                 return
             self.loadedFiles[taskfile.getPath()]=taskfile
             taskfile.pending=True  # we need this to avoid circular dependencies
@@ -749,7 +749,7 @@ class RenderChan():
                                updateCompletion,
                                params)
                 touch(output+".done",compare_time)
-                if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+                if "extract_alpha" in params and params["extract_alpha"] == "1":
                     alpha_output = os.path.splitext(output)[0] + "-alpha" + os.path.splitext(output)[1]
                     touch(alpha_output+".done",compare_time)
 
@@ -765,7 +765,7 @@ class RenderChan():
                 lock.unlock()
 
         else:
-            print "  This chunk is already up to date. Skipping."
+            print("  This chunk is already up to date. Skipping.")
 
         updateCompletion(1.0)
 
@@ -787,7 +787,7 @@ class RenderChan():
             params = taskfile.getParams()
 
             suffix_list = [""]
-            if params.has_key("extract_alpha") and params["extract_alpha"] == "1":
+            if "extract_alpha" in params and params["extract_alpha"] == "1":
                 suffix_list.append("-alpha")
 
             for suffix in suffix_list:
@@ -798,7 +798,7 @@ class RenderChan():
 
                 # We need to merge the rendered files into single one
 
-                print "Merging: %s" % profile_output
+                print("Merging: %s" % profile_output)
 
                 # But first let's check if we really need to do that
                 uptodate = False
@@ -834,7 +834,7 @@ class RenderChan():
 
                                 if os.path.exists(segment+".done") and os.path.exists(segment):
                                     continue
-                                print "ERROR: Not all segments were rendered. Aborting."
+                                print("ERROR: Not all segments were rendered. Aborting.")
                                 exit(1)
 
                             if format == "avi":
@@ -843,13 +843,13 @@ class RenderChan():
                             else:
                                 # Merge all sequences into single directory
                                 for line in segments:
-                                    print line
+                                    print(line)
                                     copytree(line, profile_output, hardlinks=True)
 
                             os.remove(profile_output_list)
                             touch(profile_output + ".done", float(compare_time))
                         else:
-                            print "  This chunk is already merged. Skipping."
+                            print("  This chunk is already merged. Skipping.")
                         #updateCompletion(0.5)
 
                     else:
@@ -858,7 +858,7 @@ class RenderChan():
                                 os.rename(segment, profile_output)
                                 touch(profile_output + ".done", float(compare_time))
                         else:
-                                print "ERROR: Not all segments were rendered. Aborting."
+                                print("ERROR: Not all segments were rendered. Aborting.")
                                 exit(1)
 
                 # Add LST file
@@ -911,7 +911,7 @@ class RenderChan():
         input_right = taskfile.getProfileRenderPath()
         self.setStereoMode(prev_mode)
 
-        print "Merging: %s" % output
+        print("Merging: %s" % output)
 
         # But first let's check if we really need to do that
         uptodate = False
@@ -950,7 +950,7 @@ class RenderChan():
                          output])
             touch(output + ".done", os.path.getmtime(output))
         else:
-            print "  This chunk is already merged. Skipping."
+            print("  This chunk is already merged. Skipping.")
 
 
     def job_snapshot(self, renderpath, snapshot_dir):
@@ -962,9 +962,9 @@ class RenderChan():
         filename = os.path.splitext(os.path.basename(renderpath))[0] + "-" + time_string + os.path.splitext(renderpath)[1]
         snapshot_path = os.path.join(snapshot_dir, filename)
 
-        print
-        print "Creating snapshot to %s ..." % (filename)
-        print
+        print()
+        print("Creating snapshot to %s ..." % (filename))
+        print()
 
         if os.path.isdir(snapshot_path):
             try:
@@ -1050,28 +1050,28 @@ class Attribution():
             metadata = t.getMetadata()
             if "freesound" in metadata.sources:
                 for author in metadata.authors:
-                    if not self.freesound_items.has_key(author):
+                    if author not in self.freesound_items:
                         self.freesound_items[author]=[]
                     if not metadata.title in self.freesound_items[author]:
                         self.freesound_items[author].append(metadata.title)
             if not metadata.license == None:
-                if not self.licenses.has_key(metadata.license):
+                if metadata.license not in self.licenses:
                     self.licenses[metadata.license]=[]
                 self.licenses[metadata.license].append(t.getPath())
 
             self.parse(t)
 
     def output(self):
-        print
-        print "== Sound FX =="
-        print "This video uses these sounds from freesound:"
-        print
+        print()
+        print("== Sound FX ==")
+        print("This video uses these sounds from freesound:")
+        print()
         for author in self.freesound_items.keys():
-            print '"'+'", "'.join(self.freesound_items[author])+'" by '+author
-        print
-        print "== Licenses =="
-        print ", ".join(self.licenses.keys())
-        print
+            print('"'+'", "'.join(self.freesound_items[author])+'" by '+author)
+        print()
+        print("== Licenses ==")
+        print(", ".join(self.licenses.keys()))
+        print()
 
 
 
