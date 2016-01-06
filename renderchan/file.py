@@ -30,8 +30,10 @@ class RenderChanFile():
 
         self.module = modules.getByExtension(os.path.splitext(self.localPath)[1][1:])
         self.dependencies=[]
+        #TODO: startFrame and endFrame should go into self.config
         self.startFrame=-1
         self.endFrame=-1
+
         self.metadata=None
 
         self.config={}
@@ -57,6 +59,10 @@ class RenderChanFile():
                     self.startFrame=int(info["startFrame"])
                     self.endFrame=int(info["endFrame"])
                     self.dependencies=self.project.cache.getDependencies(self.localPath)
+                    if info["width"]>0:
+                        self.config['width']=str(info["width"])
+                    if info["height"]>0:
+                        self.config['height']=str(info["height"])
                 else:
                     info=self.module.analyze(self.getPath())
                     if "dependencies" in info.keys():
@@ -67,9 +73,19 @@ class RenderChanFile():
                     if "endFrame" in info.keys():
                         self.endFrame=int(info["endFrame"])
 
+                    if "width" in info.keys():
+                        self.config['width']=str(info["width"])
+                    else:
+                        info["width"] = -1
+
+                    if "height" in info.keys():
+                        self.config['height']=str(info["height"])
+                    else:
+                        info["height"] = -1
+
                     # Write cache
                     if self.project:
-                        self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies)
+                        self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies, info["width"], info["height"])
 
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):
@@ -267,6 +283,25 @@ class RenderChanFile():
                     params[key]=float(self.config[key][1:])*float(params[key])
                 else:
                     params[key]=self.config[key]
+
+
+        # Special routines related with proxies
+        if 'use_own_dimensions' in params.keys() and 'proxy_scale' in params.keys():
+            if params['use_own_dimensions']!='0' and 'width' in params.keys() and 'height' in params.keys():
+                if params['proxy_scale']!='1.0':
+                    try:
+                        proxy_scale = float(params['proxy_scale'])
+                    except:
+                        print "WARNING: Wrong value for 'proxy scale' (%s)." % self.getPath()
+                        proxy_scale = 1.0
+                    width=int(params['width'])
+                    height=int(params['height'])
+                    if ((width*proxy_scale) % 1) != 0 or ((height*proxy_scale) % 1) != 0:
+                        print "WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath()
+                        print "         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale)
+                    else:
+                        params['width'] = str(width*proxy_scale)
+                        params['height'] = str(height*proxy_scale)
 
         # File-specific configuration
         #params["filename"]=self.getPath()

@@ -3,12 +3,10 @@
 __author__ = 'scribblemaniac'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which
 import subprocess
 import gzip
 import os
 import re
-import random
 
 class RenderChanInkscapeModule(RenderChanModule):
     def __init__(self):

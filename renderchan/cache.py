@@ -36,7 +36,7 @@ class RenderChanCache():
             self.connection.text_factory = str
             cur=self.connection.cursor()
 
-            cur.execute("CREATE TABLE IF NOT EXISTS Paths(Id INTEGER PRIMARY KEY, Path TEXT, Timestamp REAL, Start INTEGER, End INTEGER);")
+            cur.execute("CREATE TABLE IF NOT EXISTS Paths(Id INTEGER PRIMARY KEY, Path TEXT, Timestamp REAL, Start INTEGER, End INTEGER, Width INTEGER, Height INTEGER);")
             cur.execute("CREATE TABLE IF NOT EXISTS Dependencies(Id INTEGER, Dependency TEXT);")
             self.connection.commit()
 
@@ -77,6 +77,8 @@ class RenderChanCache():
                 info['timestamp']=row[2]
                 info['startFrame']=row[3]
                 info['endFrame']=row[4]
+                info['width']=row[5]
+                info['height']=row[6]
                 return info
             else:
                 return None
@@ -106,7 +108,7 @@ class RenderChanCache():
             print("ERROR: Cannot read from database.")
             return None
 
-    def write(self, path, timestamp, start, end, dependencies):
+    def write(self, path, timestamp, start, end, dependencies, width, height):
         if self.closed:
             print("ERROR: Database is closed. Writing isn't possible.")
             return None
@@ -122,7 +124,7 @@ class RenderChanCache():
             self.connection.commit()
 
             # Now, write the data
-            cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End) VALUES(?, ?, ?, ?)", (path, timestamp, start, end))
+            cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End, Width, Height) VALUES(?, ?, ?, ?, ?, ?)", (path, timestamp, start, end, width, height))
             id = cur.lastrowid
 
             # Again, make sure we have no associated data in dependency table
