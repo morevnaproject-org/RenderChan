@@ -1,0 +1,13 @@
+
+[Desktop Entry]
+Type=Action
+ToolbarLabel=RenderChan - Render
+Name=RenderChan - Render
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+SelectionCount==1
+Matchcase=false
+Basenames=*.*;
+Exec=renderchan-gui %f
+Name=Default profile

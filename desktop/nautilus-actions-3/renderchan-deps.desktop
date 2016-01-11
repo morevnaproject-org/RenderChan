@@ -1,0 +1,13 @@
+
+[Desktop Entry]
+Type=Action
+Name=RenderChan - Render Dependencies
+ToolbarLabel=RenderChan - Render Dependencies
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name=Default profile
+Exec=renderchan-gui %f deps
+Basenames=*.*;
+Matchcase=false
+SelectionCount==1
