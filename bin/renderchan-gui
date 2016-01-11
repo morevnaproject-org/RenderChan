@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if([ -h "${SCRIPT_PATH}" ]) then
+  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd . > /dev/null
+cd `dirname "${SCRIPT_PATH}"` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd  > /dev/null
+
+xterm -T "RenderChan - $1" -sb -e "\"${SCRIPT_PATH}/renderchan\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8\" \"$9\" || ( echo; echo 'Error.'; read ) "

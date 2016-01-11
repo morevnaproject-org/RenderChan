@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Service
+Actions=Render;Dependencies;
+# all files inherit from application/octet-stream
+MimeType=application/octet-stream;
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+Icon=image-x-applix-graphics
+
+
+[Desktop Action Render]
+Name=RenderChan Render
+Exec=renderchan-gui %f
+Icon=image-x-applix-graphics
+
+[Desktop Action Dependencies]
+Name=RenderChan Render Dependencies
+Exec=renderchan-gui %f --deps
+Icon=image-x-applix-graphics
