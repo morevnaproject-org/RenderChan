@@ -3,7 +3,7 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 import configparser
 from renderchan.module import RenderChanModule
-from renderchan.utils import float_trunc, ini_wrapper
+from renderchan.utils import float_trunc, ini_wrapper, is_true_string
 from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
@@ -287,7 +287,7 @@ class RenderChanFile():
 
         # Special routines related with proxies
         if 'use_own_dimensions' in params.keys() and 'proxy_scale' in params.keys():
-            if params['use_own_dimensions']!='0' and 'width' in params.keys() and 'height' in params.keys():
+            if is_true_string(params['use_own_dimensions']) and 'width' in params.keys() and 'height' in params.keys():
                 if params['proxy_scale']!='1.0':
                     try:
                         proxy_scale = float(params['proxy_scale'])
