@@ -1,6 +1,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
+from renderchan.utils import is_true_string
 import subprocess
 import gzip
 import os, sys
@@ -173,7 +174,7 @@ class RenderChanSynfigModule(RenderChanModule):
             commandline.append("--time")
             commandline.append(extraParams["single"]+"f")
 
-        if extraParams["extract_alpha"] == "1":
+        if is_true_string(extraParams["extract_alpha"]):
             commandline.append("-x")
 
         commandline.append(filename)

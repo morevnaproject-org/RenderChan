@@ -10,6 +10,7 @@ from renderchan.utils import sync
 from renderchan.utils import touch
 from renderchan.utils import copytree
 from renderchan.utils import which
+from renderchan.utils import is_true_string
 import os, time
 import shutil
 import subprocess
@@ -390,7 +391,7 @@ class RenderChan():
                     f = open(output_list, 'a')
                     f.write("file '%s'\n" % (chunk_name))
                     f.close()
-                    if "extract_alpha" in params and params["extract_alpha"] == "1":
+                    if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
 
                         f = open(output_list_alpha, 'a')
                         alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
@@ -761,7 +762,7 @@ class RenderChan():
                                updateCompletion,
                                params)
                 touch(output+".done",compare_time)
-                if "extract_alpha" in params and params["extract_alpha"] == "1":
+                if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
                     alpha_output = os.path.splitext(output)[0] + "-alpha" + os.path.splitext(output)[1]
                     touch(alpha_output+".done",compare_time)
 
@@ -799,7 +800,7 @@ class RenderChan():
             params = taskfile.getParams()
 
             suffix_list = [""]
-            if "extract_alpha" in params and params["extract_alpha"] == "1":
+            if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
                 suffix_list.append("-alpha")
 
             for suffix in suffix_list:
