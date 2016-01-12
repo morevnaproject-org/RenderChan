@@ -378,25 +378,24 @@ class RenderChan():
             # Keep track of created files to allow merging them later
             output_list = os.path.splitext( taskfile.getProfileRenderPath() )[0] + ".txt"
             output_list_alpha = os.path.splitext( taskfile.getProfileRenderPath() )[0] + "-alpha.txt"
-            if os.path.exists(output_list):
-                os.remove(output_list)
-            if os.path.exists(output_list_alpha):
-                os.remove(output_list_alpha)
             if taskfile.getPacketSize() > 0:
                 segments = self.decompose(taskfile.getStartFrame(), taskfile.getEndFrame(), taskfile.getPacketSize())
-                for range in segments:
-                    start=range[0]
-                    end=range[1]
-                    chunk_name = taskfile.getProfileRenderPath(start,end)
-                    f = open(output_list, 'a')
-                    f.write("file '%s'\n" % (chunk_name))
+                f = open(output_list, 'w')
+                if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
+                    fa = open(output_list_alpha, 'w')
+                try:
+                    for range in segments:
+                        start=range[0]
+                        end=range[1]
+                        chunk_name = taskfile.getProfileRenderPath(start,end)
+                        f.write("file '%s'\n" % (chunk_name))
+                        if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
+                            alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
+                            fa.write("file '%s'\n" % (alpha_output))
+                finally:
                     f.close()
-                    if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
-
-                        f = open(output_list_alpha, 'a')
-                        alpha_output = os.path.splitext(chunk_name)[0] + "-alpha" + os.path.splitext(chunk_name)[1]
-                        f.write("file '%s'\n" % (alpha_output))
-                        f.close()
+                    if fa:
+                        fa.close()
             else:
                 segments=[ (None,None) ]
 
