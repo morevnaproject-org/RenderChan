@@ -5,13 +5,13 @@ import random
 import time
 import threading
 import io
+import shutil
 
 if os.name == 'nt':
     import ctypes
     kdll = ctypes.windll.LoadLibrary("kernel32.dll")
 
 def which(program):
-
     def is_exe(fpath):
         if os.name=='nt':
             return os.path.isfile(fpath) or os.path.isfile(fpath+".exe") or os.path.isfile(fpath+".bat")
@@ -24,12 +24,9 @@ def which(program):
         if is_exe(program):
             return program
     else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
-            exe_file = os.path.realpath(exe_file)
-            if is_exe(exe_file):
-                return exe_file
+        path = shutil.which(program)
+        if path:
+            return os.path.realpath(path)
 
     return None
 
