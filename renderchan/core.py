@@ -363,6 +363,9 @@ class RenderChan():
 
         isDirty = isDirty or isDirtyValue
         
+        # Mark this file as already parsed and thus its "dirty" value is known
+        taskfile.isDirty=isDirty
+        
         if not shouldRender:
             return isDirty
 
@@ -527,9 +530,6 @@ class RenderChan():
 
                     if self.childTask!=None:
                         self.graph.addEdges( [(self.childTask, task)] )
-
-        # Mark this file as already parsed and thus its "dirty" value is known
-        taskfile.isDirty=isDirty
 
         return isDirty
 
