@@ -123,6 +123,18 @@ class RenderChan():
             print("ERROR: Can't render a file which is not a part of renderchan project.")
             print()
             return 1
+        
+        if not taskfile.module:
+            print()
+            extension = os.path.splitext(taskfile.getPath())[1]
+            if extension:
+                print("ERROR: The '%s' file type was not recoginized." % extension)
+            else:
+                print("ERROR: The provided file does not have an extension.")
+            print()
+            return 1
+        else:
+            print("Taskfile is valid")
 
         if self.renderfarm_engine=="afanasy":
 
