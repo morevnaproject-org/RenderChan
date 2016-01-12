@@ -384,6 +384,7 @@ class RenderChan():
             if taskfile.getPacketSize() > 0:
                 segments = self.decompose(taskfile.getStartFrame(), taskfile.getEndFrame(), taskfile.getPacketSize())
                 f = open(output_list, 'w')
+                fa = None
                 if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
                     fa = open(output_list_alpha, 'w')
                 try:
