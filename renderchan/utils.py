@@ -184,7 +184,6 @@ def ini_wrapper(filename):
     ini_str = '[default]\n' + open(filename, 'r').read()
     return io.StringIO(ini_str)
 
-def is_true_string(string) {
+def is_true_string(string):
     string = string.lower()
     return string == "1" or string == "true" or string == "yes"
-}

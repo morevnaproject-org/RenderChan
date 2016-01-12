@@ -78,7 +78,7 @@ def main(argv):
         if options.action == 'merge' and options.stereo and ( options.stereo[0:1]=="v" or options.stereo[0:1]=="h" ):
             pass
         else:
-            (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time)
+            (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time, True)
             if isDirty:
                 print("ERROR: There are unrendered dependencies for this file!")
                 print("       (Project tree changed or job started too early?)")
