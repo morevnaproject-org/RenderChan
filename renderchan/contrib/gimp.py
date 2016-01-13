@@ -4,7 +4,6 @@ __author__ = 'scribblemaniac'
 
 from renderchan.module import RenderChanModule
 from renderchan.utils import which
-from distutils.spawn import find_executable
 import subprocess
 import os
 import re
