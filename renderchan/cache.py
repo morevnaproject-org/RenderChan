@@ -44,7 +44,7 @@ class RenderChanCache():
 
         except sqlite3.Error as e:
 
-            print("Error %s:" % e.args[0])
+            print("Error %s:" % e.args[0], file=sys.stderr)
             sys.exit(1)
 
     def __del__(self):
@@ -83,7 +83,7 @@ class RenderChanCache():
             else:
                 return None
         except:
-            print("ERROR: Cannot read from database.")
+            print("ERROR: Cannot read from database.", file=sys.stderr)
             return None
 
     def getDependencies(self, path):
@@ -105,12 +105,12 @@ class RenderChanCache():
             else:
                 return None
         except:
-            print("ERROR: Cannot read from database.")
+            print("ERROR: Cannot read from database.", file=sys.stderr)
             return None
 
     def write(self, path, timestamp, start, end, dependencies, width, height):
         if self.closed:
-            print("ERROR: Database is closed. Writing isn't possible.")
+            print("ERROR: Database is closed. Writing isn't possible.", file=sys.stderr)
             return None
         try:
             cur=self.connection.cursor()
@@ -136,4 +136,4 @@ class RenderChanCache():
                 cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
             self.connection.commit()
         except:
-            print("ERROR: Cannot write into database.")
+            print("ERROR: Cannot write into database.", file=sys.stderr)

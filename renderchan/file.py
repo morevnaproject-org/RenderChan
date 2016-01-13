@@ -366,7 +366,7 @@ class RenderChanFile():
             self.project.setFrozen(self.localPath, value)
         else:
             if value:
-                print("ERROR: Cannot freeze file which is not a part of any project.")
+                print("ERROR: Cannot freeze file which is not a part of any project.", file=sys.stderr)
 
     def getMetadata(self):
         if self.metadata==None:

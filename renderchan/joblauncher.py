@@ -5,6 +5,7 @@ from optparse import OptionParser
 import os
 from renderchan.core import RenderChan
 from renderchan.file import RenderChanFile
+import sys
 
 
 def process_args():
@@ -43,7 +44,7 @@ def process_args():
     if args:
         options.filename=os.path.abspath(args[0])
     else:
-        print("ERROR: Please provide input filename")
+        print("ERROR: Please provide input filename", file=sys.stderr)
         exit(1)
 
     return options, args
@@ -80,9 +81,9 @@ def main(argv):
         else:
             (isDirty, tasklist, maxTime)=renderchan.parseDirectDependency(taskfile, compare_time, True)
             if isDirty:
-                print("ERROR: There are unrendered dependencies for this file!")
-                print("       (Project tree changed or job started too early?)")
-                print("       Aborting.")
+                print("ERROR: There are unrendered dependencies for this file!", file=sys.stderr)
+                print("       (Project tree changed or job started too early?)", file=sys.stderr)
+                print("       Aborting.", file=sys.stderr)
                 exit(1)
 
     if options.action == 'render':
@@ -97,6 +98,6 @@ def main(argv):
             renderchan.job_merge(taskfile, taskfile.getFormat(), renderchan.projects.stereo, compare_time)
     elif options.action == 'snapshot':
         if not options.snapshot_target:
-            print("ERROR: Please specify output filename using --target-dir option.")
+            print("ERROR: Please specify output filename using --target-dir option.", file=sys.stderr)
         renderchan.job_snapshot(options.filename, os.path.abspath(options.snapshot_target))
 

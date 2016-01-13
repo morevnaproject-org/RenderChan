@@ -373,7 +373,7 @@ class RenderChanProject():
             return True
 
         if not os.path.exists(localedirpath+"."+language):
-            print("Error: No such language (%s)." % language)
+            print("Error: No such language (%s)." % language, file=sys.stderr)
             return False
         else:
             # do directory switch

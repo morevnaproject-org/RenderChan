@@ -120,19 +120,19 @@ class RenderChan():
         """
 
         if taskfile.project == None:
-            print()
-            print("ERROR: Can't render a file which is not a part of renderchan project.")
-            print()
+            print(file=sys.stderr)
+            print("ERROR: Can't render a file which is not a part of renderchan project.", file=sys.stderr)
+            print(file=sys.stderr)
             return 1
         
         if not taskfile.module:
-            print()
+            print(file=sys.stderr)
             extension = os.path.splitext(taskfile.getPath())[1]
             if extension:
-                print("ERROR: The '%s' file type was not recoginized." % extension)
+                print("ERROR: The '%s' file type was not recoginized." % extension, file=sys.stderr)
             else:
-                print("ERROR: The provided file does not have an extension.")
-            print()
+                print("ERROR: The provided file does not have an extension.", file=sys.stderr)
+            print(file=sys.stderr)
             return 1
 
         if self.renderfarm_engine=="afanasy":
@@ -845,7 +845,7 @@ class RenderChan():
 
                                 if os.path.exists(segment+".done") and os.path.exists(segment):
                                     continue
-                                print("ERROR: Not all segments were rendered. Aborting.")
+                                print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
                                 exit(1)
 
                             if format == "avi":
@@ -869,7 +869,7 @@ class RenderChan():
                                 os.rename(segment, profile_output)
                                 touch(profile_output + ".done", float(compare_time))
                         else:
-                                print("ERROR: Not all segments were rendered. Aborting.")
+                                print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
                                 exit(1)
 
                 # Add LST file

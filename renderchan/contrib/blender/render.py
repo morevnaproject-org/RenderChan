@@ -1,6 +1,7 @@
 __author__ = 'zelgadis'
 
 import bpy
+import sys
 
 UPDATE = "update"
 WIDTH = "width"
@@ -76,13 +77,13 @@ def main():
                 bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
             else:
                 # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
-                print("")
-                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
-                print("")
+                print(file=sys.stderr)
+                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE], file=sys.stderr)
+                print(file=sys.stderr)
                 print("Available devices:")
                 for device in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
                     print("   * %s\n" % device)
-                print("")
+                print()
 
             sce.cycles.device = 'GPU'
 
