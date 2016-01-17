@@ -37,7 +37,7 @@ class MyHTMLParser(HTMLParser):
             if attrs[0][0] == 'id' and attrs[0][1] == 'sound_license':
                 self._license_block = True
     def feed(self, data):
-        HTMLParser.feed(self, data)
+        HTMLParser.feed(self, str(data))
         if self.artist == None or self.title == None or self.license == None:
             raise Exception("Error parsing data from freesound!")
 
