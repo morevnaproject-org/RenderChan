@@ -136,7 +136,10 @@ class RenderChan():
             return 1
 
         if self.renderfarm_engine=="afanasy":
-
+            if not os.path.exists(os.path.join(self.cgru_location,"afanasy")):
+                print("ERROR: Cannot render with afanasy, afanasy not found at cgru directory '%s'." % self.cgru_location, file=sys.stderr)
+                return 1
+            
             os.environ["CGRU_LOCATION"]=self.cgru_location
             os.environ["AF_ROOT"]=os.path.join(self.cgru_location,"afanasy")
             sys.path.insert(0, os.path.join(self.cgru_location,"lib","python"))
