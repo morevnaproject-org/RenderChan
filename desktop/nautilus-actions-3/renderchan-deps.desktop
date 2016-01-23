@@ -7,7 +7,7 @@ Profiles=profile-zero;
 
 [X-Action-Profile profile-zero]
 Name=Default profile
-Exec=renderchan-gui %f deps
+Exec=renderchan-gui --deps %f
 Basenames=*.*;
 Matchcase=false
 SelectionCount==1

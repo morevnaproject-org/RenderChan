@@ -15,3 +15,4 @@ fi
 
 mkdir -p "$DEST" || true
 install -D -m 644 "$SCRIPTPATH/renderchan.desktop" "$DEST"
+install -D -m 644 "$SCRIPTPATH/renderchan-deps.desktop" "$DEST"
