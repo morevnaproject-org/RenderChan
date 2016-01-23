@@ -153,7 +153,7 @@ class RenderChan():
 
         last_task = None
 
-        if stereo in ("vertical","v","horizontal","h"):
+        if stereo in ("vertical","v","vertical-cross","vc","horizontal","h","horizontal-cross","hc"):
 
             # Left eye graph
             self.setStereoMode("left")
@@ -913,7 +913,7 @@ class RenderChan():
 
     def job_merge_stereo(self, taskfile, mode, format="mp4"):
 
-        output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+mode[0:1]+"."+format
+        output = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-%s."+format
 
         prev_mode = self.projects.stereo
         self.setStereoMode("left")
@@ -921,6 +921,14 @@ class RenderChan():
         self.setStereoMode("right")
         input_right = taskfile.getProfileRenderPath()
         self.setStereoMode(prev_mode)
+        
+        if mode.endswith("c") or mode.endswith("-cross"):
+            output %= mode[0:1] + "c"
+            temp = input_left
+            input_left = input_right
+            input_right = temp
+        else:
+            output %= mode[0:1]
 
         print("Merging: %s" % output)
 
@@ -941,7 +949,7 @@ class RenderChan():
                     os.remove(output)
                 if os.path.exists(output + ".done"):
                     os.remove(output + ".done")
-
+        
         if not uptodate:
             if mode[0:1]=='v':
                 subprocess.check_call(
