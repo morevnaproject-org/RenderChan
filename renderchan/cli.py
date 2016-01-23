@@ -21,7 +21,9 @@ def process_args():
             action="store",
             help=_("Enable stereo-3D rendering. Possible values for STEREO:\n\n"
                    "'vertical' or 'v', "
+                   "'vertical-cross' or 'vc', "
                    "'horizontal' or 'h', "
+                   "'horizontal-cross' or 'hc', "
                    "'left' or 'l', "
                    "'right' or 'r'. "
                     ))
