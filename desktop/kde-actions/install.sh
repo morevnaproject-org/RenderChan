@@ -26,5 +26,6 @@ if [ ! -f "/usr/share/kservicetypes5/konqpopupmenuplugin.desktop" ] && \
    [ ! -f "/usr/local/share/kservicetypes5/konqpopupmenuplugin.desktop" ] && \
    [ ! -f "$HOME/.local/share/kservicetypes5/konqpopupmenuplugin.desktop" ]
 then
+    [ -d "$DEST3" ] || mkdir -p "$DEST3"
     install -D -m 644 "$SCRIPTPATH/konqpopupmenuplugin.desktop" "$DEST3"
 fi
