@@ -5,7 +5,7 @@ import time
 import configparser
 import shutil
 import sys
-from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread
+from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread, copytree
 from renderchan.cache import RenderChanCache
 
 class RenderChanProjectManager():
@@ -359,7 +359,14 @@ class RenderChanProject():
                 current_language = f.readline().strip()
         return current_language
 
-    def switchLanguage(self, language):
+    def switchLanguage(self, language, create=True):
+
+        def ignore_audio(path, names):
+            ignored=[]
+            for name in names:
+                if os.path.splitext(name)[1][1:] in ['wav','flac','ogg','mp3']:
+                    ignored.append(name)
+            return set(ignored)
 
         localedir = "locale"
         localedirpath = os.path.join(self.path, localedir)
@@ -374,24 +381,31 @@ class RenderChanProject():
             return True
 
         if not os.path.exists(localedirpath+"."+language):
-            print("Error: No such language (%s)." % language, file=sys.stderr)
-            return False
-        else:
-            # do directory switch
-            os.rename(localedirpath, localedirpath+"."+current_language)
-            os.remove(os.path.join(localedirpath+"."+current_language, "lang.conf"))
-            os.rename(localedirpath+"."+language, localedirpath)
-            f = open(os.path.join(localedirpath,'lang.conf'), 'w')
-            f.write(language+"\n")
-            f.close()
+            if not create:
+                print("Error: No such language (%s)." % language, file=sys.stderr)
+                return False
+            else:
+                print("Creating new language: %s..." % language)
+                copytree(localedirpath, localedirpath+"."+language, False, False, ignore_audio)
+                print("   Language %s copied to %s." % (current_language,language))
+            os.remove(os.path.join(localedirpath+"."+language, "lang.conf"))
 
-            # cleanup renderings
-            if os.path.exists(os.path.join(self.path,'render',localedir)):
-                shutil.rmtree(os.path.join(self.path,'render',localedir))
-                mkdirs(os.path.join(self.path,'render',localedir))
-                shutil.copy2(os.path.join(localedirpath,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
+        # do directory switch
+        os.rename(localedirpath, localedirpath+"."+current_language)
+        os.remove(os.path.join(localedirpath+"."+current_language, "lang.conf"))
+        os.rename(localedirpath+"."+language, localedirpath)
+        f = open(os.path.join(localedirpath,'lang.conf'), 'w')
+        f.write(language+"\n")
+        f.close()
 
+        # cleanup renderings
+        if os.path.exists(os.path.join(self.path,'render',localedir)):
+            shutil.rmtree(os.path.join(self.path,'render',localedir))
+            mkdirs(os.path.join(self.path,'render',localedir))
+            shutil.copy2(os.path.join(localedirpath,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
 
+        print("Done.")
+        return True
 
 
     def switchProfile(self, profile):
