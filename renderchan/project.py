@@ -4,6 +4,7 @@ import os.path
 import time
 import configparser
 import shutil
+import sys
 from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread
 from renderchan.cache import RenderChanCache
 
