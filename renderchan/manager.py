@@ -26,8 +26,7 @@ def process_args():
             action="store", nargs=1,
             help=_("Switch project language."))
     parser.add_option("--attribution", dest="getAttribution",
-            action="store_true",
-            default=False,
+            action="store", nargs=1,
             help=_("Get attribution information from file."))
 
     options, args = parser.parse_args()
