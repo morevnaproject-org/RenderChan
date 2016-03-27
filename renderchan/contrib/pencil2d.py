@@ -30,8 +30,6 @@ class RenderChanPencil2dModule(RenderChanModule):
         updateCompletion(comp)
 
         output = os.path.join(outputPath,"file")
-        if not os.path.exists(outputPath):
-            os.mkdir(outputPath)
         commandline=[self.conf['binary'], filename, "--export-sequence", output]
         subprocess.check_call(commandline)
 

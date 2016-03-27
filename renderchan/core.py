@@ -754,6 +754,9 @@ class RenderChan():
 
                 # TODO: Create file lock here
 
+                if format in RenderChanModule.imageExtensions:
+                    mkdirs(output)
+
                 params = taskfile.getParams()
                 taskfile.module.render(taskfile.getPath(),
                                output,
