@@ -27,6 +27,9 @@ class RenderChanFfmpegModule(RenderChanModule):
 
         updateCompletion(0.0)
 
+        if not os.path.exists(outputPath):
+            os.mkdir(outputPath)
+
         # TODO: Progress callback
 
         commandline=[self.conf['binary'], "-i", filename, os.path.join(outputPath,"output_%04d.png")]
