@@ -43,11 +43,40 @@ def main():
                 break
 
         if not found:
+            separators = ['_', '.', '-', ' ']
+            altSide = ("left" if params[STEREO_CAMERA] == "right" else "right")
+            sideIdentifiers = [params[STEREO_CAMERA], params[STEREO_CAMERA][0]]
+            altSideIdentifiers = [altSide, altSide[0]]
+            
+            prefixes = [(side + sep) for sep in separators for side in sideIdentifiers]
+            prefixes.append(params[STEREO_CAMERA])
+            altPrefixes = [(side + sep) for sep in separators for side in altSideIdentifiers]
+            altPrefixes.append(altSide)
+
+            suffixes = [(sep + side) for sep in separators for side in sideIdentifiers]
+            suffixes.append(params[STEREO_CAMERA])
+            altSuffixes = [(sep + side) for sep in separators for side in altSideIdentifiers]
+            altSuffixes.append(altSide)
+
             basename = sce.camera.name
-            for ob in sce.objects:
-                if ob.name == basename+"."+params[STEREO_CAMERA] and ob.type == 'CAMERA':
-                    sce.camera = ob
-                    break
+            # remove prefix from basename if it has one
+            basenameL = [basename[len(prefix):] for prefix in prefixes if basename.lower().startswith(prefix)]
+            basenameL.extend([basename[len(prefix):] for prefix in altPrefixes if basename.lower().startswith(prefix)])
+            basenameL.extend([basename[:-len(suffix)] for suffix in suffixes if basename.lower().endswith(suffix)])
+            basenameL.extend([basename[:-len(suffix)] for suffix in altSuffixes if basename.lower().endswith(suffix)])
+            if basenameL:
+                basename = basenameL[0]
+                print("base = " + basename);
+
+                for ob in sce.objects:
+                    if ob.type == 'CAMERA' and ([True for prefix in prefixes if ob.name.lower().startswith(prefix) and ob.name[len(prefix):] == basename] or [True for suffix in suffixes if ob.name.lower().endswith(suffix) and ob.name[:-len(suffix)] == basename]):
+                        print("For side " + params[STEREO_CAMERA] + " found " + ob.name)
+                        sce.camera = ob
+                        found=True
+                        break
+
+        if not found:
+            print("Warning: could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath)
 
     rend = sce.render
 
