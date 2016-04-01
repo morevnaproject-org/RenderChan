@@ -1,4 +1,5 @@
 __author__ = 'Konstantin Dmitriev'
+__version__ = '1.0b1'
 
 import sys
 from renderchan.file import RenderChanFile
