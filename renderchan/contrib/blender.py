@@ -81,9 +81,9 @@ class RenderChanBlenderModule(RenderChanModule):
 
         stereo_camera = ""
         if extraParams["stereo"]=="left":
-            stereo_camera = "Left"
+            stereo_camera = "left"
         elif extraParams["stereo"]=="right":
-            stereo_camera = "Right"
+            stereo_camera = "right"
 
         if (extraParams["disable_gpu"]!="False") or ('BLENDER_DISABLE_GPU' in os.environ):
             print("================== FORCE DISABLE GPU =====================")
