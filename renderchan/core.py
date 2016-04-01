@@ -853,7 +853,7 @@ class RenderChan():
 
                             if format == "avi":
                                 subprocess.check_call(
-                                    [self.ffmpeg_binary, "-y", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                                    [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                             else:
                                 # Merge all sequences into single directory
                                 for line in segments:
