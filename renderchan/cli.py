@@ -5,7 +5,7 @@ from optparse import OptionParser
 import os.path
 import sys
 
-from renderchan.core import RenderChan
+from renderchan.core import RenderChan, __version__
 from renderchan.file import RenderChanFile
 
 
@@ -62,6 +62,11 @@ def process_args():
             action="store",
             help=_("Write a snapshot into specified directory."))
 
+    parser.add_option("--version", "-v", dest="versionFlag",
+            action="store_true",
+            default=False,
+            help=_("Print out the version number and exit."))
+
     options, args = parser.parse_args()
 
     return options, args
@@ -69,6 +74,10 @@ def process_args():
 
 def main(datadir, argv):
     options, args = process_args()
+    
+    if(options.versionFlag):
+        print("RenderChan version " + __version__)
+        sys.exit(0);
 
     if len(args)<1:
         print("Please specify filename for rendering.")
