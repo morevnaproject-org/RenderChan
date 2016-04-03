@@ -445,7 +445,7 @@ class RenderChan():
 
 
                 block = self.AfanasyBlockClass(name, blocktype)
-                block.setCommand(command.decode('utf-8'))
+                block.setCommand(command)
                 block.setErrorsTaskSameHost(-2)
                 if taskfile.getPacketSize()>0:
                     block.setNumeric(taskfile.getStartFrame(),taskfile.getEndFrame(),taskfile.getPacketSize())
@@ -482,7 +482,7 @@ class RenderChan():
                 taskfile.taskPost = name_post
                 block = self.AfanasyBlockClass(name_post, "generic")
                 block.setNumeric(1,1,100)
-                block.setCommand(command.decode('utf-8'))
+                block.setCommand(command)
                 block.setDependMask(name)
                 block.setErrorsTaskSameHost(-2)
                 block.setCapacity(50)
