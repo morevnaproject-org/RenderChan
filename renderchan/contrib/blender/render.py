@@ -23,6 +23,15 @@ params = {UPDATE: False,
           PRERENDER_COUNT: 0,
           GPU_DEVICE: ""}
 
+def find_camera(cameras, base, prefixes, suffixes, side_index = 0):
+    for camera in cameras:
+        for prefix in prefixes:
+            if camera.name.lower().startswith(prefix[side_index]) and camera.name[len(prefix[side_index]):] == base:
+                return camera
+        for suffix in suffixes:
+            if camera.name.lower().endswith(suffix[side_index]) and camera.name[:-len(suffix[side_index])] == base:
+                return camera
+    return None
 
 def main():
 
@@ -32,8 +41,10 @@ def main():
 
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
+    
+    uses_builtin_stereo = sce.render.use_multiview and sce.render.views_format == 'STEREO_3D'
 
-    if params[STEREO_CAMERA]!="":
+    if params[STEREO_CAMERA] != "" and not uses_builtin_stereo:
         found=False
 
         for ob in sce.objects:
@@ -44,39 +55,63 @@ def main():
 
         if not found:
             separators = ['_', '.', '-', ' ']
-            altSide = ("left" if params[STEREO_CAMERA] == "right" else "right")
-            sideIdentifiers = [params[STEREO_CAMERA], params[STEREO_CAMERA][0]]
-            altSideIdentifiers = [altSide, altSide[0]]
             
-            prefixes = [(side + sep) for sep in separators for side in sideIdentifiers]
-            prefixes.append(params[STEREO_CAMERA])
-            altPrefixes = [(side + sep) for sep in separators for side in altSideIdentifiers]
-            altPrefixes.append(altSide)
+            side = params[STEREO_CAMERA]
+            alt_side = "left" if side == "right" else "right"
+            sides = [side, side[0]]
+            alt_sides = [alt_side, alt_side[0]]
+            
+            prefixes = [(sides[side_index] + sep, alt_sides[side_index] + sep) for sep in separators for side_index in range(0, len(sides))]
+            prefixes.append((side, alt_side))
 
-            suffixes = [(sep + side) for sep in separators for side in sideIdentifiers]
-            suffixes.append(params[STEREO_CAMERA])
-            altSuffixes = [(sep + side) for sep in separators for side in altSideIdentifiers]
-            altSuffixes.append(altSide)
+            suffixes = [(sep + sides[side_index], sep + alt_sides[side_index]) for sep in separators for side_index in range(0, len(sides))]
+            suffixes.append((side, alt_side))
 
-            basename = sce.camera.name
-            # remove prefix from basename if it has one
-            basenameL = [basename[len(prefix):] for prefix in prefixes if basename.lower().startswith(prefix)]
-            basenameL.extend([basename[len(prefix):] for prefix in altPrefixes if basename.lower().startswith(prefix)])
-            basenameL.extend([basename[:-len(suffix)] for suffix in suffixes if basename.lower().endswith(suffix)])
-            basenameL.extend([basename[:-len(suffix)] for suffix in altSuffixes if basename.lower().endswith(suffix)])
-            if basenameL:
-                basename = basenameL[0]
-                print("base = " + basename);
-
-                for ob in sce.objects:
-                    if ob.type == 'CAMERA' and ([True for prefix in prefixes if ob.name.lower().startswith(prefix) and ob.name[len(prefix):] == basename] or [True for suffix in suffixes if ob.name.lower().endswith(suffix) and ob.name[:-len(suffix)] == basename]):
-                        print("For side " + params[STEREO_CAMERA] + " found " + ob.name)
-                        sce.camera = ob
-                        found=True
-                        break
+            cameras = [obj for obj in sce.objects if obj.type == "CAMERA"]
+            
+            if len(cameras) < 1:
+                print("Error: Cannot render, no camera in file " + bpy.data.filepath, file=sys.stderr)
+                exit(1)
+            elif len(cameras) == 1:
+                print("Warning: Stereo specified, but only one camera found. Using camera for both sides.")
+                sce.camera = cameras[0]
+                found = True
+            else:
+                selected_camera = find_camera(cameras, sce.camera.name, prefixes, suffixes)
+            
+                base = None
+                if not selected_camera:
+                    for prefix in prefixes:
+                        if sce.camera.name.lower().startswith(prefix[0]):
+                            base = sce.camera.name[len(prefix[0]):]
+                            break
+                        if sce.camera.name.lower().startswith(prefix[1]):
+                            base = sce.camera.name[len(prefix[1]):]
+                            break
+                    if base:
+                        selected_camera = find_camera(cameras, base, prefixes, suffixes)
+                if not selected_camera:
+                    for suffix in suffixes:
+                        if sce.camera.name.lower().endswith(suffix[0]):
+                            base = sce.camera.name[:-len(suffix[0])]
+                            break
+                        if sce.camera.name.lower().endswith(suffix[1]):
+                            base = sce.camera.name[:-len(suffix[1])]
+                            break
+                    if base:
+                        selected_camera = find_camera(cameras, base, prefixes, suffixes)
+                
+                if selected_camera:
+                    sce.camera = selected_camera
+                    found = True
 
         if not found:
-            print("Warning: could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath)
+            print(prefixes)
+            print(suffixes)
+            print([c.name for c in cameras])
+            print(sce.camera.name)
+            print("Error: Could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath, file=sys.stderr)
+            exit(1)
 
     rend = sce.render
 
