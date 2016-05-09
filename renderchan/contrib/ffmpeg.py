@@ -18,7 +18,7 @@ class RenderChanFfmpegModule(RenderChanModule):
         self.conf["packetSize"]=0
 
     def getInputFormats(self):
-        return ["mov", "avi", "mpg"]
+        return ["mov", "avi", "mpg", "mp4"]
 
     def getOutputFormats(self):
         return ["png"]
