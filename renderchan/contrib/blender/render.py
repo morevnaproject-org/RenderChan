@@ -113,6 +113,14 @@ def main():
             print("Error: Could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath, file=sys.stderr)
             exit(1)
 
+    elif params[STEREO_CAMERA] != "" and uses_builtin_stereo:
+
+        side = params[STEREO_CAMERA]
+        alt_side = "left" if side == "right" else "right"
+
+        sce.render.views[side].use = True
+        sce.render.views[alt_side].use = False
+
     rend = sce.render
 
     rend.resolution_percentage = 100
