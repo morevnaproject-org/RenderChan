@@ -33,6 +33,8 @@ class RenderChan():
 
         self.loadedFiles = {}
         self.dry_run = False
+        self.force = False
+        self.track = False
 
         self.graph = None  # used by renderfarm
         # == taskgroups bug / commented ==
@@ -307,14 +309,14 @@ class RenderChan():
         if allocateOnly and dependenciesOnly:
 
             if os.path.exists(taskfile.getRenderPath()):
-                self.parseDirectDependency(taskfile, None, self.dry_run)
+                self.parseDirectDependency(taskfile, None, self.dry_run, self.force)
             else:
                 taskfile.endFrame = taskfile.startFrame + 2
-                self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
+                self.parseRenderDependency(taskfile, allocateOnly, self.dry_run, self.force)
 
         elif dependenciesOnly:
 
-            self.parseDirectDependency(taskfile, None, self.dry_run)
+            self.parseDirectDependency(taskfile, None, self.dry_run, self.force)
 
         elif allocateOnly:
 
@@ -323,17 +325,17 @@ class RenderChan():
                 sys.exit(0)
             taskfile.dependencies=[]
             taskfile.endFrame = taskfile.startFrame + 2
-            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
+            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run, self.force)
 
         else:
 
-            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
+            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run, self.force)
 
 
         self.childTask = None
 
 
-    def parseRenderDependency(self, taskfile, allocateOnly, dryRun):
+    def parseRenderDependency(self, taskfile, allocateOnly, dryRun = False, force = False):
         """
 
         :type taskfile: RenderChanFile
@@ -378,18 +380,22 @@ class RenderChan():
             compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
-        (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, dryRun)
+        (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, dryRun, force)
 
         isDirty = isDirty or isDirtyValue
         
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
-        
+
+        if self.track:
+            # TODO: add taskfile to list
+            pass
+
         if dryRun:
             return isDirty
 
         # If rendering is requested
-        if isDirty:
+        if isDirty or force:
 
             # Make sure we have all directories created
             mkdirs(os.path.dirname(taskfile.getProfileRenderPath()))
@@ -554,18 +560,14 @@ class RenderChan():
         return isDirty
 
 
-    def parseDirectDependency(self, taskfile, compareTime, dryRun):
+    def parseDirectDependency(self, taskfile, compareTime, dryRun = False, force = false):
         """
 
         :type taskfile: RenderChanFile
         """
 
+        isDirty=False
         tasklist=[]
-
-        if taskfile.isFrozen():
-            return (False, [], 0)
-
-        deps = taskfile.getDependencies()
 
         # maxTime is the maximum of modification times for all direct dependencies.
         # It allows to compare with already rendered pieces and continue rendering
@@ -576,115 +578,123 @@ class RenderChan():
         # and thus rendering should take place no matter what).
         maxTime = taskfile.getTime()
 
-        taskfile.pending=True  # we need this to avoid circular dependencies
+        if not taskfile.isFrozen() or force:
 
-        isDirty=False
-        for path in deps:
-            path = os.path.abspath(path)
-            if path in self.loadedFiles.keys():
-                dependency = self.loadedFiles[path]
-                if dependency.pending:
-                    # Avoid circular dependencies
-                    print("Warning: Circular dependency detected for %s. Skipping." % (path))
-                    continue
-            else:
-                dependency = RenderChanFile(path, self.modules, self.projects)
-                if not os.path.exists(dependency.getPath()):
-                    # TODO: Add an option to specify how to deal with missing files: create empty placeholder (default), create warning placeholder, none (most likely throw an erros) or raise exception.
-                    if ( not os.path.exists(path) ) and ( dependency.projectPath!='' ):
-                        # Let's look if we have a placeholder template
-                        ext = os.path.splitext(path)[1]
-                        placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
-                        if os.path.exists(placeholder):
-                            print("   Creating an empty placeholder for %s..." % path)
-                            mkdirs(os.path.dirname(path))
-                            shutil.copy(placeholder, path)
-                            t = time.mktime(time.strptime('01.01.1960 00:00:00', '%d.%m.%Y %H:%M:%S'))
-                            os.utime(path,(t,t))
+            deps = taskfile.getDependencies()
+
+            taskfile.pending=True  # we need this to avoid circular dependencies
+
+            for path in deps:
+                path = os.path.abspath(path)
+                if path in self.loadedFiles.keys():
+                    dependency = self.loadedFiles[path]
+                    if dependency.pending:
+                        # Avoid circular dependencies
+                        print("Warning: Circular dependency detected for %s. Skipping." % (path))
+                        continue
+                else:
+                    dependency = RenderChanFile(path, self.modules, self.projects)
+                    if not os.path.exists(dependency.getPath()):
+                        # TODO: Add an option to specify how to deal with missing files: create empty placeholder (default), create warning placeholder, none (most likely throw an erros) or raise exception.
+                        if ( not os.path.exists(path) ) and ( dependency.projectPath!='' ):
+                            # Let's look if we have a placeholder template
+                            ext = os.path.splitext(path)[1]
+                            placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
+                            if os.path.exists(placeholder):
+                                print("   Creating an empty placeholder for %s..." % path)
+                                mkdirs(os.path.dirname(path))
+                                shutil.copy(placeholder, path)
+                                t = time.mktime(time.strptime('01.01.1960 00:00:00', '%d.%m.%Y %H:%M:%S'))
+                                os.utime(path,(t,t))
+                            else:
+                                print("   Skipping file %s..." % path)
                         else:
                             print("   Skipping file %s..." % path)
-                    else:
-                        print("   Skipping file %s..." % path)
-                    continue
-                self.loadedFiles[dependency.getPath()]=dependency
-                if dependency.project!=None and dependency.module!=None:
-                    self.loadedFiles[dependency.getRenderPath()]=dependency
-                    # Alpha
-                    renderpath_alpha=os.path.splitext(dependency.getRenderPath())[0]+"-alpha."+dependency.getFormat()
-                    self.loadedFiles[renderpath_alpha]=dependency
+                        continue
+                    self.loadedFiles[dependency.getPath()]=dependency
+                    if dependency.project!=None and dependency.module!=None:
+                        self.loadedFiles[dependency.getRenderPath()]=dependency
+                        # Alpha
+                        renderpath_alpha=os.path.splitext(dependency.getRenderPath())[0]+"-alpha."+dependency.getFormat()
+                        self.loadedFiles[renderpath_alpha]=dependency
 
-            # Check if this is a rendering dependency
-            if path != dependency.getPath():
-                # We have a new task to render
-                if dependency.isDirty==None:
-                    if dependency.module!=None:
-                        dep_isDirty = self.parseRenderDependency(dependency, allocateOnly=False, dryRun=dryRun)
+                # Check if this is a rendering dependency
+                if path != dependency.getPath():
+                    # We have a new task to render
+                    if dependency.isDirty==None:
+                        if dependency.module!=None:
+                            dep_isDirty = self.parseRenderDependency(dependency, False, dryRun, force)
+                        else:
+                            raise Exception("No module to render file")
                     else:
-                        raise Exception("No module to render file")
+                        # The dependency was already submitted to graph
+                        dep_isDirty = dependency.isDirty
+
+                    if dep_isDirty:
+                        # Let's return submitted task into tasklist
+                        if not dependency.taskPost in tasklist:
+                            tasklist.append(dependency.taskPost)
+                        # Increase maxTime, because re-rendering of dependency will take place
+                        maxTime=time.time()
+                        isDirty = True
+                    else:
+                        # If no rendering requested, we still have to check if rendering result
+                        # is newer than compareTime
+
+                        #if os.path.exists(dependency.getRenderPath()):  -- file is obviously exists, because isDirty==0
+                        timestamp=float_trunc(os.path.getmtime(dependency.getProfileRenderPath()),1)
+
+                        if compareTime is None:
+                            isDirty = True
+                            if os.environ.get('DEBUG'):
+                                print("DEBUG: %s:" % taskfile.localPath)
+                                print("DEBUG: Dirty = 1 (no compare time)")
+                                print()
+                        elif timestamp > compareTime:
+                            isDirty = True
+                            if os.environ.get('DEBUG'):
+                                print("DEBUG: %s:" % taskfile.localPath)
+                                print("DEBUG: Dirty = 1 (dependency timestamp is higher)")
+                                print("DEBUG:            compareTime     = %f" % (compareTime))
+                                print("DEBUG:            dependency time = %f" % (timestamp))
+                                print()
+                        if timestamp>maxTime:
+                            maxTime=timestamp
+
                 else:
-                    # The dependency was already submitted to graph
-                    dep_isDirty = dependency.isDirty
+                    # No, this is an ordinary dependency
+                        (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, dryRun, force)
+                        isDirty = isDirty or dep_isDirty
+                        maxTime = max(maxTime, dep_maxTime)
+                        for task in dep_tasklist:
+                            if not task in tasklist:
+                                tasklist.append(task)
 
-                if dep_isDirty:
-                    # Let's return submitted task into tasklist
-                    if not dependency.taskPost in tasklist:
-                        tasklist.append(dependency.taskPost)
-                    # Increase maxTime, because re-rendering of dependency will take place
-                    maxTime=time.time()
+            if not isDirty and not force:
+                timestamp = float_trunc(taskfile.getTime(), 1)
+                if compareTime is None:
+                    if os.environ.get('DEBUG'):
+                        print("DEBUG: %s:" % taskfile.localPath)
+                        print("DEBUG: Dirty = 1 (no compare time)")
+                        print()
                     isDirty = True
-                else:
-                    # If no rendering requested, we still have to check if rendering result
-                    # is newer than compareTime
+                elif timestamp > compareTime:
+                    isDirty = True
+                    if os.environ.get('DEBUG'):
+                        print("DEBUG: %s:" % taskfile.localPath)
+                        print("DEBUG: Dirty = 1 (source timestamp is higher)")
+                        print("DEBUG:            compareTime     = %f" % (compareTime))
+                        print("DEBUG:            source time = %f" % (timestamp))
+                        print()
+                if timestamp>maxTime:
+                    maxTime=timestamp
 
-                    #if os.path.exists(dependency.getRenderPath()):  -- file is obviously exists, because isDirty==0
-                    timestamp=float_trunc(os.path.getmtime(dependency.getProfileRenderPath()),1)
+            taskfile.pending=False
 
-                    if compareTime is None:
-                        isDirty = True
-                        if os.environ.get('DEBUG'):
-                            print("DEBUG: %s:" % taskfile.localPath)
-                            print("DEBUG: Dirty = 1 (no compare time)")
-                            print()
-                    elif timestamp > compareTime:
-                        isDirty = True
-                        if os.environ.get('DEBUG'):
-                            print("DEBUG: %s:" % taskfile.localPath)
-                            print("DEBUG: Dirty = 1 (dependency timestamp is higher)")
-                            print("DEBUG:            compareTime     = %f" % (compareTime))
-                            print("DEBUG:            dependency time = %f" % (timestamp))
-                            print()
-                    if timestamp>maxTime:
-                        maxTime=timestamp
 
-            else:
-                # No, this is an ordinary dependency
-                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, dryRun)
-                    isDirty = isDirty or dep_isDirty
-                    maxTime = max(maxTime, dep_maxTime)
-                    for task in dep_tasklist:
-                        if not task in tasklist:
-                            tasklist.append(task)
-
-        if not isDirty:
-            timestamp = float_trunc(taskfile.getTime(), 1)
-            if compareTime is None:
-                if os.environ.get('DEBUG'):
-                    print("DEBUG: %s:" % taskfile.localPath)
-                    print("DEBUG: Dirty = 1 (no compare time)")
-                    print()
-                isDirty = True
-            elif timestamp > compareTime:
-                isDirty = True
-                if os.environ.get('DEBUG'):
-                    print("DEBUG: %s:" % taskfile.localPath)
-                    print("DEBUG: Dirty = 1 (source timestamp is higher)")
-                    print("DEBUG:            compareTime     = %f" % (compareTime))
-                    print("DEBUG:            source time = %f" % (timestamp))
-                    print()
-            if timestamp>maxTime:
-                maxTime=timestamp
-
-        taskfile.pending=False
+        if self.track:
+            # TODO: add taskfile to list
+            pass
 
         return (isDirty, list(tasklist), maxTime)
 
