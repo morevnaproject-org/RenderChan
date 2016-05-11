@@ -32,6 +32,7 @@ class RenderChan():
         self.modules = RenderChanModuleManager()
 
         self.loadedFiles = {}
+        self.dry_run = False
 
         self.graph = None  # used by renderfarm
         # == taskgroups bug / commented ==
@@ -113,12 +114,21 @@ class RenderChan():
         self.projects.profile=profile
         self.projects.stereo=stereo
 
-    def submit(self, taskfile, dependenciesOnly=False, allocateOnly=False, stereo=""):
+    def submit(self, action, filename, dependenciesOnly=False, allocateOnly=False, stereo=""):
+
+        """
+        :param action: Possible values - render (default), parse, [pack], [clean]
+        :type action: str
+        :param filename:
+        :type filename: str
+        :param dependenciesOnly:
+        :param allocateOnly:
+        :param stereo:
+        :return:
 
         """
 
-        :type taskfile: RenderChanFile
-        """
+        taskfile = RenderChanFile(filename, self.modules, self.projects)
 
         if taskfile.project == None:
             print(file=sys.stderr)
@@ -271,6 +281,11 @@ class RenderChan():
         elif self.renderfarm_engine=="puli":
             self.graph.submit(self.renderfarm_host, self.renderfarm_port)
 
+        else:
+            # TODO: Render our Graph
+            pass
+
+
     def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
         """
 
@@ -292,14 +307,14 @@ class RenderChan():
         if allocateOnly and dependenciesOnly:
 
             if os.path.exists(taskfile.getRenderPath()):
-                self.parseDirectDependency(taskfile, None, True)
+                self.parseDirectDependency(taskfile, None, self.dry_run)
             else:
                 taskfile.endFrame = taskfile.startFrame + 2
-                self.parseRenderDependency(taskfile, allocateOnly, True)
+                self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
 
         elif dependenciesOnly:
 
-            self.parseDirectDependency(taskfile, None, True)
+            self.parseDirectDependency(taskfile, None, self.dry_run)
 
         elif allocateOnly:
 
@@ -308,17 +323,17 @@ class RenderChan():
                 sys.exit(0)
             taskfile.dependencies=[]
             taskfile.endFrame = taskfile.startFrame + 2
-            self.parseRenderDependency(taskfile, allocateOnly, True)
+            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
 
         else:
 
-            self.parseRenderDependency(taskfile, allocateOnly, True)
+            self.parseRenderDependency(taskfile, allocateOnly, self.dry_run)
 
 
         self.childTask = None
 
 
-    def parseRenderDependency(self, taskfile, allocateOnly, shouldRender):
+    def parseRenderDependency(self, taskfile, allocateOnly, dryRun):
         """
 
         :type taskfile: RenderChanFile
@@ -363,14 +378,14 @@ class RenderChan():
             compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
-        (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, shouldRender)
+        (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, dryRun)
 
         isDirty = isDirty or isDirtyValue
         
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
         
-        if not shouldRender:
+        if dryRun:
             return isDirty
 
         # If rendering is requested
@@ -539,7 +554,7 @@ class RenderChan():
         return isDirty
 
 
-    def parseDirectDependency(self, taskfile, compareTime, shouldRender):
+    def parseDirectDependency(self, taskfile, compareTime, dryRun):
         """
 
         :type taskfile: RenderChanFile
@@ -603,7 +618,7 @@ class RenderChan():
                 # We have a new task to render
                 if dependency.isDirty==None:
                     if dependency.module!=None:
-                        dep_isDirty = self.parseRenderDependency(dependency, allocateOnly=False, shouldRender=shouldRender)
+                        dep_isDirty = self.parseRenderDependency(dependency, allocateOnly=False, dryRun=dryRun)
                     else:
                         raise Exception("No module to render file")
                 else:
@@ -643,7 +658,7 @@ class RenderChan():
 
             else:
                 # No, this is an ordinary dependency
-                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, shouldRender)
+                    (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, dryRun)
                     isDirty = isDirty or dep_isDirty
                     maxTime = max(maxTime, dep_maxTime)
                     for task in dep_tasklist:

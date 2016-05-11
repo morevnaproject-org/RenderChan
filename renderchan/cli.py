@@ -104,5 +104,4 @@ def main(datadir, argv):
     if args.snapshot_to:
         renderchan.snapshot_path = args.snapshot_to
 
-    taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    return renderchan.submit(taskfile, args.dependenciesOnly, args.allocateOnly, args.stereo)
+    return renderchan.submit('render', filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
