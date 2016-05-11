@@ -560,7 +560,7 @@ class RenderChan():
         return isDirty
 
 
-    def parseDirectDependency(self, taskfile, compareTime, dryRun = False, force = false):
+    def parseDirectDependency(self, taskfile, compareTime, dryRun = False, force = False):
         """
 
         :type taskfile: RenderChanFile
