@@ -295,9 +295,12 @@ class RenderChanProject():
 
     def getProfilePath(self, custom_path=None):
         if custom_path:
-            return os.path.join(self.path, custom_path, self.getProfileDirName())
+            result=os.path.join(self.path, custom_path, self.getProfileDirName())
         else:
-            return os.path.join(self.path, 'render', 'project.conf', 'profiles', self.getProfileDirName())
+            result=os.path.join(self.path, 'render', 'project.conf', 'profiles', self.getProfileDirName())
+        if not os.path.isdir(result):
+            mkdirs(result)
+        return result
 
     def getProfileDirName(self):
         if self.version == 0:
