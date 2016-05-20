@@ -11,4 +11,20 @@ cd `dirname "${SCRIPT_PATH}"` > /dev/null
 SCRIPT_PATH=`pwd`;
 popd  > /dev/null
 
-xterm -T "RenderChan - $1" -sb -e "\"${SCRIPT_PATH}/renderchan\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8\" \"$9\" || ( echo; echo 'Error.'; read ) "
+if [ ! -z "$1" ]; then
+ARGS="$ARGS \"$1\""
+fi
+
+if [ ! -z "$2" ]; then
+ARGS="$ARGS \"$2\""
+fi
+
+if [ ! -z "$3" ]; then
+ARGS="$ARGS \"$3\""
+fi
+
+if [ ! -z "$4" ]; then
+ARGS="$ARGS \"$4\""
+fi
+
+xterm -T "RenderChan - $1" -sb -e "\"${SCRIPT_PATH}/renderchan\" $ARGS || ( echo; echo 'Error.'; read ) "
