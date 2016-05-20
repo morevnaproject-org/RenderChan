@@ -1,7 +1,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from gettext import gettext as _
-from optparse import OptionParser
+from argparse import ArgumentParser
 import os.path
 import sys
 
@@ -10,112 +10,99 @@ from renderchan.file import RenderChanFile
 
 
 def process_args():
-    parser = OptionParser(
-        usage=_("""
-    %prog [FILE]               """))
+    parser = ArgumentParser(description=_("Render a file in a RenderChan project."),
+            epilog=_("For more information about RenderChan, visit https://morevnaproject.org/renderchan/"))
 
-    parser.add_option("--profile", dest="profile",
+    parser.add_argument("file", metavar="FILE",
+            help=_("A path to the file you want to render."))
+
+    parser.add_argument("--profile", metavar=_("PROFILE"),
             action="store",
             help=_("Set rendering profile."))
-    parser.add_option("--stereo", dest="stereo",
+    parser.add_argument("--stereo",
+            choices=["vertical", "v", "vertical-cross", "vc", "horizontal", "h", "horizontal-cross", "hc", "left", "l", "right", "r"],
             action="store",
-            help=_("Enable stereo-3D rendering. Possible values for STEREO:\n\n"
-                   "'vertical' or 'v', "
-                   "'vertical-cross' or 'vc', "
-                   "'horizontal' or 'h', "
-                   "'horizontal-cross' or 'hc', "
-                   "'left' or 'l', "
-                   "'right' or 'r'. "
-                    ))
+            help=_("Enable stereo-3D rendering."))
 
     # TODO: Not implemented
-    parser.add_option("--width", dest="width",
+    parser.add_argument("--width", metavar=_("WIDTH"),
+            type=int,
             action="store",
             help=_("Output width."))
     # TODO: Not implemented
-    parser.add_option("--height", dest="height",
+    parser.add_argument("--height", metavar=_("HEIGHT"),
+            type=int,
             action="store",
             help=_("Output height."))
 
-    parser.add_option("--renderfarm", dest="renderfarmType",
+    parser.add_argument("--renderfarm", dest="renderfarmType",
+            choices=["puli","afanasy"],
             action="store",
             help=_("Set renderfarm engine type."))
-    parser.add_option("--host", dest="host",
+    parser.add_argument("--host", metavar=_("HOST"),
             action="store",
             help=_("Set renderfarm server host (Puli renderfarm)."))
-    parser.add_option("--port", dest="port",
+    parser.add_argument("--port", metavar=_("PORT"),
+            type=int,
             action="store",
             help=_("Set renderfarm server port (Puli renderfarm)."))
-    parser.add_option("--cgru-location", dest="cgru_location",
+    parser.add_argument("--cgru-location", dest="cgru_location", metavar=_("CGRU_LOCATION"),
             action="store",
             help=_("Set cgru directory (Afanasy renderfarm)."))
 
-    parser.add_option("--deps", dest="dependenciesOnly",
+    parser.add_argument("--deps", dest="dependenciesOnly",
             action="store_true",
             default=False,
             help=_("Render dependencies, but not file itself."))
-    parser.add_option("--allocate", dest="allocateOnly",
+    parser.add_argument("--allocate", dest="allocateOnly",
             action="store_true",
             default=False,
             help=_("Don't do the actual render, just allocate a placeholder for file."))
-    parser.add_option("--snapshot-to", dest="snapshot_to",
+    parser.add_argument("--snapshot-to", metavar=_("SNAPSHOT_TO"),
             action="store",
             help=_("Write a snapshot into specified directory."))
 
-    parser.add_option("--version", "-v", dest="versionFlag",
-            action="store_true",
-            default=False,
-            help=_("Print out the version number and exit."))
+    parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
 
-    options, args = parser.parse_args()
-
-    return options, args
+    return parser.parse_args()
 
 
 def main(datadir, argv):
-    options, args = process_args()
-    
-    if(options.versionFlag):
-        print("RenderChan version " + __version__)
-        sys.exit(0);
+    args = process_args()
 
-    if len(args)<1:
-        print("Please specify filename for rendering.")
-        sys.exit(0)
-
-    filename = os.path.abspath(args[0])
+    filename = os.path.abspath(args.file)
 
     renderchan = RenderChan()
 
     renderchan.datadir = datadir
 
-    if options.profile:
-        renderchan.setProfile(options.profile)
+    if args.profile:
+        renderchan.setProfile(args.profile)
 
-    if options.renderfarmType and options.renderfarmType in renderchan.available_renderfarm_engines:
-        renderchan.renderfarm_engine = options.renderfarmType
+    if args.renderfarmType and args.renderfarmType in renderchan.available_renderfarm_engines:
+        renderchan.renderfarm_engine = args.renderfarmType
 
-        if options.host:
-            if renderchan.renderfarm_engine in ("puli"):
-                renderchan.setHost(options.host)
+        if args.host:
+            if args.renderfarm_engine in ("puli"):
+                renderchan.setHost(args.host)
             else:
                 print("WARNING: The --host parameter cannot be set for this type of renderfarm.")
-        if options.port:
+        if args.port:
             if renderchan.renderfarm_engine in ("puli"):
-                renderchan.setPort(options.port)
+                renderchan.setPort(args.port)
             else:
                 print("WARNING: The --port parameter cannot be set for this type of renderfarm.")
 
-        if options.cgru_location:
-            renderchan.cgru_location = options.cgru_location
+        if args.cgru_location:
+            args.cgru_location = options.cgru_location
     else:
-        if options.host:
+        if args.host:
             print("WARNING: No renderfarm type given. Ignoring --host parameter.")
-        if options.port:
+        if args.port:
             print("WARNING: No renderfarm type given. Ignoring --port parameter.")
 
-    if options.snapshot_to:
-        renderchan.snapshot_path = options.snapshot_to
+    if args.snapshot_to:
+        renderchan.snapshot_path = args.snapshot_to
 
     taskfile = RenderChanFile(filename, renderchan.modules, renderchan.projects)
-    return renderchan.submit(taskfile, options.dependenciesOnly, options.allocateOnly, options.stereo)
+    return renderchan.submit(taskfile, args.dependenciesOnly, args.allocateOnly, args.stereo)
