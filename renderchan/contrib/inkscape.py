@@ -6,7 +6,8 @@ from renderchan.module import RenderChanModule
 import subprocess
 import gzip
 import os
-import re
+import os.path
+from xml.etree import ElementTree
 
 class RenderChanInkscapeModule(RenderChanModule):
     def __init__(self):
@@ -16,6 +17,9 @@ class RenderChanInkscapeModule(RenderChanModule):
         else:
             self.conf['binary']="inkscape"
         self.conf["packetSize"]=0
+        
+        self.extraParams['use_own_dimensions']='1'
+        self.extraParams['proxy_scale']='1.0'
 
     def getInputFormats(self):
         return ["svg", "svgz", "ai", "cdr", "vsd"]
@@ -24,20 +28,23 @@ class RenderChanInkscapeModule(RenderChanModule):
         return ["png", "ps", "eps", "pdf", "emf", "wmf"]
 
     def analyze(self, filename):
-        info={"dependencies":[]}
+        info={ "dependencies":[], 'width': 0, 'height': 0 }
 
         if filename.endswith(".svgz"):
             f=gzip.open(filename, 'rb')
         else:
             f=open(filename, 'rb')
+        
+        tree = ElementTree.parse(f)
+        root = tree.getroot()
+        
+        info["width"] = root.get("width")
+        info["height"] = root.get("height")
 
-        linkPattern = re.compile(".*sodipodi:absref=\"(.*?)\".*")
-        for line in f:
-            line = line.decode("utf-8")
-            pat=linkPattern.search(line)
-            if pat:
-                info["dependencies"].append(pat.group(1).strip())
-        f.close
+        for element in root.iter("{http://www.w3.org/2000/svg}image"):
+            info["dependencies"].append(os.path.join(os.path.dirname(filename), element.get("{http://www.w3.org/1999/xlink}href")))
+        
+        f.close()
 
         return info
 
