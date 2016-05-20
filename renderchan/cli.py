@@ -61,6 +61,10 @@ def process_args():
     parser.add_argument("--snapshot-to", metavar=_("SNAPSHOT_TO"),
             action="store",
             help=_("Write a snapshot into specified directory."))
+    parser.add_argument("--force", "-f",
+            action="store_true",
+            default=False,
+            help=_("Forces the file and all of its dependencies to be rerendered."))
 
     parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
 
@@ -103,5 +107,8 @@ def main(datadir, argv):
 
     if args.snapshot_to:
         renderchan.snapshot_path = args.snapshot_to
+    
+    if args.force:
+        renderchan.force = args.force
 
     return renderchan.submit('render', filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
