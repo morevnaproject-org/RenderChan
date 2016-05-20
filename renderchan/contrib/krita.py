@@ -5,7 +5,7 @@ import subprocess
 import random
 import os
 import shutil
-import re
+from xml.etree import ElementTree
 from renderchan.utils import which
 from renderchan.utils import mkdirs
 
@@ -67,24 +67,15 @@ class RenderChanKritaModule(RenderChanModule):
 
         #TODO: Consider file layers as dependencies
         #...
+        
+        tree = ElementTree.parse(f)
+        root = tree.getroot()
 
         # Extracting width/height
-        imagePattern = re.compile(".*<IMAGE .*>.*")
-
-        for line in f.readlines():
-            line = line.decode("utf-8")
-            pat=imagePattern.search(line)
-            if pat:
-                widthPattern = re.compile(".*width=\"(.*?)\".*")
-                pat=widthPattern.search(line)
-                if pat:
-                    info["width"]=int(pat.group(1).strip())
-                heightPattern = re.compile(".*height=\"(.*?)\".*")
-                pat=heightPattern.search(line)
-                if pat:
-                    info["height"]=int(pat.group(1).strip())
-                break
-        f.close
+        info["width"] = root.find("{http://www.calligra.org/DTD/krita}IMAGE").attrib["width"]
+        info["height"] = root.find("{http://www.calligra.org/DTD/krita}IMAGE").attrib["height"]
+        
+        f.close()
 
         shutil.rmtree(tmpPath)
 
