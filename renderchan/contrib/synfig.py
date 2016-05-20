@@ -5,8 +5,9 @@ from renderchan.utils import is_true_string
 import subprocess
 import gzip
 import os, sys
-import re
 import errno
+import re
+from xml.etree import ElementTree
 
 class RenderChanSynfigModule(RenderChanModule):
     def __init__(self):
@@ -36,80 +37,47 @@ class RenderChanSynfigModule(RenderChanModule):
                 return chr(int(id,16))
             except:
                 return id
+        
+        def time_to_frames(time, fps):
+            split = time.split(' ')
+            framesCount = 0
+            multiplier_map = { 'f': 1, 's': fps, 'm': fps*60, 'h': fps*60*60 }
+            for field in split:
+                framesCount += float(field[0:-1]) * multiplier_map[field[-1]]
+            return int(round(framesCount))
 
-        info={"dependencies":[]}
-
-        scriptPattern = re.compile(".*<string.*>(.*)</string>.*")
-        paramFilenamePattern = re.compile(".*<param name=\"filename\">.*")
-        paramFamilyPattern = re.compile(".*<param name=\"family\">.*")
-        usePattern = re.compile(".*<param name=\".*\" use=\"(.*)#.*\"/>.*")
-        switchLinkOnPattern = re.compile("<switch .*link_on=\"(.*)#:.*\".*>")
-        switchSwitchPattern = re.compile("<switch .*switch=\"(.*)#:.*\".*>")
-
-        fpsPattern = re.compile("<canvas .*fps=\"([0-9]+\.[0-9]+)\".*>")
-        framePattern = {}
-        framePattern["startFrame"] = re.compile("<canvas .*begin-time=\"([0-9.hmsf\s]+[hmsf])\".*>")
-        framePattern["endFrame"] =  re.compile("<canvas .*end-time=\"([0-9.hmsf\s]+[hmsf])\".*>")
-
-        # We need this to make sure that start-end values are read only once
-        fps=-1
+        info={ "dependencies":[], "width": 0, "height": 0 }
 
         if filename.endswith(".sifz"):
             f=gzip.open(filename, 'rb')
         else:
             f=open(filename, 'rb')
-        prev_line=""
-        for line in f.readlines():
-
-            line = line.decode("utf-8")
-
-            if fps==-1:
-                pat=fpsPattern.search(line)
-                if pat:
-                    fps=float(pat.group(1).strip())
-
-                    for i in ("startFrame","endFrame"):
-                        pat=framePattern[i].search(line)
-                        if pat:
-                            t=pat.group(1).strip()
-                            a=t.split(' ')
-                            framesCount=float(0)
-                            for field in a:
-                                if field.endswith('f'):
-                                    framesCount+=float(field[0:-1])
-                                elif field.endswith('s'):
-                                    framesCount+=float(field[0:-1])*fps
-                                elif field.endswith('m'):
-                                    framesCount+=float(field[0:-1])*60*fps
-                                elif field.endswith('h'):
-                                    framesCount+=float(field[0:-1])*60*60*fps
-                            info[i]=int(round(framesCount))
-
-            pat=scriptPattern.search(line)
-            if pat:
-                prev_pat=paramFilenamePattern.search(prev_line)
-                if prev_pat:
-                    info["dependencies"].append(pat.group(1).strip())
-                    continue
-                prev_pat=paramFamilyPattern.search(prev_line)
-                if prev_pat:
-                    info["dependencies"].append(pat.group(1).strip())
-                    continue
-
-            pat=usePattern.search(line)
-            if pat:
-                info["dependencies"].append(pat.group(1).strip())
-
-            pat=switchLinkOnPattern.search(line)
-            if pat:
-                info["dependencies"].append(pat.group(1).strip())
-
-            pat=switchSwitchPattern.search(line)
-            if pat:
-                info["dependencies"].append(pat.group(1).strip())
-
-            prev_line=line
-        f.close
+        
+        tree = ElementTree.parse(f)
+        root = tree.getroot()
+        
+        info["width"] = root.get("width")
+        info["height"] = root.get("height")
+        
+        fps = root.get("fps")
+        
+        info["startFrame"] = time_to_frames(root.get("begin-time"), fps)
+        info["endFrame"] = time_to_frames(root.get("end-time"), fps)
+        
+        # Parse dependencies
+        
+        # <param name="filename"><string>(dependency)</string></param
+        info["dependencies"].extend(element.text for element in root.findall(".//param[@name='filename']/string"))
+        # <param name="family"><string>(dependency)</string></param>
+        info["dependencies"].extend(element.text for element in root.findall(".//param[@name='family']/string"))
+        # <param name="*" use="(dependency)">
+        info["dependencies"].extend(element.get("use") for element in root.findall(".//param[@name][@use]"))
+        # <switch link_on="(dependency)">
+        info["dependencies"].extend(element.get("link_on").rsplit("#:")[0] for element in root.findall(".//switch[@link_on]"))
+        # <switch switch="(dependency)">
+        info["dependencies"].extend(element.get("switch").rsplit("#:")[0] for element in root.findall(".//switch[@switch]"))
+        
+        f.close()
 
         dirname=os.path.dirname(filename)
         for i,val in enumerate(info["dependencies"]):
@@ -119,14 +87,12 @@ class RenderChanSynfigModule(RenderChanModule):
 
             fullpath=os.path.abspath(os.path.join(dirname,info["dependencies"][i]))
             fallbackpath=os.path.join(dirname,os.path.basename(info["dependencies"][i]))
-            if os.path.exists(fullpath):
-                info["dependencies"][i]=fullpath
-            elif os.path.exists(fallbackpath):
+            if not os.path.exists(fullpath) and os.path.exists(fallbackpath):
                 # Even if path to the file is wrong, synfig looks for the file with the same
                 # name in current directory, so we should treat this case.
                 info["dependencies"][i]=fallbackpath
             else:
-                # Otherwise, just write path to unexisting file as is
+                # This is a path to a nonexistent file if fullpath and fallbackpath are both nonexistent 
                 info["dependencies"][i]=fullpath
 
         return info
