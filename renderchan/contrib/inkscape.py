@@ -42,7 +42,12 @@ class RenderChanInkscapeModule(RenderChanModule):
         info["height"] = root.get("height")
 
         for element in root.iter("{http://www.w3.org/2000/svg}image"):
-            info["dependencies"].append(os.path.join(os.path.dirname(filename), element.get("{http://www.w3.org/1999/xlink}href")))
+            fullpath = os.path.join(os.path.dirname(filename), element.get("{http://www.w3.org/1999/xlink}href"))
+            fallbackpath = element.get("{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}absref")
+            if not os.path.exists(fullpath) and os.path.exists(fallbackpath):
+                info["dependencies"].append(fallbackpath)
+            else:
+                info["dependencies"].append(fullpath)
         
         f.close()
 
