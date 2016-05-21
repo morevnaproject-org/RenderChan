@@ -43,7 +43,7 @@ class RenderChanSynfigModule(RenderChanModule):
             framesCount = 0
             multiplier_map = { 'f': 1, 's': fps, 'm': fps*60, 'h': fps*60*60 }
             for field in split:
-                framesCount += float(field[0:-1]) * multiplier_map[field[-1]]
+                framesCount += float(field[0:-1]) * float(multiplier_map[field[-1]])
             return int(round(framesCount))
 
         info={ "dependencies":[], "width": 0, "height": 0 }
