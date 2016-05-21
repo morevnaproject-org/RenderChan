@@ -32,6 +32,8 @@ class RenderChan():
         self.modules = RenderChanModuleManager()
 
         self.loadedFiles = {}
+
+        # TODO: dry_run and force shouldn't be stored in RenderChan object. It's better to pass them as arguments to submit()
         self.dry_run = False
         self.force = False
         self.track = False
