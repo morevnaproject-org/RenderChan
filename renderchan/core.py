@@ -866,18 +866,14 @@ class RenderChan():
                             # Check if we really have all segments rendered correctly
 
                             with open(profile_output_list, 'r') as f:
-                                segments=f.readlines()
-
-                            for i in range(len(segments)):
-                                segments[i] = segments[i].strip()
-                                segments[i] = segments[i][6:-1]
-
-                                segment = segments[i]
-
-                                if os.path.exists(segment+".done") and os.path.exists(segment):
-                                    continue
-                                print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
-                                exit(1)
+                                segments = []
+                                for line in f:
+                                    line = line.strip()[6:-1]
+                                    segments.append(line)
+                                    
+                                    if not os.path.exists(line+".done") or not os.path.exists(line):
+                                        print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
+                                        exit(1)
 
                             if format == "avi":
                                 subprocess.check_call(
