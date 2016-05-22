@@ -92,9 +92,8 @@ class RenderChanProject():
         if not readonly:
             if os.path.exists(os.path.join(self.path, "render", "cache.version")):
                 existing_cache_version=0
-                f=open(os.path.join(self.path, "render", "cache.version"))
-                content=f.readlines()
-                f.close()
+                with open(os.path.join(self.path, "render", "cache.version")) as f:
+                    content=f.readlines()
                 if len(content)>0:
                     try:
                         existing_cache_version=int(content[0].strip())
@@ -111,9 +110,8 @@ class RenderChanProject():
         self.cache=RenderChanCache(cachepath, readonly)
 
         # Save cache version
-        f = open(os.path.join(self.path, "render", "cache.version"),'w')
-        f.write(str(self.cache_version)+"\n")
-        f.close()
+        with open(os.path.join(self.path, "render", "cache.version"),'w') as f:
+            f.write(str(self.cache_version)+"\n")
 
 
         # List of modules used in the project
@@ -316,19 +314,17 @@ class RenderChanProject():
     def loadFrozenPaths(self):
         filename=os.path.join(self.path,"render","project.conf","frozen.list")
         if os.path.exists(filename):
-            f=open(filename)
-            for line in f.readlines():
-                line = line.strip()
-                if not line in self.frozenPaths:
-                    self.frozenPaths.append(line)
-            f.close()
+            with open(filename) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line in self.frozenPaths:
+                        self.frozenPaths.append(line)
 
     def saveFrozenPaths(self):
         filename=os.path.join(self.path,"render","project.conf","frozen.list")
-        f = open(filename, 'w')
-        for line in self.frozenPaths:
-            f.write(line+"\n")
-        f.close()
+        with open(filename, 'w') as f:
+            for line in self.frozenPaths:
+                f.write(line+"\n")
 
     def isFrozen(self, path):
         for frozenPath in self.frozenPaths:
@@ -397,9 +393,8 @@ class RenderChanProject():
         os.rename(localedirpath, localedirpath+"."+current_language)
         os.remove(os.path.join(localedirpath+"."+current_language, "lang.conf"))
         os.rename(localedirpath+"."+language, localedirpath)
-        f = open(os.path.join(localedirpath,'lang.conf'), 'w')
-        f.write(language+"\n")
-        f.close()
+        with open(os.path.join(localedirpath,'lang.conf'), 'w') as f:
+            f.write(language+"\n")
 
         # cleanup renderings
         if os.path.exists(os.path.join(self.path,'render',localedir)):
@@ -440,9 +435,8 @@ class RenderChanProject():
             #prev_profile = ""
             if os.path.exists(checkfile):
                 # Read previous profile
-                f=open(checkfile)
-                fcontent=f.readlines()
-                f.close()
+                with open(checkfile) as f:
+                    fcontent=f.readlines()
                 if len(fcontent)>0:
                     prev_profile = fcontent[0].strip()
                     if prev_profile==profile:
@@ -457,22 +451,20 @@ class RenderChanProject():
 
                 # the lockfile is old enough
 
-                f = open(lockfile,'w')
-                f.write(profile+"\n")
-                f.close()
+                with open(lockfile,'w') as f:
+                    f.write(profile+"\n")
 
                 # let's wait to make sure the lock is ours
                 time.sleep(1)
 
                 # Sanity check
                 if os.path.exists(lockfile):
-                    f=open(lockfile)
-                    fcontent=f.readlines()
+                    with open(lockfile) as f:
+                        fcontent=f.readlines()
                     if len(fcontent)>0:
                         prev_profile = fcontent[0].strip()
                     else:
                          prev_profile = None
-                    f.close()
                     if not (prev_profile==profile):
                         # someone have modified the file in the meantime, let's wait and try again
                         time.sleep(5)
@@ -491,38 +483,34 @@ class RenderChanProject():
                 _sync_path(self.getProfilePath(), renderpath)
 
                 # Finally update profile.conf
-                f = open(checkfile,'w')
-                f.write(profile+"\n")
-                f.close()
+                with open(checkfile,'w') as f:
+                    f.write(profile+"\n")
 
                 return t
             else:
                 if os.path.exists(lockfile):
-                     f=open(lockfile)
-                     fcontent=f.readlines()
+                     with open(lockfile) as f:
+                         fcontent=f.readlines()
                      if len(fcontent)>0:
                          prev_profile = fcontent[0].strip()
                      else:
                          prev_profile = None
-                     f.close()
                      if not(prev_profile==profile or file_is_older_than(lockfile, 6.0)):
                          # someone tries to switch profile right now, let's wait and try again
                          time.sleep(5)
                          continue
 
-                f = open(lockfile,'w')
-                f.write(profile+"\n")
-                f.close()
+                with open(lockfile,'w') as f:
+                    f.write(profile+"\n")
 
                 # Sanity check
                 if os.path.exists(lockfile):
-                    f=open(lockfile)
-                    fcontent=f.readlines()
+                    with open(lockfile) as f:
+                        fcontent=f.readlines()
                     if len(fcontent)>0:
                         prev_profile = fcontent[0].strip()
                     else:
                          prev_profile = None
-                    f.close()
                     if not (prev_profile==profile):
                         # someone have modified the file in the meantime, let's wait and try again
                         time.sleep(5)

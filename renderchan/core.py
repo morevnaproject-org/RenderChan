@@ -412,9 +412,9 @@ class RenderChan():
                 segments = self.decompose(taskfile.getStartFrame(), taskfile.getEndFrame(), taskfile.getPacketSize())
                 f = open(output_list, 'w')
                 fa = None
-                if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
-                    fa = open(output_list_alpha, 'w')
                 try:
+                    if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
+                        fa = open(output_list_alpha, 'w')
                     for range in segments:
                         start=range[0]
                         end=range[1]
@@ -865,9 +865,9 @@ class RenderChan():
 
                             # Check if we really have all segments rendered correctly
 
-                            f = open(profile_output_list, 'r')
-                            segments=f.readlines()
-                            f.close()
+                            with open(profile_output_list, 'r') as f:
+                                segments=f.readlines()
+
                             for i in range(len(segments)):
                                 segments[i] = segments[i].strip()
                                 segments[i] = segments[i][6:-1]
@@ -907,23 +907,21 @@ class RenderChan():
                 if format in RenderChanModule.imageExtensions and os.path.isdir(profile_output):
                     lst_profile_path = os.path.splitext(profile_output)[0] + ".lst"
                     lst_path = os.path.splitext(output)[0] + ".lst"
-                    f = open(lst_profile_path, 'w')
-                    f.write("FPS %s\n" % params["fps"])
-                    for filename in sorted(os.listdir(profile_output)):
-                        if filename.endswith(format):
-                            f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
-                    f.close()
+                    with open(lst_profile_path, 'w') as f:
+                        f.write("FPS %s\n" % params["fps"])
+                        for filename in sorted(os.listdir(profile_output)):
+                            if filename.endswith(format):
+                                f.write("%s/%s\n" % ( os.path.basename(profile_output), filename ))
                     sync(lst_profile_path, lst_path)
                     # Compatibility
                     if taskfile.project.version < 1:
                         lst_profile_path = os.path.join(profile_output, "file.lst")
                         lst_path = os.path.join(output, "file.lst")
-                        f = open(lst_profile_path, 'w')
-                        f.write("FPS %s\n" % params["fps"])
-                        for filename in sorted(os.listdir(profile_output)):
-                            if filename.endswith(format):
-                                f.write("%s\n" % filename)
-                        f.close()
+                        with open(lst_profile_path, 'w') as f:
+                            f.write("FPS %s\n" % params["fps"])
+                            for filename in sorted(os.listdir(profile_output)):
+                                if filename.endswith(format):
+                                    f.write("%s\n" % filename)
                         sync(lst_profile_path, lst_path)
 
                 sync(profile_output, output)

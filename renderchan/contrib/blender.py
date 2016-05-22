@@ -93,7 +93,8 @@ class RenderChanBlenderModule(RenderChanModule):
 
         random_string = "%08d" % (random.randint(0,99999999))
         renderscript=os.path.join(tempfile.gettempdir(),"renderchan-"+os.path.basename(filename)+"-"+random_string+".py")
-        script=open(os.path.join(os.path.dirname(__file__),"blender","render.py")).read()
+        with open(os.path.join(os.path.dirname(__file__),"blender","render.py")) as f:
+            script=f.read()
         script=script.replace("params[UPDATE]","False")\
            .replace("params[WIDTH]", str(int(extraParams["width"])))\
            .replace("params[HEIGHT]", str(int(extraParams["height"])))\
@@ -103,9 +104,8 @@ class RenderChanBlenderModule(RenderChanModule):
            .replace("params[CYCLES_SAMPLES]",str(int(extraParams["cycles_samples"])))\
            .replace("params[PRERENDER_COUNT]",str(int(extraParams["prerender_count"])))\
            .replace("params[GPU_DEVICE]",gpu_device)
-        f = open(renderscript,'w')
-        f.write(script)
-        f.close()
+        with open(renderscript,'w') as f:
+            f.write(script)
 
         if format in RenderChanModule.imageExtensions:
             if extraParams["single"]!="None":

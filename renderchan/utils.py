@@ -178,7 +178,8 @@ class LockThread(threading.Thread):
         self.active = False
 
 def ini_wrapper(filename):
-    ini_str = '[default]\n' + open(filename, 'r').read()
+    with open(filename, 'r') as f:
+        ini_str = '[default]\n' + f.read()
     return io.StringIO(ini_str)
 
 def is_true_string(string):
