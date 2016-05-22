@@ -96,6 +96,41 @@ class RenderChanSynfigModule(RenderChanModule):
                 info["dependencies"][i]=fullpath
 
         return info
+    
+    def replace(self, filename, oldPath, newPath):
+        oldPath = os.path.normpath(os.path.normcase(oldPath))
+        
+        if filename.endswith(".sifz"):
+            f=gzip.open(filename, 'rb')
+        else:
+            f=open(filename, 'rb')
+        
+        try:
+            tree = ElementTree.parse(f)
+        finally:
+            f.close()
+        
+        root = tree.getroot()
+        
+        for element in root.findall(".//param[@name='filename']/string"):
+            if os.path.normpath(os.path.normcase(element.text)) == oldPath:
+                element.text = newPath
+        for element in root.findall(".//param[@name='family']/string"):
+            if os.path.normpath(os.path.normcase(element.text)) == oldPath:
+                element.text = newPath
+        for element in root.findall(".//param[@name][@use]"):
+            if os.path.normpath(os.path.normcase(element.get("use"))) == oldPath:
+                element.set("use", newPath)
+        for element in root.findall(".//switch[@link_on]"):
+            if os.path.normpath(os.path.normcase(element.get("link_on").rsplit("#:")[0])) == oldPath:
+                element.set("link_on", newPath + "#:" + element.get("link_on").rsplit("#:", 1)[1])
+        for element in root.findall(".//switch[@switch]"):
+            if os.path.normpath(os.path.normcase(element.get("switch").rsplit("#:")[0])) == oldPath:
+                element.set("switch", newPath + "#:" + element.get("switch").rsplit("#:", 1)[1])
+        
+        tree.write(filename)
+
+        return True
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
