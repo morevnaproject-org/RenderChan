@@ -39,6 +39,7 @@ class RenderChanSynfigModule(RenderChanModule):
                 return id
         
         def time_to_frames(time, fps):
+            fps = float(fps)
             split = time.split(' ')
             framesCount = 0
             multiplier_map = { 'f': 1, 's': fps, 'm': fps*60, 'h': fps*60*60 }
