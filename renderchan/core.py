@@ -37,6 +37,8 @@ class RenderChan():
         self.dry_run = False
         self.force = False
         self.track = False
+        
+        self.trackedFiles = []
 
         self.graph = None  # used by renderfarm
         # == taskgroups bug / commented ==
@@ -390,7 +392,9 @@ class RenderChan():
         taskfile.isDirty=isDirty
 
         if self.track:
-            # TODO: add taskfile to list
+            trackedFile = {}
+            trackedFile["source"]=taskfile.getPath()
+            self.trackedFiles.append(trackedFile)
             pass
 
         if dryRun:
@@ -695,7 +699,9 @@ class RenderChan():
 
 
         if self.track:
-            # TODO: add taskfile to list
+            trackedFile = {}
+            trackedFile["source"]=taskfile.getPath()
+            self.trackedFiles.append(trackedFile)
             pass
 
         return (isDirty, list(tasklist), maxTime)
