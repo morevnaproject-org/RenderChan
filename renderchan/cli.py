@@ -3,10 +3,8 @@ __author__ = 'Konstantin Dmitriev'
 from gettext import gettext as _
 from argparse import ArgumentParser
 import os.path
-import sys
 
 from renderchan.core import RenderChan, __version__
-from renderchan.file import RenderChanFile
 
 
 def process_args():
@@ -65,6 +63,10 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Forces the file and all of its dependencies to be rerendered."))
+    parser.add_argument("--dry-run", dest="dryRun",
+            action="store_true",
+            default=False,
+            help=_("Parse files, but don't render anything."))
 
     parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
 
@@ -79,6 +81,8 @@ def main(datadir, argv):
     renderchan = RenderChan()
 
     renderchan.datadir = datadir
+
+    renderchan.dry_run = args.dryRun
 
     if args.profile:
         renderchan.setProfile(args.profile)
