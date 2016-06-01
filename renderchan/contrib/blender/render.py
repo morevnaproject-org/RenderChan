@@ -42,7 +42,7 @@ def main():
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
     
-    uses_builtin_stereo = "use_multiview" in dir(sce.render) and sce.render.use_multiview and sce.render.views_format == 'STEREO_3D'
+    uses_builtin_stereo = "use_multiview" in dir(sce.render) and sce.render.use_multiview
 
     if params[STEREO_CAMERA] != "" and not uses_builtin_stereo:
         found=False
@@ -120,6 +120,8 @@ def main():
 
         sce.render.views[side].use = True
         sce.render.views[alt_side].use = False
+        sce.render.views[side].file_suffix = ""
+        sce.views_format == 'INDIVIDUAL'
 
     rend = sce.render
 
