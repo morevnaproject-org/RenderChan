@@ -4,8 +4,9 @@ __author__ = 'Ivan Mahonin'
 from gettext import gettext as _
 from argparse import ArgumentParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse
 from urllib.parse import parse_qs
+from urllib.parse import unquote
+from urllib.parse import urlparse
 import io
 import os.path
 import json
@@ -20,20 +21,20 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
         for key in args.keys():
             args[key] = args[key][-1]
         
-        filename = os.path.abspath(self.server.renderchan_rootdir + os.path.sep + parsed_url.path)
-    
+        filename = os.path.abspath(self.server.renderchan_rootdir + os.path.sep + unquote(parsed_url.path))
+        
         renderchan = RenderChan()
         renderchan.datadir = self.server.renderchan_datadir
-    
+        
         renderchan.track = True
         renderchan.dry_run = True
         
         if "dryRun" in args:
             renderchan.dry_run = bool(args["dryRun"])
-    
+        
         if "profile" in args:
             renderchan.setProfile(str(args["profile"]))
-    
+        
         if "renderfarmType" in args and str(args["renderfarmType"]) in renderchan.available_renderfarm_engines:
             renderchan.renderfarm_engine = str(args["renderfarmType"])
             if "host" in args:
@@ -67,7 +68,7 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            reply["filese"] = renderchan.trackedFiles
+            reply["files"] = renderchan.trackedFiles
         self.wfile.write(bytes(json.dumps(reply, self.wfile), "UTF-8"))
 
 def process_args():

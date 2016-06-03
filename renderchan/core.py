@@ -631,7 +631,7 @@ class RenderChan():
                         if dependency.module!=None:
                             dep_isDirty = self.parseRenderDependency(dependency, False, dryRun, force)
                         else:
-                            raise Exception("No module to render file")
+                            raise Exception("No module to render file" + dependency.getPath())
                     else:
                         # The dependency was already submitted to graph
                         dep_isDirty = dependency.isDirty
