@@ -121,7 +121,8 @@ def main():
         sce.render.views[side].use = True
         sce.render.views[alt_side].use = False
         sce.render.views[side].file_suffix = ""
-        sce.views_format == 'INDIVIDUAL'
+        sce.render.views[alt_side].file_suffix = "_"+alt_side
+        sce.render.views_format == 'INDIVIDUAL'
 
     rend = sce.render
 
