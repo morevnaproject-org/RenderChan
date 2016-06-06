@@ -7,7 +7,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs
 from urllib.parse import unquote
 from urllib.parse import urlparse
-import io
 import os.path
 import json
 
@@ -68,7 +67,11 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            reply["files"] = renderchan.trackedFiles
+            reply["files"] = [];
+            for file in renderchan.trackedFiles.values():
+                if file["source"][0:len(self.server.renderchan_rootdir)] == self.server.renderchan_rootdir:
+                    file["source"] = file["source"][len(self.server.renderchan_rootdir):]
+                reply["files"].append( file )
         self.wfile.write(bytes(json.dumps(reply, self.wfile), "UTF-8"))
 
 def process_args():
@@ -97,4 +100,8 @@ def main(datadir, argv):
     server = HTTPServer((args.host, args.port), RenderChanHTTPRequestHandler)
     server.renderchan_datadir = datadir
     server.renderchan_rootdir = os.path.abspath(args.root)
+    if server.renderchan_rootdir[-1] == os.path.sep:
+        server.renderchan_rootdir.pop()
+
+    print("Starting RenderChan HTTP-server at " + args.host + ":" + str(args.port))
     server.serve_forever()
