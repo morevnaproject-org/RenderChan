@@ -135,6 +135,7 @@ class RenderChan():
         """
 
         taskfile = RenderChanFile(filename, self.modules, self.projects)
+        self.trackFile(taskfile)
 
         if taskfile.project == None:
             print(file=sys.stderr)
@@ -339,6 +340,22 @@ class RenderChan():
         self.childTask = None
 
 
+    def trackFile(self, taskfile):
+        """
+
+        :type taskfile: RenderChanFile
+        """
+        if self.track:
+            trackedFile = {}
+            trackedFile["source"]=taskfile.getPath()
+            self.trackedFiles[trackedFile["source"]] = trackedFile;
+    
+            if taskfile.project != None and os.path.exists(taskfile.project.confPath):
+                trackedFile = {}
+                trackedFile["source"]=taskfile.project.confPath
+                self.trackedFiles[trackedFile["source"]] = trackedFile;
+
+    
     def parseRenderDependency(self, taskfile, allocateOnly, dryRun = False, force = False):
         """
 
@@ -391,12 +408,7 @@ class RenderChan():
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
 
-        if self.track:
-            trackedFile = {}
-            trackedFile["source"]=taskfile.getPath()
-            self.trackedFiles[trackedFile["source"]] = trackedFile;
-            pass
-
+        self.trackFile(taskfile)
         if dryRun:
             return isDirty
 
@@ -564,7 +576,7 @@ class RenderChan():
                         self.graph.addEdges( [(self.childTask, task)] )
 
         return isDirty
-
+    
 
     def parseDirectDependency(self, taskfile, compareTime, dryRun = False, force = False):
         """
@@ -697,13 +709,7 @@ class RenderChan():
 
             taskfile.pending=False
 
-
-        if self.track:
-            trackedFile = {}
-            trackedFile["source"]=taskfile.getPath()
-            self.trackedFiles[trackedFile["source"]] = trackedFile;
-            pass
-
+        self.trackFile(taskfile)
         return (isDirty, list(tasklist), maxTime)
 
     def updateCompletion(self, value):

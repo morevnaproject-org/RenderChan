@@ -59,19 +59,16 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
 
         reply = {}
         if error:
-            self.send_response(500)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
             reply["error"] = error
-        else:
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            reply["files"] = [];
-            for file in renderchan.trackedFiles.values():
-                if file["source"][0:len(self.server.renderchan_rootdir)] == self.server.renderchan_rootdir:
-                    file["source"] = file["source"][len(self.server.renderchan_rootdir):]
-                reply["files"].append( file )
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        reply["files"] = [];
+        for file in renderchan.trackedFiles.values():
+            if file["source"][0:len(self.server.renderchan_rootdir)] == self.server.renderchan_rootdir:
+                file["source"] = file["source"][len(self.server.renderchan_rootdir):]
+            reply["files"].append( file )
         self.wfile.write(bytes(json.dumps(reply, self.wfile), "UTF-8"))
 
 def process_args():
