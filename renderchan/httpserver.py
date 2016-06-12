@@ -55,6 +55,9 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
         if "force" in args:
             renderchan.force = bool(args["force"])
     
+        if "force_proxy" in args:
+            renderchan.force_proxy = bool(args["force_proxy"])
+    
         error = renderchan.submit('render', filename, bool(args.get("dependenciesOnly")), bool(args.get("allocateOnly")), str(args.get("stereo")))
 
         reply = {}

@@ -38,6 +38,8 @@ class RenderChan():
         self.force = False
         self.track = False
         
+        self.force_proxy = False
+        
         self.trackedFiles = {}
 
         self.graph = None  # used by renderfarm
@@ -419,7 +421,7 @@ class RenderChan():
             mkdirs(os.path.dirname(taskfile.getProfileRenderPath()))
             mkdirs(os.path.dirname(taskfile.getRenderPath()))
 
-            params = taskfile.getParams()
+            params = taskfile.getParams(self.force_proxy)
 
             # Keep track of created files to allow merging them later
             output_list = os.path.splitext( taskfile.getProfileRenderPath() )[0] + ".txt"
@@ -794,7 +796,7 @@ class RenderChan():
 
                 # TODO: Create file lock here
 
-                params = taskfile.getParams()
+                params = taskfile.getParams(self.force_proxy)
                 taskfile.module.render(taskfile.getPath(),
                                output,
                                int(start),
@@ -838,7 +840,7 @@ class RenderChan():
 
         try:
 
-            params = taskfile.getParams()
+            params = taskfile.getParams(self.force_proxy)
 
             suffix_list = [""]
             if "extract_alpha" in params and is_true_string(params["extract_alpha"]):

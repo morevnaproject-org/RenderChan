@@ -257,7 +257,7 @@ class RenderChanFile():
             format=self.module.getOutputFormats()[0]
         return format
 
-    def getParams(self):
+    def getParams(self, force_proxy):
         params={}
 
         # Basic project values
@@ -301,7 +301,7 @@ class RenderChanFile():
                         proxy_scale = 1.0
                     width=int(params['width'])
                     height=int(params['height'])
-                    if ((width*proxy_scale) % 1) != 0 or ((height*proxy_scale) % 1) != 0:
+                    if not force_proxy and (((width*proxy_scale) % 1) != 0 or ((height*proxy_scale) % 1) != 0):
                         print("WARNING: Can't apply 'proxy scale' for file (%s):" % self.getPath())
                         print("         Dimensions %sx%s give non-integer values when multiplied by factor of %s." % (width, height, proxy_scale))
                     else:

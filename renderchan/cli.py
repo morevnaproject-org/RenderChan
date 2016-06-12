@@ -63,6 +63,10 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Forces the file and all of its dependencies to be rerendered."))
+    parser.add_argument("--force-proxy", dest="forceProxy",
+            action="store_true",
+            default=False,
+            help=_("Allow to change aspect ratio while scaling (see proxy_scale config option)"))
     parser.add_argument("--dry-run", dest="dryRun",
             action="store_true",
             default=False,
@@ -114,5 +118,8 @@ def main(datadir, argv):
     
     if args.force:
         renderchan.force = args.force
+
+    if args.forceProxy:
+        renderchan.force_proxy = args.forceProxy
 
     return renderchan.submit('render', filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
