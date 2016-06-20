@@ -146,7 +146,7 @@ class RenderChanSynfigModule(RenderChanModule):
 
         commandline.append(filename)
 
-        #print " ".join(commandline)
+        #print(" ".join(commandline))
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         rc = None
         #currentFrame = None

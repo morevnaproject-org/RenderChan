@@ -33,6 +33,8 @@ class RenderChanFile():
         #TODO: startFrame and endFrame should go into self.config
         self.startFrame=-1
         self.endFrame=-1
+        self.width=0
+        self.height=0
 
         self.metadata=None
 
@@ -60,9 +62,9 @@ class RenderChanFile():
                     self.endFrame=int(info["endFrame"])
                     self.dependencies=self.project.cache.getDependencies(self.localPath)
                     if info["width"]>0:
-                        self.config['width']=str(info["width"])
+                        self.width=str(info["width"])
                     if info["height"]>0:
-                        self.config['height']=str(info["height"])
+                        self.height=str(info["height"])
                 else:
                     info=self.module.analyze(self.getPath())
                     if "dependencies" in info.keys():
@@ -74,18 +76,18 @@ class RenderChanFile():
                         self.endFrame=int(info["endFrame"])
 
                     if "width" in info.keys():
-                        self.config['width']=str(info["width"])
+                        self.width=str(info["width"])
                     else:
-                        info["width"] = -1
+                        self.width=0
 
                     if "height" in info.keys():
-                        self.config['height']=str(info["height"])
+                        self.height=str(info["height"])
                     else:
-                        info["height"] = -1
+                        self.height=0
 
                     # Write cache
                     if self.project:
-                        self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies, info["width"], info["height"])
+                        self.project.cache.write(self.localPath, self.getTime(), self.startFrame, self.endFrame, self.dependencies, self.width, self.height)
 
                 # Rendering params
                 if os.path.exists(self.getPath()+".conf"):
@@ -284,6 +286,9 @@ class RenderChanFile():
                 else:
                     params[key]=self.config[key]
 
+        if 'use_own_dimensions' in params.keys() and is_true_string(params['use_own_dimensions']):
+            params['width']=self.width
+            params['height']=self.height
 
         # Special routines related with proxies
         if 'use_own_dimensions' in params.keys() and 'proxy_scale' in params.keys():
