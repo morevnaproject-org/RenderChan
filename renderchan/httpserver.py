@@ -1,4 +1,3 @@
-from builtins import int
 __author__ = 'Ivan Mahonin'
 
 from gettext import gettext as _
@@ -20,7 +19,7 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
         for key in args.keys():
             args[key] = args[key][-1]
         
-        filename = os.path.abspath(self.server.renderchan_rootdir + os.path.sep + unquote(parsed_url.path))
+        filename = os.path.abspath(os.path.join(self.server.renderchan_rootdir, unquote(parsed_url.path)))
         
         renderchan = RenderChan()
         renderchan.datadir = self.server.renderchan_datadir
@@ -100,8 +99,6 @@ def main(datadir, argv):
     server = HTTPServer((args.host, args.port), RenderChanHTTPRequestHandler)
     server.renderchan_datadir = datadir
     server.renderchan_rootdir = os.path.abspath(args.root)
-    if server.renderchan_rootdir[-1] == os.path.sep:
-        server.renderchan_rootdir.pop()
 
     print("Starting RenderChan HTTP-server at " + args.host + ":" + str(args.port))
     server.serve_forever()
