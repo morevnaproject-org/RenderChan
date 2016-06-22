@@ -9,12 +9,19 @@ import math
 
 class Thumbnailer:
     def __init__(self):
+        self.srcdir = os.path.abspath(".")
+        self.renderdir = os.path.join(self.srcdir, "render")
+        self.thumbdir = self.renderdir
         self.icons = {}
         self.width = 160
         self.height = 160
         self.icon_size = 80
         self.force = False
-        self.clean = False
+        self.dry_run = False
+        self.suffix = ".thumb.png"
+        
+        self.created_dirs = {}
+        self.removed_dirs = {}
         
         self.check_executable(["ffmpeg",    "-version"], "FFMpeg")
         self.check_executable(["ffprobe",   "-version"], "FFMpeg")
@@ -31,50 +38,71 @@ class Thumbnailer:
         print(_("Check %s (%s): %s") % (command[0], comment, ("success" if result else "fail")))
         return result
     
-    def build_thumbnails(self, path):
-        """
-        :param path: Directory of file name to make thumbnail(s)
-        :type path: str
-        :return:
-        """
+    def clean_thumbnails(self, path = ""):
+        src = os.path.join(self.thumbdir, path) if path != "" else self.thumbdir
+        if os.path.isfile(src):
+            if src[-len(self.suffix):].lower() == self.suffix:
+                print(_("Remove thumbnail: %s") % src)
+                if self.dry_run:
+                    self.removed_dirs[os.path.dirname(src)] = self.removed_dirs.get(os.path.dirname(src), 0) - 1
+                else:
+                    os.remove(src)
+        elif os.path.isdir(src):
+            for file in sorted(os.listdir(src)):
+                self.clean_thumbnails(os.path.join(path, file))
+            if len(os.listdir(src)) + self.removed_dirs.get(src, 0) <= 0:
+                print(_("Remove directory: %s") % src)
+                if self.dry_run:
+                    self.removed_dirs[os.path.dirname(src)] = self.removed_dirs.get(os.path.dirname(src), 0) - 1
+                else:
+                    os.rmdir(src)
+
+    def build_thumbnails(self, path = ""):
+        src = os.path.join(self.srcdir, path) if path != "" else self.srcdir
         
-        suffix = ".thumb.png"
-        isfile = os.path.isfile(path)
-        isdir = os.path.isdir(path)
-    
-        if not isfile and not isdir:
-            print(_("File not found: %s") % path)
+        if not os.path.isfile(src) and not os.path.isdir(src):
+            print(_("File not found: %s") % src)
             return False
-
-        if isfile and path[-len(suffix):].lower() == suffix:
-            if self.clean:
-                print(_("Remove thumbnail: %s") % path)
-                os.remove(path)
+        if os.path.isfile(src) and path[-len(self.suffix):].lower() == self.suffix:
             return True
-
-        if self.clean:
-            if isdir:
-                for file in sorted(os.listdir(path)):
-                    self.build_thumbnails(os.path.join(path, file))
+        if src == self.renderdir and path != "":
+            return True
+        if src == self.thumbdir and path != "":
             return True
         
+        render = os.path.join(self.renderdir, path) if path != "" else self.renderdir
+        dest = os.path.join(self.thumbdir, path + self.suffix) if path != "" else self.thumbdir + self.suffix
+        icon = self.find_icon(src)
+
+        found = False
         processed = False
         success = True
-        if isfile and path[-4:].lower() == ".png":
-            processed, success = self.build_thumbnail_png(path, path[0:-4] + suffix, self.find_icon(path[0:-4]))
-        elif isdir and path[-4:].lower() == ".png":
-            processed, success = self.build_thumbnail_png_sequence(path, path[0:-4] + suffix, self.find_icon(path[0:-4]))
-        elif isfile and path[-4:].lower() == ".avi":
-            processed, success = self.build_thumbnail_avi(path, path[0:-4] + suffix, self.find_icon(path[0:-4]))
-        elif not processed and isdir:
-            for file in sorted(os.listdir(path)):
-                self.build_thumbnails(os.path.join(path, file))
+        
+        if not found:
+            found, processed, success = self.build_thumbnail(src, dest, icon)
+        if not found:
+            found, processed, success = self.build_thumbnail(render + ".png", dest, icon)
+        if not found:
+            found, processed, success = self.build_thumbnail(render + ".avi", dest, icon)
+        if not found:
+            if os.path.isdir(src):
+                for file in sorted(os.listdir(src)):
+                    self.build_thumbnails(os.path.join(path, file))
 
         if not success:
-            print(_("Failed to create thumbnail(s) for: %s") % path)
+            print(_("Failed to create thumbnail(s) for: %s") % src)
         elif processed:
-            print(_("Created thumbnail(s) for: %s") % path)
+            print(_("Created thumbnail(s) for: %s") % src)
         return success
+
+    def build_thumbnail(self, src, dest, icon):
+        if os.path.isfile(src) and src[-4:].lower() == ".png":
+            return (True,) + self.build_thumbnail_png(src, dest, icon)
+        elif os.path.isdir(src) and src[-4:].lower() == ".png":
+            return (True,) + self.build_thumbnail_png_sequence(src, dest, icon)
+        elif os.path.isfile(src) and src[-4:].lower() == ".avi":
+            return (True,) + self.build_thumbnail_avi(src, dest, icon)
+        return False, False, True
     
     def command_thumbnail(self, src = None, dest = None):
         if not src: src = "png:-"
@@ -95,26 +123,26 @@ class Thumbnailer:
 
     def run_pipe(self, commands):
         success = True
-        
-        processes = []
-        stdin = None
-        stdout = subprocess.PIPE
-        for command in commands:
-            if len(processes) == len(commands)-1:
-                stdout = None
-            process = subprocess.Popen(command, stdin=stdin, stdout=stdout)
-            processes.append(process)
-            if stdin: stdin.close()
-            stdin = process.stdout
-            
-        for process in processes:
-            try:
-                if process.wait(30):
-                    print(_("Command complete with errors: %s") % str(process.args))
+        if not self.dry_run:
+            processes = []
+            stdin = None
+            stdout = subprocess.PIPE
+            for command in commands:
+                if len(processes) == len(commands)-1:
+                    stdout = None
+                process = subprocess.Popen(command, stdin=stdin, stdout=stdout)
+                processes.append(process)
+                if stdin: stdin.close()
+                stdin = process.stdout
+                
+            for process in processes:
+                try:
+                    if process.wait(30):
+                        print(_("Command complete with errors: %s") % str(process.args))
+                        success = False
+                except subprocess.TimeoutExpired:
+                    print(_("Timeout expired for: %s") % str(process.args))
                     success = False
-            except subprocess.TimeoutExpired:
-                print(_("Timeout expired for: %s") % str(process.args))
-                success = False
         return success
     
     def extract_duration(self, src):
@@ -124,6 +152,18 @@ class Thumbnailer:
         except subprocess.CalledProcessError:
             print(_("Command complete with errors: %s") % str(command))
             return -1
+
+    def create_directory(self, path):
+        if not os.path.isdir(path) and not path in self.created_dirs:
+            self.create_directory(os.path.dirname(path))
+            print(_("Create directory: %s") % path)
+            if self.dry_run:
+                self.created_dirs[path] = True
+            else:
+                os.mkdir(path)
+
+    def create_directory_for_file(self, path):
+        self.create_directory(os.path.dirname(path))
 
     def find_icon(self, path):
         for key in self.icons:
@@ -145,6 +185,7 @@ class Thumbnailer:
     def build_thumbnail_png(self, src, dest, icon):
         if not self.check_date(src, dest, icon):
             return False, True
+        self.create_directory_for_file(dest)
         if icon:
             return True, self.run_pipe([
                 self.command_thumbnail(src = src),
@@ -168,6 +209,7 @@ class Thumbnailer:
         duration = self.extract_duration(src)
         if duration < 0:
             return True, False
+        self.create_directory_for_file(dest)
         if icon:
             return True, self.run_pipe([
                 self.command_video_frame(src = src, seek = 0.5*duration),
@@ -181,10 +223,16 @@ class Thumbnailer:
 def process_args():
     parser = ArgumentParser(description=_("Run RenderChan thumbnails generator."),
             epilog=_("For more information about RenderChan, visit https://morevnaproject.org/renderchan/"))
-    parser.add_argument("--root", dest="root",
+    parser.add_argument("srcdir",
+            help=_("A path to the source files."))
+    parser.add_argument("--renderdir", dest="renderdir",
             action="store",
-            default=".",
-            help=_("Set root directory."))
+            default="",
+            help=_("A path to the rendered files."))
+    parser.add_argument("--thumbdir", dest="thumbdir",
+            action="store",
+            default="",
+            help=_("A path to the thumbnails."))
     parser.add_argument("--width", dest="width",
             type=int,
             action="store",
@@ -205,6 +253,10 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Rebuild thumbniles for all files."))
+    parser.add_argument("--dry-run", dest="dry_run",
+            action="store_true",
+            default=False,
+            help=_("Simulate activity."))
     parser.add_argument("--clean", dest="clean",
             action="store_true",
             default=False,
@@ -214,7 +266,6 @@ def process_args():
 
 def main(datadir, argv):
     args = process_args()
-    root = os.path.abspath(args.root)
     
     if datadir:
         datadir = os.path.abspath(datadir)
@@ -223,12 +274,17 @@ def main(datadir, argv):
     
     thumbnailer = Thumbnailer()
     
+    srcdir       = os.path.abspath(args.srcdir)    if args.srcdir    else thumbnailer.srcdir
+    renderdir    = os.path.abspath(args.renderdir) if args.renderdir else os.path.join(srcdir, "render") 
+    thumbdir     = os.path.abspath(args.thumbdir)  if args.thumbdir  else renderdir
+    
     width        = args.width        if args.width        and args.width        > 0 else 0
     height       = args.height       if args.height       and args.height       > 0 else 0
     icon_size    = args.icon_size    if args.icon_size    and args.icon_size    > 0 else 0
     icon_percent = args.icon_percent if args.icon_percent and args.icon_percent > 0 else 0
-    force        = True if args.force else False
-    clean        = True if args.clean else False
+    force        = True if args.force   else False
+    dry_run      = True if args.dry_run else False
+    clean        = True if args.clean   else False
     
     if clean:
         if width:        print(_("Ignore %s argument, because %s was set") % ("--width",        "--clean"))
@@ -252,23 +308,34 @@ def main(datadir, argv):
     if not icon_size:
         icon_size = math.ceil(min(width, height)*0.01*icon_percent)
     
+    thumbnailer.srcdir    = srcdir
+    thumbnailer.renderdir = renderdir
+    thumbnailer.thumbdir  = thumbdir
     thumbnailer.width     = width
     thumbnailer.height    = height
     thumbnailer.icon_size = icon_size
     thumbnailer.force     = force
+    thumbnailer.dry_run   = dry_run
     thumbnailer.clean     = clean
     for f in os.listdir(datadir):
         if f[-4:].lower() == ".png":
             thumbnailer.icons["." + f[0:-4].lower()] = os.path.join(datadir, f)
 
     if thumbnailer.clean:
-        print(_("Remove thumbnails for: %s") % root)
+        print(_("Remove thumbnails"))
+        print(_("Thumbnails path: %s") % thumbnailer.thumbdir)
+        thumbnailer.clean_thumbnails()
     else:
-        print(_("Generate thumbnails for: %s") % root)
-        print(_("Width: %d")     % thumbnailer.width)
-        print(_("Height: %d")    % thumbnailer.height)
-        print(_("Icon size: %d") % thumbnailer.icon_size)
+        print(_("Generate thumbnails"))
+        print(_("Source path:     %s") % thumbnailer.srcdir)
+        print(_("Render path:     %s") % thumbnailer.renderdir)
+        print(_("Thumbnails path: %s") % thumbnailer.thumbdir)
+        print(_("Width: %d")           % thumbnailer.width)
+        print(_("Height: %d")          % thumbnailer.height)
+        print(_("Icon size: %d")       % thumbnailer.icon_size)
         if thumbnailer.force:
             print(_("Force"))
+        if thumbnailer.dry_run:
+            print(_("Dry run - actually do nothing"))
+        thumbnailer.build_thumbnails()
     
-    thumbnailer.build_thumbnails(root)
