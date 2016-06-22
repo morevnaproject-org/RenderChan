@@ -324,6 +324,8 @@ def main(datadir, argv):
     if thumbnailer.clean:
         print(_("Remove thumbnails"))
         print(_("Thumbnails path: %s") % thumbnailer.thumbdir)
+        if thumbnailer.dry_run:
+            print(_("Dry run - actually do nothing"))
         thumbnailer.clean_thumbnails()
     else:
         print(_("Generate thumbnails"))
