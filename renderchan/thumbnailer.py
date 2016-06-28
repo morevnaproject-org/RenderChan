@@ -233,6 +233,10 @@ def process_args():
             action="store",
             default="",
             help=_("A path to the thumbnails."))
+    parser.add_argument("--suffix", dest="suffix",
+            action="store",
+            default=".thumb.png",
+            help=_("Suffix of thumbnail file"))
     parser.add_argument("--width", dest="width",
             type=int,
             action="store",
@@ -278,6 +282,8 @@ def main(datadir, argv):
     renderdir    = os.path.abspath(args.renderdir) if args.renderdir else os.path.join(srcdir, "render") 
     thumbdir     = os.path.abspath(args.thumbdir)  if args.thumbdir  else renderdir
     
+    suffix       = args.suffix if args.suffix else thumbnailer.suffix
+    
     width        = args.width        if args.width        and args.width        > 0 else 0
     height       = args.height       if args.height       and args.height       > 0 else 0
     icon_size    = args.icon_size    if args.icon_size    and args.icon_size    > 0 else 0
@@ -311,6 +317,7 @@ def main(datadir, argv):
     thumbnailer.srcdir    = srcdir
     thumbnailer.renderdir = renderdir
     thumbnailer.thumbdir  = thumbdir
+    thumbnailer.suffix    = suffix
     thumbnailer.width     = width
     thumbnailer.height    = height
     thumbnailer.icon_size = icon_size
