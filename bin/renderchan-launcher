@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+# RenderChan
+#
+#       renderchan
+#
+# ......... ... 2016, Ivan Mahonin
+#
+
+import os
+import sys
+import string
+import locale
+import gettext
+
+localedir = ""
+
+
+import os
+import sys
+import string
+import locale
+import gettext
+
+localedir = "@LOCALEDIR@"
+datadir = "@DATADIR@"
+
+def _configure_python_path():
+    global localedir
+
+    if not os.path.exists(localedir):
+        dir = os.path.dirname(os.path.abspath(__file__))
+        if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
+            root = os.path.dirname(dir)
+            localedir = os.path.join(root, 'locale')
+            if not root in sys.path:
+                sys.path.insert(0, root)
+
+            pulidir = os.path.join(root, 'puli')
+            if os.path.exists(os.path.join(pulidir, 'puliclient', '__init__.py')) and not pulidir in sys.path:
+                sys.path.insert(0, pulidir)
+
+    # Added for i18n
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+        locale.bindtextdomain('renderchan', localedir)
+        locale.textdomain('renderchan')
+    except:
+        print("Couldn't set locale.")
+    try:
+        gettext.bindtextdomain('renderchan', localedir)
+        gettext.textdomain('renderchan')
+    except:
+        print("Couldn't set the gettext domain. Translations will not work.")
+
+def _start_renderchan_launcher():
+    import renderchan.launcher as launcher
+
+    # Start the real application, with given arguments.
+    sys.exit(launcher.main(sys.argv))
+
+
+if __name__ == "__main__":
+
+    try:
+        _configure_python_path()
+        _start_renderchan_launcher()
+    except KeyboardInterrupt:
+        print("\tRenderChan stopped by user with KeyboardInterrupt!")
