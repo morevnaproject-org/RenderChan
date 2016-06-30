@@ -71,6 +71,10 @@ def process_args():
             action="store_true",
             default=False,
             help=_("Parse files, but don't render anything."))
+    parser.add_argument("--recursive", dest="recursive",
+            action="store_true",
+            default=False,
+            help=_("Render all files in directory"))
 
     parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
 
@@ -121,5 +125,25 @@ def main(datadir, argv):
 
     if args.forceProxy:
         renderchan.force_proxy = args.forceProxy
+        
+    if args.recursive:
+        success = True
+        dirs = [filename]
+        files = []
+        while len(dirs):
+            d = dirs.pop()
+            for f in os.listdir(d):
+                file = os.path.join(d, f)
+                if os.path.isfile(file):
+                    files.append(file)
+                elif os.path.isdir(file):
+                    dirs.append(file)
+        for file in sorted(files):
+            try:
+                renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
+            except Exception as e:
+                print(_("Rendering failed for file (%s), error: %s") % (file, str(e)))
+                success = False
+        return 0 if success else 1
 
     return renderchan.submit('render', filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
