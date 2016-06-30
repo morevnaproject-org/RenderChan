@@ -17,6 +17,7 @@ class Launcher:
         self.renderDir = ""
         self.mountDir = ""
         self.user = ""
+        self.excludeDirs = {}
         self.projectCommands = []
         
         self.commands = []
@@ -148,6 +149,10 @@ class Launcher:
                     self.mountDir = os.path.abspath(command[1])
                 elif command[0] == "user":
                     self.user = command[1]
+                elif command[0] == "excl-dir":
+                    self.excludeDirs[command[1]] = True
+                elif command[0] == "excl-clear":
+                    self.excludeDirs = {}
                 elif command[0] == "prj-cmd":
                     self.projectCommands.append(command[1])
                 elif command[0] == "prj-clear":
@@ -226,6 +231,9 @@ class Launcher:
         
         if not sourceDir:
             sourceDir = self.sourceDir
+        
+        if sourceDir in self.excludeDirs:
+            return
         
         if os.path.isfile(os.path.join(sourceDir, "project.conf")):
             self.info(_("Project found: ") + sourceDir)
