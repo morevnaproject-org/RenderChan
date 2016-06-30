@@ -246,7 +246,7 @@ class Launcher:
         if user:
             if not isinstance(command, str):
                 command = subprocess.list2cmdline(command)
-            command = ["sudo", "-u", self.user, "/bin/sh", "-c", command]
+            command = ["sudo", "-u", self.user, "/bin/bash", "-c", command]
         
         self.outHeader(str(command))
         exception = None
