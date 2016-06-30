@@ -134,7 +134,7 @@ def main(datadir, argv):
         dirs = [filename]
         files = []
         while len(dirs):
-            d = dirs.pop()
+            d = dirs.pop(0)
             for f in sorted(os.listdir(d)):
                 file = os.path.join(d, f)
                 if f[0] == '.' or file[0:len(renderDir)] == renderDir:
