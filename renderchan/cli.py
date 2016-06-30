@@ -128,18 +128,26 @@ def main(datadir, argv):
         
     if args.recursive:
         success = True
+        renderDir = os.path.join(filename, "render") + os.path.sep
+        formats = renderchan.modules.getAllInputFormats()
+
         dirs = [filename]
         files = []
         while len(dirs):
             d = dirs.pop()
             for f in os.listdir(d):
                 file = os.path.join(d, f)
+                if f[0] == '.' or file[0:len(renderDir)] == renderDir:
+                    continue
                 if os.path.isfile(file):
-                    files.append(file)
-                elif os.path.isdir(file):
+                    if os.path.splitext(file)[1][1:] in formats:
+                        files.append(file)
+                if os.path.isdir(file):
                     dirs.append(file)
+                    
         for file in sorted(files):
             try:
+                print(_("Process file: %s") % (file))
                 renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
             except Exception as e:
                 print(_("Rendering failed for file (%s), error: %s") % (file, str(e)))

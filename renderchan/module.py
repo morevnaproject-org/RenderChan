@@ -57,6 +57,13 @@ class RenderChanModuleManager():
                     return item
         return None
 
+    def getAllInputFormats(self):
+        ret = []
+        for item in self.list.values():
+            if item.active:
+                ret.extend(item.getInputFormats())
+        return ret
+
 class RenderChanModule():
     imageExtensions = ['png','exr']
     def __init__(self):
