@@ -135,7 +135,7 @@ def main(datadir, argv):
         files = []
         while len(dirs):
             d = dirs.pop()
-            for f in os.listdir(d):
+            for f in sorted(os.listdir(d)):
                 file = os.path.join(d, f)
                 if f[0] == '.' or file[0:len(renderDir)] == renderDir:
                     continue
@@ -145,7 +145,7 @@ def main(datadir, argv):
                 if os.path.isdir(file):
                     dirs.append(file)
                     
-        for file in sorted(files):
+        for file in files:
             try:
                 print(_("Process file: %s") % (file))
                 renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
