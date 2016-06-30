@@ -149,8 +149,8 @@ def main(datadir, argv):
             try:
                 print(_("Process file: %s") % (file))
                 renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
-            except Exception as e:
-                print(_("Rendering failed for file (%s), error: %s") % (file, str(e)))
+            except:
+                print(_("Rendering failed for file: %s") % (file))
                 success = False
         return 0 if success else 1
 
