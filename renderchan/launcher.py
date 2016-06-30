@@ -235,6 +235,9 @@ class Launcher:
         if sourceDir in self.excludeDirs:
             return
         
+        if sourceDir in self.excludeDirs:
+            return
+        
         if os.path.isfile(os.path.join(sourceDir, "project.conf")):
             self.info(_("Project found: ") + sourceDir)
             self.projects.append(sourceDir)
