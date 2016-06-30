@@ -293,9 +293,12 @@ class Launcher:
                 self.createdDirs[path] = True
             else:
                 os.mkdir(path)
-                if self.user:
-                    pw = pwd.getpwnam(self.user)
-                    os.chown(path, pw.pw_uid, pw.pw_gid)
+                try:
+                    if self.user:
+                        pw = pwd.getpwnam(self.user)
+                        os.chown(path, pw.pw_uid, pw.pw_gid)
+                except Exception as e:
+                    self.error(_("Cannot change owner of directry (%s), error: %s") % (path, str(e)))
 
     def mount(self, targetDir, sourceDir):
         self.info(_("Mount directory '%s' to '%s'") % (sourceDir, targetDir))
