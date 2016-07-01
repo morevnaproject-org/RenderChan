@@ -19,7 +19,7 @@ class RenderChanGimpModule(RenderChanModule):
         self.conf["packetSize"]=0
 
     def getInputFormats(self):
-        return ["xcf", "fli", "flc", "dds", "dcm", "dicom", "eps", "fit", "fits", "g3", "xjt", "cel", "wmf", "ico", "pnm", "ppm", "pgm", "pbm", "psp", "psd", "pdf", "ps", "tiff", "bmp", "xbm", "xwd", "pcx", "pcc"]
+        return ["xcf", "fli", "flc", "dds", "dcm", "dicom", "eps", "fit", "fits", "g3", "xjt", "cel", "wmf", "ico", "pnm", "ppm", "pgm", "pbm", "psp", "psd", "pdf", "ps", "tiff", "bmp", "xbm", "xwd", "pcx", "pcc", "ora"]
 
     def getOutputFormats(self):
         return ["png", "jpg", "jpeg", "pdf", "psd", "tif", "tiff", "bmp", "ico", "txt", "html", "gif", "mng"]
