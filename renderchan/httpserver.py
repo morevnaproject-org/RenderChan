@@ -19,6 +19,9 @@ class RenderChanHTTPRequestHandler(BaseHTTPRequestHandler):
         for key in args.keys():
             args[key] = args[key][-1]
         
+        while len(parsed_url.path) and (parsed_url.path[0] == '/' or parsed_url.path[0] == '\\'):
+            parsed_url.path.pop(0)
+        
         filename = os.path.abspath(os.path.join(self.server.renderchan_rootdir, unquote(parsed_url.path)))
         
         renderchan = RenderChan()
