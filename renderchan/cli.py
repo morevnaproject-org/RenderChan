@@ -2,12 +2,44 @@ __author__ = 'Konstantin Dmitriev'
 
 from gettext import gettext as _
 from argparse import ArgumentParser
-import os.path
+from argparse import Action
+from argparse import SUPPRESS
+import os
+import sys
 
 from renderchan.core import RenderChan, __version__
 
+class FormatsAction(Action):
+    def __init__(self,
+                 option_strings,
+                 datadir=None,
+                 dest=SUPPRESS,
+                 default=SUPPRESS,
+                 help_message="show supported formats and exit"):
+        super(FormatsAction, self).__init__(
+            option_strings=option_strings,
+            dest=dest,
+            default=default,
+            nargs=0,
+            help=help_message)
+        self.datadir = datadir
 
-def process_args():
+    def __call__(self, parser, namespace, values, option_string=None):
+        actualstdout = sys.stdout
+        sys.stdout = open(os.devnull,'w')
+
+        renderchan = RenderChan()
+        if self.datadir:
+            renderchan.datadir = self.datadir
+
+        s = ""
+        for f in sorted(renderchan.modules.getAllInputFormats()):
+            s = s + "," + f if s else f
+        print(s, file=actualstdout)
+
+        parser.exit()
+
+def process_args(datadir):
     parser = ArgumentParser(description=_("Render a file in a RenderChan project."),
             epilog=_("For more information about RenderChan, visit https://morevnaproject.org/renderchan/"))
 
@@ -77,21 +109,21 @@ def process_args():
             help=_("Render all files in directory"))
 
     parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
+    parser.add_argument("--formats", action=FormatsAction, datadir=datadir)
 
     return parser.parse_args()
 
 
 def main(datadir, argv):
-    args = process_args()
+    args = process_args(datadir)
 
     filename = os.path.abspath(args.file)
 
     renderchan = RenderChan()
 
     renderchan.datadir = datadir
-
     renderchan.dry_run = args.dryRun
-
+    
     if args.profile:
         renderchan.setProfile(args.profile)
 
