@@ -317,8 +317,9 @@ class Launcher:
     def umount(self, targetDir):
         self.info(_("Unmount directory: ") + targetDir)
         self.runCommand(["umount", targetDir], raiseException = True)
-        self.mountedSources.remove( self.mountedSources[self.mountedDirs.index(targetDir)] )
-        self.mountedDirs.remove(targetDir)
+        index = self.mountedDirs.index(targetDir)
+        self.mountedSources.pop(index)
+        self.mountedDirs.pop(index)
 
     def umountAll(self):
         self.info(_("Unmount all"))
@@ -327,8 +328,8 @@ class Launcher:
                 self.umount(self.mountedDirs[0])
             except Exception as e:
                 self.error(_("Cannot unmount directory (%s), error %s") % (self.mountedDirs[0], str(e)))
-                self.mountedSources.remove(self.mountedSources[0])
-                self.mountedDirs.remove(self.mountedDirs[0])
+                self.mountedSources.pop(0)
+                self.mountedDirs.pop(0)
 
 
 class ConfigParser:
