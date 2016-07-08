@@ -85,6 +85,7 @@ class RenderChanSynfigModule(RenderChanModule):
             # Decode unicode characters
             info["dependencies"][i]=re.sub("&#x([a-zA-Z0-9]+)(;|(?=\s))", _decode_callback, info["dependencies"][i])
             info["dependencies"][i]=info["dependencies"][i].replace('%20',' ')
+            info["dependencies"][i]=info["dependencies"][i].split("#")[0]
 
             fullpath=os.path.abspath(os.path.join(dirname,info["dependencies"][i]))
             fallbackpath=os.path.join(dirname,os.path.basename(info["dependencies"][i]))
