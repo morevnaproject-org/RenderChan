@@ -87,7 +87,7 @@ class RenderChanProject():
         # PROJECT CACHE
 
         # Check for cache version
-        self.cache_version = 3
+        self.cache_version = 4
         cachepath = os.path.join(self.path, "render", "cache.sqlite")
         if not readonly:
             if os.path.exists(os.path.join(self.path, "render", "cache.version")):

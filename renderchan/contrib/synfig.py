@@ -67,7 +67,9 @@ class RenderChanSynfigModule(RenderChanModule):
         
         # Parse dependencies
         
-        # <param name="filename"><string>(dependency)</string></param
+        # <filename><string>(dependency)</string></filename>
+        info["dependencies"].extend(element.text for element in root.findall(".//filename/string"))
+        # <param name="filename"><string>(dependency)</string></param>
         info["dependencies"].extend(element.text for element in root.findall(".//param[@name='filename']/string"))
         # <param name="family"><string>(dependency)</string></param>
         info["dependencies"].extend(element.text for element in root.findall(".//param[@name='family']/string"))
