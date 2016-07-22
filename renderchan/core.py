@@ -772,7 +772,7 @@ class RenderChan():
 
         # Check if we really need to re-render
         uptodate=False
-        if compare_time:
+        if compare_time and not self.force:
             if os.path.exists(output+".done") and os.path.exists(output):
                 if float_trunc(os.path.getmtime(output+".done"),1) >= compare_time:
                     # Hurray! No need to re-render that piece.
