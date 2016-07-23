@@ -40,56 +40,58 @@ for f in paths:
 
         f = os.path.abspath(bpy.path.abspath(f))
 
-        projectroot = ""
-        for r in projectroots:
-            if f.startswith(os.path.join(r, "render")):
-                projectroot = r
-                break
-        if projectroot == "":
-            projectroot = get_project_root(os.path.dirname(f))
-            if projectroot != "":
-                projectroots.append(projectroot)
+        if not os.path.isdir(f):
 
-        if projectroot != "" and f.startswith(os.path.join(projectroot, "render")):
+            projectroot = ""
+            for r in projectroots:
+                if f.startswith(os.path.join(r, "render")):
+                    projectroot = r
+                    break
+            if projectroot == "":
+                projectroot = get_project_root(os.path.dirname(f))
+                if projectroot != "":
+                    projectroots.append(projectroot)
 
-            renderdir = os.path.join(projectroot, "render")
+            if projectroot != "" and f.startswith(os.path.join(projectroot, "render")):
 
-            # f = /projectroot/render/path.ext.png/file000x.png
-            # or
-            # f = /projectroot/render/path.ext.png
+                renderdir = os.path.join(projectroot, "render")
 
-            f2 = f.replace(renderdir, '', 1)[1:]
-            # f2 = path.ext.png/file000x.png
-            # or
-            # f2 = path.ext.png
+                # f = /projectroot/render/path.ext.png/file000x.png
+                # or
+                # f = /projectroot/render/path.ext.png
 
-            f2 = os.path.splitext(f2)[0]
-            f2 = os.path.join(projectroot, f2)
+                f2 = f.replace(renderdir, '', 1)[1:]
+                # f2 = path.ext.png/file000x.png
+                # or
+                # f2 = path.ext.png
 
-            # f2 = /projectroot/path.ext.png/file000x
-            # or
-            # f2 = /projectroot/path.ext
+                f2 = os.path.splitext(f2)[0]
+                f2 = os.path.join(projectroot, f2)
 
-            if ( not os.path.exists(f2) ) and \
-               ( os.path.exists(os.path.splitext(os.path.dirname(f2))[0]) ) and \
-               ( not os.path.isdir(os.path.splitext(os.path.dirname(f2))[0]) ):
-                    # f2 = /projectroot/path.ext.png/file000x
+                # f2 = /projectroot/path.ext.png/file000x
+                # or
+                # f2 = /projectroot/path.ext
 
-                    f = os.path.dirname(f)
-                    # f = /projectroot/render/path.ext.png
+                if ( not os.path.exists(f2) ) and \
+                   ( os.path.exists(os.path.splitext(os.path.dirname(f2))[0]) ) and \
+                   ( not os.path.isdir(os.path.splitext(os.path.dirname(f2))[0]) ):
+                        # f2 = /projectroot/path.ext.png/file000x
+
+                        f = os.path.dirname(f)
+                        # f = /projectroot/render/path.ext.png
+
+                        if not f in outputlist:
+                            outputlist.append(f)
+
+                else:
+                    # f2 = /projectroot/path.ext
 
                     if not f in outputlist:
                         outputlist.append(f)
 
             else:
-                # f2 = /projectroot/path.ext
-
                 if not f in outputlist:
                     outputlist.append(f)
-
-        else:
-            if not f in outputlist:
-                outputlist.append(f)
 
 for f in outputlist:
     print("RenderChan dependency: %s" % f)
