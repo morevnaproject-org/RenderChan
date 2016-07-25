@@ -39,13 +39,17 @@ class RenderChanSynfigModule(RenderChanModule):
                 return id
         
         def time_to_frames(time, fps):
-            fps = float(fps)
-            split = time.split(' ')
-            framesCount = 0
-            multiplier_map = { 'f': 1, 's': fps, 'm': fps*60, 'h': fps*60*60 }
-            for field in split:
-                framesCount += float(field[0:-1]) * float(multiplier_map[field[-1]])
-            return int(round(framesCount))
+            if time == None:
+                result = 0
+            else:
+                fps = float(fps)
+                split = time.split(' ')
+                framesCount = 0
+                multiplier_map = { 'f': 1, 's': fps, 'm': fps*60, 'h': fps*60*60 }
+                for field in split:
+                    framesCount += float(field[0:-1]) * float(multiplier_map[field[-1]])
+                result = int(round(framesCount))
+            return result
 
         info={ "dependencies":[], "width": 0, "height": 0 }
 
