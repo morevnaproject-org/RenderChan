@@ -2,6 +2,7 @@ __author__ = 'Ivan Mahonin'
 
 from gettext import gettext as _
 from argparse import ArgumentParser
+from renderchan.core import RenderChan
 import os
 import subprocess
 import math
@@ -12,6 +13,7 @@ class Thumbnailer:
         self.srcdir = os.path.abspath(".")
         self.renderdir = os.path.join(self.srcdir, "render")
         self.thumbdir = self.renderdir
+        self.coreDatadir = ""
         self.icons = {}
         self.width = 160
         self.height = 160
@@ -22,11 +24,86 @@ class Thumbnailer:
         
         self.created_dirs = {}
         self.removed_dirs = {}
+
+        self.dep_trees = {}
         
         self.check_executable(["ffmpeg",    "-version"], "FFMpeg")
         self.check_executable(["ffprobe",   "-version"], "FFMpeg")
         self.check_executable(["convert",   "-version"], "ImageMagick")
         self.check_executable(["composite", "-version"], "ImageMagick")
+    
+    def build_tree(self, rootdir, project_file):
+        renderchan = RenderChan()
+        renderchan.datadir = self.coreDatadir
+        renderchan.dry_run = True
+        renderchan.force = True
+        renderchan.track = True
+            
+        renderDir = os.path.join(rootdir, "render") + os.path.sep
+        formats = renderchan.modules.getAllInputFormats()
+    
+        dirs = [rootdir]
+        files = []
+        while len(dirs):
+            d = dirs.pop(0)
+            for f in sorted(os.listdir(d)):
+                file = os.path.join(d, f)
+                if f[0] == '.' or file[0:len(renderDir)] == renderDir:
+                    continue
+                if os.path.isfile(file):
+                    if os.path.splitext(file)[1][1:] in formats:
+                        files.append(file)
+                if os.path.isdir(file):
+                    dirs.append(file)
+                    
+        for file in files:
+            try:
+                renderchan.submit('render', file, False, False, False)
+            except:
+                while renderchan.trackedFilesStack:
+                    renderchan.trackFileEnd()
+        
+        tree = {}
+        for key, value in renderchan.trackedFiles.items():
+            newValue = {}
+            newValue["source"] = os.path.join(rootdir, value["source"])
+            newValue["deps"] = []
+            newValue["backDeps"] = []
+            for file in value["deps"]:
+                newValue["deps"].append( os.path.join(rootdir, file) )
+            for file in value["backDeps"]:
+                newValue["backDeps"].append( os.path.join(rootdir, file) )
+            tree[os.path.join(rootdir, key)] = newValue
+
+        return tree
+    
+    def build_full_deps(self, tree_key, key, depsKey, fullDepsKey):
+        if ( tree_key in self.dep_trees
+             and key in self.dep_trees[tree_key]
+             and fullDepsKey not in self.dep_trees[tree_key][key] ):
+            self.dep_trees[tree_key][key][fullDepsKey] = []
+            for dep in self.dep_trees[tree_key][key][depsKey]:
+                if dep not in self.dep_trees[tree_key][key][fullDepsKey]:
+                    self.dep_trees[tree_key][key][fullDepsKey].append(dep)
+                    if dep in self.dep_trees[tree_key]:
+                        self.build_full_deps(tree_key, dep, depsKey, fullDepsKey)
+                        for dd in self.dep_trees[tree_key][dep][fullDepsKey]:
+                            if dd not in self.dep_trees[tree_key][key][fullDepsKey]:
+                                self.dep_trees[tree_key][key][fullDepsKey].append(dd)
+
+    def get_dep_tree(self, filename):
+        if filename not in self.dep_trees:
+            project_file = os.path.join(filename, "project.conf")
+            if os.path.isfile(project_file):
+                self.dep_trees[filename] = self.build_tree(filename, project_file)
+                for k in self.dep_trees[filename]:
+                    self.build_full_deps(filename, k, "deps", "fullDeps")
+                    self.build_full_deps(filename, k, "backDeps", "fullBackDeps")
+            elif filename == "" or filename == os.path.sep:
+                self.dep_trees[filename] = {}
+            else:
+                self.dep_trees[filename] = self.get_dep_tree(os.path.dirname(filename))
+        return self.dep_trees[filename]
     
     def check_executable(self, command, comment):
         result = False
@@ -74,26 +151,29 @@ class Thumbnailer:
         dest = os.path.join(self.thumbdir, path + self.suffix) if path != "" else self.thumbdir + self.suffix
         icon = self.find_icon(src)
 
-        found = False
-        processed = False
-        success = True
-        
-        if not found:
-            found, processed, success = self.build_thumbnail(src, dest, icon)
-        if not found:
-            found, processed, success = self.build_thumbnail(render + ".png", dest, icon)
-        if not found:
-            found, processed, success = self.build_thumbnail(render + ".avi", dest, icon)
-        if not found:
-            if os.path.isdir(src):
-                for file in sorted(os.listdir(src)):
-                    self.build_thumbnails(os.path.join(path, file))
+        if os.path.isdir(src):
+            for file in sorted(os.listdir(src)):
+                self.build_thumbnails(os.path.join(path, file))
+
+        processed, success = self.build_thumbnail_any(src, render, dest, icon)
 
         if not success:
             print(_("Failed to create thumbnail(s) for: %s") % src)
         elif processed:
             print(_("Created thumbnail(s) for: %s") % src)
         return success
+
+    def build_thumbnail_any(self, src, render, dest, icon):
+        found = False
+        processed = False
+        success = True
+        if not found:
+            found, processed, success = self.build_thumbnail(src, dest, icon)
+        if not found:
+            found, processed, success = self.build_thumbnail(render + ".png", dest, icon)
+        if not found:
+            found, processed, success = self.build_thumbnail(render + ".avi", dest, icon)
+        return processed, success
 
     def build_thumbnail(self, src, dest, icon):
         if os.path.isfile(src) and src[-4:].lower() == ".png":
@@ -102,6 +182,8 @@ class Thumbnailer:
             return (True,) + self.build_thumbnail_png_sequence(src, dest, icon)
         elif os.path.isfile(src) and src[-4:].lower() == ".avi":
             return (True,) + self.build_thumbnail_avi(src, dest, icon)
+        elif os.path.isdir(src):
+            return (True,) + self.build_thumbnail_directory(src, dest, icon)
         return False, False, True
     
     def command_thumbnail(self, src = None, dest = None):
@@ -154,7 +236,7 @@ class Thumbnailer:
             return -1
 
     def create_directory(self, path):
-        if not os.path.isdir(path) and not path in self.created_dirs:
+        if not os.path.isdir(path) and path not in self.created_dirs:
             self.create_directory(os.path.dirname(path))
             print(_("Create directory: %s") % path)
             if self.dry_run:
@@ -166,6 +248,8 @@ class Thumbnailer:
         self.create_directory(os.path.dirname(path))
 
     def find_icon(self, path):
+        if os.path.isdir(path) and ".directory" in self.icons:
+            return self.icons[".directory"]
         for key in self.icons:
             if path[-len(key):].lower() == key:
                 return self.icons[key]
@@ -218,6 +302,54 @@ class Thumbnailer:
         return True, self.run_pipe([
             self.command_video_frame(src = src, seek = 0.5*duration),
             self.command_thumbnail(dest = dest) ])
+
+    def build_thumbnail_directory(self, src, dest, icon):
+        srcPrefix = src + os.path.sep
+        destPath = self.thumbdir + src[len(self.srcdir):]
+        renderPath = self.renderdir + src[len(self.srcdir):]
+        
+        tree = self.get_dep_tree(src)
+        bestFileSrc = None
+        bestFileRender = None
+        bestDepsCount = 0
+        bestBackDepsExists = False
+        
+        doAppend = True
+        files = []
+        for f in sorted(os.listdir(src)):
+            if doAppend:
+                files.append(f)
+            else:
+                files.insert(0, f)
+            doAppend = not doAppend 
+        
+        for f in files:
+            fileSrc = os.path.join(src, f)
+            fileDest = os.path.join(destPath, f + self.suffix)
+            fileRender = os.path.join(renderPath, f)
+            if os.path.isfile(fileDest):
+                depsCount = 0
+                backDepsExists = src == self.srcdir
+                if fileSrc in tree:
+                    for dep in tree[fileSrc]["fullDeps"]:
+                        if dep[0:len(srcPrefix)] == srcPrefix or dep[0:len(renderPath)] == renderPath:
+                            depsCount += 1
+                    for dep in tree[fileSrc]["backDeps"]:
+                        if dep[0:len(srcPrefix)] != srcPrefix and dep[0:len(renderPath)] != renderPath:
+                            backDepsExists = True
+                if ( not bestFileSrc
+                     or (bestFileSrc and bestBackDepsExists < backDepsExists)
+                     or (bestFileSrc and bestBackDepsExists == backDepsExists and bestDepsCount < depsCount) ):
+                    bestFileSrc = fileSrc
+                    bestFileRender = fileRender
+                    bestDepsCount = depsCount
+                    bestBackDepsExists = backDepsExists
+                    
+        if bestFileSrc:
+            #print(_("Main file for '%s' is '%s', deps %s, back-deps %s") % (src, bestFileSrc[len(src):], bestDepsCount, bestBackDepsExists))
+            return self.build_thumbnail_any(bestFileSrc, bestFileRender, dest, icon)
+        else:
+            return False, True 
 
 
 def process_args():
