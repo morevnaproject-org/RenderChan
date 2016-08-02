@@ -182,6 +182,8 @@ def main(datadir, argv):
                 print(_("Process file: %s") % (file))
                 renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
             except:
+                while renderchan.trackedFilesStack:
+                    renderchan.trackFileEnd()
                 print(_("Rendering failed for file: %s") % (file))
                 success = False
         return 0 if success else 1

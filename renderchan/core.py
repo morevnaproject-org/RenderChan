@@ -41,6 +41,7 @@ class RenderChan():
         self.force_proxy = False
         
         self.trackedFiles = {}
+        self.trackedFilesStack = []
 
         self.graph = None  # used by renderfarm
         # == taskgroups bug / commented ==
@@ -137,12 +138,13 @@ class RenderChan():
         """
 
         taskfile = RenderChanFile(filename, self.modules, self.projects)
-        self.trackFile(taskfile)
+        self.trackFileBegin(taskfile)
 
         if taskfile.project == None:
             print(file=sys.stderr)
             print("ERROR: Can't render a file which is not a part of renderchan project.", file=sys.stderr)
             print(file=sys.stderr)
+            self.trackFileEnd()
             return 1
         
         if not taskfile.module:
@@ -153,11 +155,13 @@ class RenderChan():
             else:
                 print("ERROR: The provided file does not have an extension.", file=sys.stderr)
             print(file=sys.stderr)
+            self.trackFileEnd()
             return 1
 
         if self.renderfarm_engine=="afanasy":
             if not os.path.exists(os.path.join(self.cgru_location,"afanasy")):
                 print("ERROR: Cannot render with afanasy, afanasy not found at cgru directory '%s'." % self.cgru_location, file=sys.stderr)
+                self.trackFileEnd()
                 return 1
             
             os.environ["CGRU_LOCATION"]=self.cgru_location
@@ -293,6 +297,8 @@ class RenderChan():
         else:
             # TODO: Render our Graph
             pass
+        
+        self.trackFileEnd()
 
 
     def addToGraph(self, taskfile, dependenciesOnly=False, allocateOnly=False):
@@ -342,21 +348,50 @@ class RenderChan():
         self.childTask = None
 
 
-    def trackFile(self, taskfile):
+    def trackFileBegin(self, taskfile):
         """
 
         :type taskfile: RenderChanFile
         """
         if self.track:
-            trackedFile = {}
-            trackedFile["source"]=taskfile.getPath()
-            self.trackedFiles[trackedFile["source"]] = trackedFile;
-    
-            if taskfile.project != None and os.path.exists(taskfile.project.confPath):
+            key = taskfile.getPath()
+            
+            if key not in self.trackedFiles:
                 trackedFile = {}
-                trackedFile["source"]=taskfile.project.confPath
-                self.trackedFiles[trackedFile["source"]] = trackedFile;
+                trackedFile["source"] = key
+                trackedFile["deps"] = []
+                trackedFile["backDeps"] = []
+                self.trackedFiles[key] = trackedFile;
+    
+            if self.trackedFilesStack:
+                parentKey = self.trackedFilesStack[-1]
+                if parentKey != key:
+                    if key not in self.trackedFiles[parentKey]["deps"]:
+                        self.trackedFiles[parentKey]["deps"].append(key)
+                    if parentKey not in self.trackedFiles[key]["backDeps"]:
+                        self.trackedFiles[key]["backDeps"].append(parentKey)
+            
+            self.trackedFilesStack.append(key)
 
+            if taskfile.project and key != taskfile.project.confPath and os.path.exists(taskfile.project.confPath):
+                projectKey = taskfile.project.confPath
+                if projectKey not in self.trackedFiles:
+                    trackedFile = {}
+                    trackedFile["source"] = projectKey
+                    trackedFile["deps"] = []
+                    trackedFile["backDeps"] = []
+                    self.trackedFiles[projectKey] = trackedFile;
+        
+                if projectKey not in self.trackedFiles[key]["deps"]:
+                    self.trackedFiles[key]["deps"].append(projectKey)
+                if key not in self.trackedFiles[projectKey]["backDeps"]:
+                    self.trackedFiles[projectKey]["backDeps"].append(key)
+
+                
+    def trackFileEnd(self):
+        if self.track:
+            self.trackedFilesStack.pop()
+    
     
     def parseRenderDependency(self, taskfile, allocateOnly, dryRun = False, force = False):
         """
@@ -365,6 +400,8 @@ class RenderChan():
         """
 
         # TODO: Re-implement this function in the same way as __not_used__syncProfileData() ?
+
+        self.trackFileBegin(taskfile)
 
         isDirty = False
 
@@ -391,7 +428,6 @@ class RenderChan():
 
         t.unlock()
 
-
         if not os.path.exists(taskfile.getProfileRenderPath()):
             # If no rendering exists, then obviously rendering is required
             isDirty = True
@@ -410,12 +446,8 @@ class RenderChan():
         # Mark this file as already parsed and thus its "dirty" value is known
         taskfile.isDirty=isDirty
 
-        self.trackFile(taskfile)
-        if dryRun:
-            return isDirty
-
         # If rendering is requested
-        if isDirty or force:
+        if not dryRun and (isDirty or force):
 
             # Make sure we have all directories created
             mkdirs(os.path.dirname(taskfile.getProfileRenderPath()))
@@ -577,6 +609,7 @@ class RenderChan():
                     if self.childTask!=None:
                         self.graph.addEdges( [(self.childTask, task)] )
 
+        self.trackFileEnd()
         return isDirty
     
 
@@ -585,6 +618,8 @@ class RenderChan():
 
         :type taskfile: RenderChanFile
         """
+
+        self.trackFileBegin(taskfile)
 
         isDirty=False
         tasklist=[]
@@ -652,7 +687,7 @@ class RenderChan():
 
                     if dep_isDirty:
                         # Let's return submitted task into tasklist
-                        if not dependency.taskPost in tasklist:
+                        if dependency.taskPost not in tasklist:
                             tasklist.append(dependency.taskPost)
                         # Increase maxTime, because re-rendering of dependency will take place
                         maxTime=time.time()
@@ -687,7 +722,7 @@ class RenderChan():
                         isDirty = isDirty or dep_isDirty
                         maxTime = max(maxTime, dep_maxTime)
                         for task in dep_tasklist:
-                            if not task in tasklist:
+                            if task not in tasklist:
                                 tasklist.append(task)
 
             if not isDirty and not force:
@@ -711,7 +746,7 @@ class RenderChan():
 
             taskfile.pending=False
 
-        self.trackFile(taskfile)
+        self.trackFileEnd()
         return (isDirty, list(tasklist), maxTime)
 
     def updateCompletion(self, value):
@@ -1110,7 +1145,7 @@ class Attribution():
                 for author in metadata.authors:
                     if author not in self.freesound_items:
                         self.freesound_items[author]=[]
-                    if not metadata.title in self.freesound_items[author]:
+                    if metadata.title not in self.freesound_items[author]:
                         self.freesound_items[author].append(metadata.title)
             if not metadata.license == None:
                 if metadata.license not in self.licenses:
