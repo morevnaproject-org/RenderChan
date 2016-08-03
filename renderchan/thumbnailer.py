@@ -26,6 +26,7 @@ class Thumbnailer:
         self.removed_dirs = {}
 
         self.dep_trees = {}
+        self.dep_tree_roots = []
         
         self.check_executable(["ffmpeg",    "-version"], "FFMpeg")
         self.check_executable(["ffprobe",   "-version"], "FFMpeg")
@@ -95,6 +96,7 @@ class Thumbnailer:
         if filename not in self.dep_trees:
             project_file = os.path.join(filename, "project.conf")
             if os.path.isfile(project_file):
+                self.dep_tree_roots.append(filename)
                 self.dep_trees[filename] = self.build_tree(filename, project_file)
                 for k in self.dep_trees[filename]:
                     self.build_full_deps(filename, k, "deps", "fullDeps")
@@ -173,6 +175,8 @@ class Thumbnailer:
             found, processed, success = self.build_thumbnail(render + ".png", dest, icon)
         if not found:
             found, processed, success = self.build_thumbnail(render + ".avi", dest, icon)
+        if not found and src != self.srcdir and os.path.isdir(src):
+            found, processed, success = (True,) + self.build_thumbnail_directory(src, dest, icon)
         return processed, success
 
     def build_thumbnail(self, src, dest, icon):
@@ -182,8 +186,6 @@ class Thumbnailer:
             return (True,) + self.build_thumbnail_png_sequence(src, dest, icon)
         elif os.path.isfile(src) and src[-4:].lower() == ".avi":
             return (True,) + self.build_thumbnail_avi(src, dest, icon)
-        elif os.path.isdir(src):
-            return (True,) + self.build_thumbnail_directory(src, dest, icon)
         return False, False, True
     
     def command_thumbnail(self, src = None, dest = None):
@@ -309,6 +311,8 @@ class Thumbnailer:
         renderPath = self.renderdir + src[len(self.srcdir):]
         
         tree = self.get_dep_tree(src)
+        root = src in self.dep_tree_roots
+        
         bestFileSrc = None
         bestFileRender = None
         bestDepsCount = 0
@@ -329,7 +333,7 @@ class Thumbnailer:
             fileRender = os.path.join(renderPath, f)
             if os.path.isfile(fileDest):
                 depsCount = 0
-                backDepsExists = src == self.srcdir
+                backDepsExists = root
                 if fileSrc in tree:
                     for dep in tree[fileSrc]["fullDeps"]:
                         if dep[0:len(srcPrefix)] == srcPrefix or dep[0:len(renderPath)] == renderPath:
