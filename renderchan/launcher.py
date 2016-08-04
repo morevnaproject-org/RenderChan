@@ -159,6 +159,8 @@ class Launcher:
                     self.projectCommands = []
                 elif command[0] == "run":
                     self.runProjects()
+                elif command[0] == "run-global-cmd":
+                    self.runCommand(command[1], self.user, self.sourceDir)
                 else:
                     self.error(_("Unknown key: ") + command[0])
         except:
