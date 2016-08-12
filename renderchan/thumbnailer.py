@@ -3,9 +3,11 @@ __author__ = 'Ivan Mahonin'
 from gettext import gettext as _
 from argparse import ArgumentParser
 from renderchan.core import RenderChan
+from renderchan.utils import ini_wrapper
 import os
 import subprocess
 import math
+import configparser
 
 
 class Thumbnailer:
@@ -313,11 +315,19 @@ class Thumbnailer:
         tree = self.get_dep_tree(src)
         root = src in self.dep_tree_roots
         
+        mainfile = None
+        inifile = os.path.join(src, "view.conf")
+        if os.path.isfile(inifile):
+            config = configparser.ConfigParser()
+            config.read_file(ini_wrapper(inifile), inifile)
+            mainfile = config.get("default", "main", fallback=None)
+
         bestFileSrc = None
         bestFileRender = None
-        bestDepsCount = 0
+        bestIsMain = False 
         bestBackDepsExists = False
-        
+        bestDepsCount = 0
+
         doAppend = True
         files = []
         for f in sorted(os.listdir(src)):
@@ -332,6 +342,7 @@ class Thumbnailer:
             fileDest = os.path.join(destPath, f + self.suffix)
             fileRender = os.path.join(renderPath, f)
             if os.path.isfile(fileDest):
+                isMain = f == mainfile
                 depsCount = 0
                 backDepsExists = root
                 if fileSrc in tree:
@@ -342,12 +353,14 @@ class Thumbnailer:
                         if dep[0:len(srcPrefix)] != srcPrefix and dep[0:len(renderPath)] != renderPath:
                             backDepsExists = True
                 if ( not bestFileSrc
-                     or (bestFileSrc and bestBackDepsExists < backDepsExists)
-                     or (bestFileSrc and bestBackDepsExists == backDepsExists and bestDepsCount < depsCount) ):
+                     or (bestFileSrc and bestIsMain < isMain)
+                     or (bestFileSrc and bestIsMain == isMain and not bestBackDepsExists < backDepsExists)
+                     or (bestFileSrc and bestIsMain == isMain and bestBackDepsExists == backDepsExists and bestDepsCount < depsCount) ):
                     bestFileSrc = fileSrc
                     bestFileRender = fileRender
-                    bestDepsCount = depsCount
+                    bestIsMain = isMain
                     bestBackDepsExists = backDepsExists
+                    bestDepsCount = depsCount
                     
         if bestFileSrc:
             #print(_("Main file for '%s' is '%s', deps %s, back-deps %s") % (src, bestFileSrc[len(src):], bestDepsCount, bestBackDepsExists))
