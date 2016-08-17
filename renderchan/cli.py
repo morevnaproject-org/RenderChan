@@ -107,6 +107,14 @@ def process_args(datadir):
             action="store_true",
             default=False,
             help=_("Render all files in directory"))
+    parser.add_argument("--pack", dest="pack",
+            action="store_true",
+            default=False,
+            help=_("Pack the file and all its dependencies into zip file (saved in the current working directory)."))
+    parser.add_argument("--print", dest="print",
+            action="store_true",
+            default=False,
+            help=_("Print all dependencies for given file."))
 
     parser.add_argument("--version", "-v", action='version', version=_("RenderChan version %s") % __version__)
     parser.add_argument("--formats", action=FormatsAction, datadir=datadir)
@@ -118,6 +126,7 @@ def main(datadir, argv):
     args = process_args(datadir)
 
     filename = os.path.abspath(args.file)
+    action = "render"
 
     renderchan = RenderChan()
 
@@ -152,8 +161,18 @@ def main(datadir, argv):
     if args.snapshot_to:
         renderchan.snapshot_path = args.snapshot_to
     
-    if args.force:
-        renderchan.force = args.force
+    renderchan.force = args.force
+
+    if args.pack:
+        renderchan.dry_run = True
+        #renderchan.force = True
+        renderchan.track = True
+        action = "pack"
+    elif args.print:
+        renderchan.dry_run = True
+        #renderchan.force = True
+        renderchan.track = True
+        action = "print"
 
     if args.forceProxy:
         renderchan.force_proxy = args.forceProxy
@@ -180,7 +199,7 @@ def main(datadir, argv):
         for file in files:
             try:
                 print(_("Process file: %s") % (file))
-                renderchan.submit('render', file, args.dependenciesOnly, args.allocateOnly, args.stereo)
+                renderchan.submit(action, file, args.dependenciesOnly, args.allocateOnly, args.stereo)
             except:
                 while renderchan.trackedFilesStack:
                     renderchan.trackFileEnd()
@@ -188,4 +207,4 @@ def main(datadir, argv):
                 success = False
         return 0 if success else 1
 
-    return renderchan.submit('render', filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
+    return renderchan.submit(action, filename, args.dependenciesOnly, args.allocateOnly, args.stereo)

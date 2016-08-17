@@ -15,6 +15,7 @@ from renderchan.utils import is_true_string
 import os, time
 import shutil
 import subprocess
+import zipfile
 
 class RenderChan():
     def __init__(self):
@@ -158,145 +159,194 @@ class RenderChan():
             self.trackFileEnd()
             return 1
 
-        if self.renderfarm_engine=="afanasy":
-            if not os.path.exists(os.path.join(self.cgru_location,"afanasy")):
-                print("ERROR: Cannot render with afanasy, afanasy not found at cgru directory '%s'." % self.cgru_location, file=sys.stderr)
-                self.trackFileEnd()
-                return 1
-            
-            os.environ["CGRU_LOCATION"]=self.cgru_location
-            os.environ["AF_ROOT"]=os.path.join(self.cgru_location,"afanasy")
-            sys.path.insert(0, os.path.join(self.cgru_location,"lib","python"))
-            sys.path.insert(0, os.path.join(self.cgru_location,"afanasy","python"))
+        if action =="print":
 
-            from af import Job as AfanasyJob
-            from af import Block as AfanasyBlock
-            self.AfanasyBlockClass=AfanasyBlock
-            self.graph = AfanasyJob('RenderChan - %s - %s' % (taskfile.localPath, taskfile.projectPath))
-
-        elif self.renderfarm_engine=="puli":
-            from puliclient import Graph
-            self.graph = Graph( 'RenderChan graph', poolName="default" )
-
-        last_task = None
-
-        if stereo in ("vertical","v","vertical-cross","vc","horizontal","h","horizontal-cross","hc"):
-
-            # Left eye graph
-            self.setStereoMode("left")
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
-            if self.renderfarm_engine!="":
-                self.childTask = taskfile.taskPost
+            print()
+            for file in self.trackedFiles.values():
+                print("File: "+file["source"])
+            print()
 
-            # Right eye graph
-            self.setStereoMode("right")
+            # Close cache
+            for path in self.projects.list.keys():
+                self.projects.list[path].cache.close()
+
+        elif action =="pack":
+
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
-            # Stitching altogether
-            if self.renderfarm_engine=="":
-                self.job_merge_stereo(taskfile, stereo)
-            elif self.renderfarm_engine=="afanasy":
+            list = []
+            for file in self.trackedFiles.values():
+                list.append(file["source"])
 
-                name = "StereoPost - %f" % ( time.time() )
-                block = self.AfanasyBlockClass(name, 'generic')
-                block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() ))
-                if taskfile.taskPost!=None:
-                    block.setDependMask(taskfile.taskPost)
-                block.setNumeric(1,1,100)
-                block.setCapacity(100)
+            commonpath = os.path.commonpath(list)
+            #for i,c in enumerate(list):
+            #    list[i]=c[len(commonpath)+1:]
+            #    print(list[i])
 
-                self.graph.blocks.append(block)
+            print()
 
-                last_task = name
+            zipname = os.path.basename(taskfile.getPath())+'.zip'
+
+            if os.path.exists(os.path.join(os.getcwd(),zipname)):
+                print("ERROR: File "+os.path.join(os.getcwd(),zipname)+" already exists.")
+                exit()
+
+
+            with zipfile.ZipFile(zipname, 'x') as myzip:
+                for i,c in enumerate(list):
+                    myzip.write(c, c[len(commonpath)+1:])
+
+
+            print("Written "+os.path.join(os.getcwd(),zipname)+".")
+            print()
+
+            # Close cache
+            for path in self.projects.list.keys():
+                self.projects.list[path].cache.close()
+
+        elif action =="render":
+
+            if self.renderfarm_engine=="afanasy":
+                if not os.path.exists(os.path.join(self.cgru_location,"afanasy")):
+                    print("ERROR: Cannot render with afanasy, afanasy not found at cgru directory '%s'." % self.cgru_location, file=sys.stderr)
+                    self.trackFileEnd()
+                    return 1
+
+                os.environ["CGRU_LOCATION"]=self.cgru_location
+                os.environ["AF_ROOT"]=os.path.join(self.cgru_location,"afanasy")
+                sys.path.insert(0, os.path.join(self.cgru_location,"lib","python"))
+                sys.path.insert(0, os.path.join(self.cgru_location,"afanasy","python"))
+
+                from af import Job as AfanasyJob
+                from af import Block as AfanasyBlock
+                self.AfanasyBlockClass=AfanasyBlock
+                self.graph = AfanasyJob('RenderChan - %s - %s' % (taskfile.localPath, taskfile.projectPath))
 
             elif self.renderfarm_engine=="puli":
+                from puliclient import Graph
+                self.graph = Graph( 'RenderChan graph', poolName="default" )
 
-                runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
+            last_task = None
 
-                # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
-                stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
+            if stereo in ("vertical","v","vertical-cross","vc","horizontal","h","horizontal-cross","hc"):
 
-                # Dummy task
-                #decomposer = "puliclient.contrib.generic.GenericDecomposer"
-                #params={ "cmd":"echo", "start":1, "end":1, "packetSize":1, "prod":"test", "shot":"test" }
-                #dummyTask = self.graph.addNewTask( name="StereoDummy", arguments=params, decomposer=decomposer )
-
-                # == taskgroups bug / commented ==
-                #self.graph.addEdges( [(self.taskgroupLeft, self.taskgroupRight)] )
-                #self.graph.addEdges( [(self.taskgroupRight, stereoTask)] )
-                #self.graph.addChain( [self.taskgroupLeft, dummyTask, self.taskgroupRight, stereoTask] )
-                if taskfile.taskPost!=None:
-                    self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
-
-                last_task = stereoTask
-
-        else:
-            if stereo in ("left","l"):
+                # Left eye graph
                 self.setStereoMode("left")
-            elif stereo in ("right","r"):
+                self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+
+                if self.renderfarm_engine!="":
+                    self.childTask = taskfile.taskPost
+
+                # Right eye graph
                 self.setStereoMode("right")
-            self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+                self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
-            last_task = taskfile.taskPost
+                # Stitching altogether
+                if self.renderfarm_engine=="":
+                    self.job_merge_stereo(taskfile, stereo)
+                elif self.renderfarm_engine=="afanasy":
 
-        # Snapshot
-        if self.snapshot_path:
-            if stereo in ("vertical","v","horizontal","h"):
-                snapshot_source = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+os.path.splitext(taskfile.getRenderPath())[1]
+                    name = "StereoPost - %f" % ( time.time() )
+                    block = self.AfanasyBlockClass(name, 'generic')
+                    block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() ))
+                    if taskfile.taskPost!=None:
+                        block.setDependMask(taskfile.taskPost)
+                    block.setNumeric(1,1,100)
+                    block.setCapacity(100)
+
+                    self.graph.blocks.append(block)
+
+                    last_task = name
+
+                elif self.renderfarm_engine=="puli":
+
+                    runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
+
+                    # Add parent task which composes results and places it into valid destination
+                    command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
+                    stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
+
+                    # Dummy task
+                    #decomposer = "puliclient.contrib.generic.GenericDecomposer"
+                    #params={ "cmd":"echo", "start":1, "end":1, "packetSize":1, "prod":"test", "shot":"test" }
+                    #dummyTask = self.graph.addNewTask( name="StereoDummy", arguments=params, decomposer=decomposer )
+
+                    # == taskgroups bug / commented ==
+                    #self.graph.addEdges( [(self.taskgroupLeft, self.taskgroupRight)] )
+                    #self.graph.addEdges( [(self.taskgroupRight, stereoTask)] )
+                    #self.graph.addChain( [self.taskgroupLeft, dummyTask, self.taskgroupRight, stereoTask] )
+                    if taskfile.taskPost!=None:
+                        self.graph.addEdges( [(taskfile.taskPost, stereoTask)] )
+
+                    last_task = stereoTask
+
             else:
-                snapshot_source = taskfile.getProfileRenderPath()
+                if stereo in ("left","l"):
+                    self.setStereoMode("left")
+                elif stereo in ("right","r"):
+                    self.setStereoMode("right")
+                self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
+
+                last_task = taskfile.taskPost
+
+            # Snapshot
+            if self.snapshot_path:
+                if stereo in ("vertical","v","horizontal","h"):
+                    snapshot_source = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+os.path.splitext(taskfile.getRenderPath())[1]
+                else:
+                    snapshot_source = taskfile.getProfileRenderPath()
 
 
-            if self.renderfarm_engine=="":
+                if self.renderfarm_engine=="":
 
-                self.job_snapshot(snapshot_source, self.snapshot_path)
+                    self.job_snapshot(snapshot_source, self.snapshot_path)
 
-            elif self.renderfarm_engine=="afanasy":
+                elif self.renderfarm_engine=="afanasy":
 
-                name = "Snapshot - %f" % ( time.time() )
-                block = self.AfanasyBlockClass(name, 'generic')
-                block.setCommand("renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source,  self.snapshot_path))
-                if last_task!=None:
-                    block.setDependMask(last_task)
-                block.setNumeric(1,1,100)
-                block.setCapacity(50)
+                    name = "Snapshot - %f" % ( time.time() )
+                    block = self.AfanasyBlockClass(name, 'generic')
+                    block.setCommand("renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source,  self.snapshot_path))
+                    if last_task!=None:
+                        block.setDependMask(last_task)
+                    block.setNumeric(1,1,100)
+                    block.setCapacity(50)
 
-                self.graph.blocks.append(block)
+                    self.graph.blocks.append(block)
+
+                elif self.renderfarm_engine=="puli":
+
+                    runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
+
+                    # Add parent task which composes results and places it into valid destination
+                    command = "renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source, self.snapshot_path)
+                    snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
+
+                    if last_task!=None:
+                        self.graph.addEdges( [(last_task, snapshotTask)] )
+
+
+            # Make sure to close cache before submitting job to renderfarm
+            for path in self.projects.list.keys():
+                self.projects.list[path].cache.close()
+
+            # Submit job to renderfarm
+            if self.renderfarm_engine=="afanasy":
+
+                # Wait a moment to make sure cache is closed properly
+                # (this allows to avoid issues with shared nfs drives)
+                time.sleep(1)
+
+                self.graph.output(True)
+                self.graph.send()
 
             elif self.renderfarm_engine=="puli":
+                self.graph.submit(self.renderfarm_host, self.renderfarm_port)
 
-                runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
-
-                # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source, self.snapshot_path)
-                snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
-
-                if last_task!=None:
-                    self.graph.addEdges( [(last_task, snapshotTask)] )
-
-
-        # Make sure to close cache before submitting job to renderfarm
-        for path in self.projects.list.keys():
-            self.projects.list[path].cache.close()
-
-        # Submit job to renderfarm
-        if self.renderfarm_engine=="afanasy":
-
-            # Wait a moment to make sure cache is closed properly
-            # (this allows to avoid issues with shared nfs drives)
-            time.sleep(1)
-
-            self.graph.output(True)
-            self.graph.send()
-
-        elif self.renderfarm_engine=="puli":
-            self.graph.submit(self.renderfarm_host, self.renderfarm_port)
-
-        else:
-            # TODO: Render our Graph
-            pass
+            else:
+                # TODO: Render our Graph
+                pass
         
         self.trackFileEnd()
 
