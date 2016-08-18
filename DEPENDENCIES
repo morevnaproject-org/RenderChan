@@ -1,0 +1,17 @@
+== Mandatory: ==
+python3
+python3-sqlite
+ffmpeg
+sox
+zip
+
+== Optional: ==
+flac
+mpg123
+vorbis
+synfig
+blender
+krita
+pencil2d
+gimp
+inkscape
