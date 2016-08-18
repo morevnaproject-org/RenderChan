@@ -683,11 +683,11 @@ class RenderChan():
         # and thus rendering should take place no matter what).
         maxTime = taskfile.getTime()
 
+        taskfile.pending=True  # we need this to avoid circular dependencies
+
         if not taskfile.isFrozen() or force:
 
             deps = taskfile.getDependencies()
-
-            taskfile.pending=True  # we need this to avoid circular dependencies
 
             for path in deps:
                 path = os.path.abspath(path)
@@ -767,7 +767,7 @@ class RenderChan():
                             maxTime=timestamp
 
                 else:
-                    # No, this is an ordinary dependency
+                        # No, this is an ordinary dependency
                         (dep_isDirty, dep_tasklist, dep_maxTime) = self.parseDirectDependency(dependency, compareTime, dryRun, force)
                         isDirty = isDirty or dep_isDirty
                         maxTime = max(maxTime, dep_maxTime)
@@ -794,7 +794,40 @@ class RenderChan():
                 if timestamp>maxTime:
                     maxTime=timestamp
 
-            taskfile.pending=False
+        # Parse pack.lst and FILENAME.pack.lst files
+        if taskfile.projectPath:
+
+            deps = []
+
+            # pack.lst
+            check_path = os.path.dirname(taskfile.getPath())
+            while len(check_path) >= len(taskfile.projectPath):
+                path = os.path.join(check_path,"pack.lst")
+                if os.path.exists(path) and not path in self.loadedFiles.keys():
+                    deps.append(path)
+                check_path = os.path.dirname(check_path)
+
+            # FILENAME.pack.lst
+            path = taskfile.getPath()+".pack.lst"
+            if os.path.exists(path) and not path in self.loadedFiles.keys():
+                deps.append(path)
+
+
+            for path in deps:
+                dependency = RenderChanFile(path, self.modules, self.projects)
+                self.loadedFiles[dependency.getPath()]=dependency
+
+                # NOTE: We don't need to modify dirty state of our taskfile, because
+                # packed data shouldn't trigger additional rendering. This is also why
+                # we don't store any returned values from parseDirectDependency().
+                # We still need to call parseDirectDependency() to make sure the
+                # dependencies of pack.lst will get added to self.trackedFiles.
+                self.parseDirectDependency(dependency, compareTime, dryRun, force)
+
+
+        taskfile.pending=False
+
+
 
         self.trackFileEnd()
         return (isDirty, list(tasklist), maxTime)
