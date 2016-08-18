@@ -253,8 +253,12 @@ class RenderChanFile():
             else:
                 format=self.project.getConfig(key)
         # Check if format is supported by the module
-        if not format in self.module.getOutputFormats():
-            format=self.module.getOutputFormats()[0]
+        supported_formats = self.module.getOutputFormats()
+        if not format in supported_formats:
+            if supported_formats:
+                format=supported_formats[0]
+            else:
+                format=""
         return format
 
     def getParams(self, force_proxy):
