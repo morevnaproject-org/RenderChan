@@ -430,7 +430,7 @@ class RenderChan():
                     trackedFile["source"] = projectKey
                     trackedFile["deps"] = []
                     trackedFile["backDeps"] = []
-                    self.trackedFiles[projectKey] = trackedFile;
+                    self.trackedFiles[projectKey] = trackedFile
         
                 if projectKey not in self.trackedFiles[key]["deps"]:
                     self.trackedFiles[key]["deps"].append(projectKey)
