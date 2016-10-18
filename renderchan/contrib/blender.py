@@ -43,7 +43,12 @@ class RenderChanBlenderModule(RenderChanModule):
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         while True:
-            line = out.stdout.readline().decode("utf-8")
+            line = out.stdout.readline()
+            try:
+                line = line.decode(sys.stdout.encoding)
+            except:
+                # In some files we hit weird strings, not handled properly by utf-8. Here goes a faillback.
+                line = line.decode('latin-1')
             if not line:
                 break
             #print line,
@@ -142,7 +147,8 @@ class RenderChanBlenderModule(RenderChanModule):
         rc = None
         currentFrame = None
         while rc is None:
-            line = out.stdout.readline().decode("utf-8")
+            line = out.stdout.readline()
+            line = line.decode(sys.stdout.encoding)
             if not line:
                 break
             print(line, end=' ')
