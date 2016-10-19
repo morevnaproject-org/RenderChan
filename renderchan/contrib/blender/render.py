@@ -147,20 +147,30 @@ def main():
             sce.cycles.device = 'CPU'
         elif params[GPU_DEVICE]!="":
             print("Cycles: GPU configuration found")
-            bpy.context.user_preferences.system.compute_device_type = 'CUDA'
-            if params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
+            error=False
+
+            if 'CUDA' in bpy.context.user_preferences.system.compute_device_type:
+                bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+            else:
+                error = True
+                print("ERROR: Cannot activate CUDA.")
+
+            if not error and params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
                 bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
             else:
+                error = True
                 # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
-                print(file=sys.stderr)
-                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE], file=sys.stderr)
-                print(file=sys.stderr)
+                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
+                print()
                 print("Available devices:")
                 for device in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
                     print("   * %s\n" % device)
                 print()
 
-            sce.cycles.device = 'GPU'
+            if not error:
+                sce.cycles.device = 'GPU'
+            else:
+                sce.cycles.device = 'CPU'
 
         # Optimize tiles for speed depending on rendering device
         # See tip #3 at http://www.blenderguru.com/4-easy-ways-to-speed-up-cycles/
@@ -175,6 +185,7 @@ def main():
             sce.render.tile_x = 64
             sce.render.tile_y = 64
             sce.cycles.debug_use_spatial_splits = True
+        print()
 
         #sce.cycles.use_cache = True   # Cache BVH
         sce.cycles.debug_bvh_type = 'STATIC_BVH'
