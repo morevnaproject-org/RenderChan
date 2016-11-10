@@ -151,7 +151,7 @@ def main(datadir, argv):
                 print("WARNING: The --port parameter cannot be set for this type of renderfarm.")
 
         if args.cgru_location:
-            args.cgru_location = args.cgru_location
+            renderchan.cgru_location = args.cgru_location
     else:
         if args.host:
             print("WARNING: No renderfarm type given. Ignoring --host parameter.")
