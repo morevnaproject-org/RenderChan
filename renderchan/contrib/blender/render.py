@@ -124,6 +124,9 @@ def main():
         sce.render.views[alt_side].file_suffix = "_"+alt_side
         sce.render.views_format == 'INDIVIDUAL'
 
+    else:
+        sce.render.use_multiview = False
+
     rend = sce.render
 
     rend.resolution_percentage = 100
