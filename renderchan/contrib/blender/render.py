@@ -41,10 +41,9 @@ def main():
 
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
-    
-    uses_builtin_stereo = "use_multiview" in dir(sce.render) and sce.render.use_multiview
 
-    if params[STEREO_CAMERA] != "" and not uses_builtin_stereo:
+    # Search for old camera simulation first
+    if params[STEREO_CAMERA] != "":
         found=False
 
         for ob in sce.objects:
@@ -72,10 +71,6 @@ def main():
             if len(cameras) < 1:
                 print("Error: Cannot render, no camera in file " + bpy.data.filepath, file=sys.stderr)
                 exit(1)
-            elif len(cameras) == 1:
-                print("Warning: Stereo specified, but only one camera found. Using camera for both sides.")
-                sce.camera = cameras[0]
-                found = True
             else:
                 selected_camera = find_camera(cameras, sce.camera.name, prefixes, suffixes)
             
@@ -105,24 +100,30 @@ def main():
                     sce.camera = selected_camera
                     found = True
 
+
         if not found:
-            print(prefixes)
-            print(suffixes)
-            print([c.name for c in cameras])
-            print(sce.camera.name)
-            print("Error: Could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath, file=sys.stderr)
-            exit(1)
 
-    elif params[STEREO_CAMERA] != "" and uses_builtin_stereo:
+            have_builtin_stereo = "use_multiview" in dir(sce.render)
 
-        side = params[STEREO_CAMERA]
-        alt_side = "left" if side == "right" else "right"
+            if have_builtin_stereo:
+                # Use native blender
+                sce.render.use_multiview = True
+                side = params[STEREO_CAMERA]
+                alt_side = "left" if side == "right" else "right"
 
-        sce.render.views[side].use = True
-        sce.render.views[alt_side].use = False
-        sce.render.views[side].file_suffix = ""
-        sce.render.views[alt_side].file_suffix = "_"+alt_side
-        sce.render.views_format == 'INDIVIDUAL'
+                sce.render.views[side].use = True
+                sce.render.views[alt_side].use = False
+                sce.render.views[side].file_suffix = ""
+                sce.render.views[alt_side].file_suffix = "_"+alt_side
+                sce.render.views_format == 'INDIVIDUAL'
+            else:
+                print(prefixes)
+                print(suffixes)
+                print([c.name for c in cameras])
+                print(sce.camera.name)
+                print("Error: Could not find " + params[STEREO_CAMERA] + " camera for the stereo render of " + bpy.data.filepath, file=sys.stderr)
+                exit(1)
+
 
     else:
         sce.render.use_multiview = False
