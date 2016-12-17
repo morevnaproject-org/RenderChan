@@ -42,8 +42,11 @@ def main():
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
 
-    # Search for old camera simulation first
+    have_builtin_stereo = "use_multiview" in dir(sce.render)
+
     if params[STEREO_CAMERA] != "":
+
+        # Search for old camera simulation first
         found=False
 
         for ob in sce.objects:
@@ -101,10 +104,12 @@ def main():
                     found = True
 
 
-        if not found:
+        if found:
+            # We use old method, disable multiview
+            if have_builtin_stereo:
+                sce.render.use_multiview = False
 
-            have_builtin_stereo = "use_multiview" in dir(sce.render)
-
+        else:
             if have_builtin_stereo:
                 # Use native blender
                 sce.render.use_multiview = True
@@ -126,7 +131,8 @@ def main():
 
 
     else:
-        sce.render.use_multiview = False
+        if have_builtin_stereo:
+            sce.render.use_multiview = False
 
     rend = sce.render
 
