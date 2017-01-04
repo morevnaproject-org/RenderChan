@@ -82,14 +82,16 @@ def touch(path, timevalue=None):
     basedir = os.path.dirname(path)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    if not os.path.exists(path):
+    try:
         with open(path, 'a'):
             os.utime(path, (timevalue, timevalue))
-    else:
+    except:
         (f, tmppath) = tempfile.mkstemp()
-        os.utime(tmppath, (timevalue, timevalue))
         try:
-            shutil.copystat(tmppath, path)
+            shutil.copy2(path, tmppath)
+            os.utime(tmppath, (timevalue, timevalue))
+            os.remove(path)
+            shutil.copy2(tmppath, path)
         except:
             os.remove(tmppath)
             raise Exception("Unable to set timestamp for %s." % path)
