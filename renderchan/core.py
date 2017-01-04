@@ -922,10 +922,10 @@ class RenderChan():
                                format,
                                updateCompletion,
                                params)
-                touch(output+".done",compare_time)
+                touch(output + ".done", compare_time)
                 if "extract_alpha" in params and is_true_string(params["extract_alpha"]):
                     alpha_output = os.path.splitext(output)[0] + "-alpha" + os.path.splitext(output)[1]
-                    touch(alpha_output+".done",compare_time)
+                    touch(alpha_output + ".done", compare_time)
 
                 # TODO: Release file lock here
 

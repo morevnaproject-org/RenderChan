@@ -6,6 +6,7 @@ import time
 import threading
 import io
 import shutil
+import tempfile
 
 if os.name == 'nt':
     import ctypes
@@ -85,7 +86,14 @@ def touch(path, timevalue=None):
         with open(path, 'a'):
             os.utime(path, (timevalue, timevalue))
     else:
-        os.utime(path, (timevalue, timevalue))
+        (f, tmppath) = tempfile.mkstemp()
+        os.utime(tmppath, (timevalue, timevalue))
+        try:
+            shutil.copystat(tmppath, path)
+        except:
+            os.remove(tmppath)
+            raise Exception("Unable to set timestamp for %s." % path)
+        os.remove(tmppath)
 
 def file_is_older_than(path, seconds):
     return (time.time()-os.path.getmtime(path))>seconds
@@ -155,7 +163,7 @@ def sync(profile_output, output, compareTime=None):
                         raise Exception('ERROR: Cannot sync profile data.')
 
             # Remember the time of the last sync
-            touch(profile_output+".sync", time.time())
+            touch(profile_output + ".sync", time.time())
 
     elif os.path.exists(output):
         if os.path.isdir(output):
