@@ -68,22 +68,27 @@ class RenderChanBlenderModule(RenderChanModule):
             print('  Blender command failed...')
 
         return info
-    
+
     def replace(self, filename, oldPath, newPath):
         oldPath = os.path.normpath(os.path.normcase(oldPath))
-        
-        with open(os.path.join(os.path.dirname(__file__),"blender","render.py")) as f:
+
+        with open(os.path.join(os.path.dirname(__file__),"blender","replace.py")) as f:
             script=f.read()
         script=script=script.replace("params[OLD_PATH]", oldPath)\
            .replace("params[NEW_PATH]", newPath)
         with tempfile.TemporaryFile as f:
             f.write(script)
-            
+
             env = os.environ.copy()
             env["PYTHONPATH"] = ""
-            commandline = [self.conf['binary'], "-b",filename, "-P",script]
-            commandline.append("-y")   # Enable automatic script execution
-            p = subprocess.Popen(commandline, env=env)
+            commandlineMain = [self.conf['binary'], "-b",filename, "-P",f]
+            commandlineMain.append("-y")   # Enable automatic script execution
+            commandlineMerge = [self.conf['binary'], "-b",filename, "-P",os.path.join(os.path.dirname(__file__),"blender","smartmerge.py")]
+            commandlineMerge.append("-y")   # Enable automatic script execution
+            p = subprocess.Popen(commandlineMain, env=env)
+            if p.wait():
+                return False
+            p = subprocess.Popen(commandlineMerge, env=env)
             return not p.wait()
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
