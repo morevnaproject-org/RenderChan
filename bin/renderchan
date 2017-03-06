@@ -19,7 +19,7 @@ def _configure_python_path():
     global localedir
 
     if not os.path.exists(localedir):
-        dir = os.path.dirname(os.path.abspath(__file__))
+        dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
         if os.path.exists(os.path.join(os.path.dirname(dir), 'renderchan', '__init__.py')):
             root = os.path.dirname(dir)
             localedir = os.path.join(root, 'locale')
