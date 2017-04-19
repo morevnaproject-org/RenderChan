@@ -1248,6 +1248,11 @@ class Attribution():
         print("== Licenses ==")
         print(", ".join(self.licenses.keys()))
         print()
-
+        print("== Files sorted by license ==")
+        for license in self.licenses.keys():
+            print(license+":")
+            for file in self.licenses[license]:
+                print("   "+file)
+        print()
 
 
