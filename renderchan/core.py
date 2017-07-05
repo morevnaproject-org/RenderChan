@@ -196,6 +196,7 @@ class RenderChan():
 
             with zipfile.ZipFile(zipname, 'x') as myzip:
                 for i,c in enumerate(list):
+                    print("Zipping file: "+c)
                     myzip.write(c, c[len(commonpath)+1:])
 
 
