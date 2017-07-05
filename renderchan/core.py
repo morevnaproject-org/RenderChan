@@ -709,7 +709,7 @@ class RenderChan():
                                 print("   Creating an empty placeholder for %s..." % path)
                                 mkdirs(os.path.dirname(path))
                                 shutil.copy(placeholder, path)
-                                t = time.mktime(time.strptime('01.01.1960 00:00:00', '%d.%m.%Y %H:%M:%S'))
+                                t = time.mktime(time.strptime('01.01.1981 00:00:00', '%d.%m.%Y %H:%M:%S'))
                                 os.utime(path,(t,t))
                             else:
                                 print("   Skipping file %s..." % path)
