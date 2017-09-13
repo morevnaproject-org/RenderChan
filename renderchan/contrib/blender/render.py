@@ -241,6 +241,8 @@ def main():
         rend.ffmpeg.format = "H264"
         rend.ffmpeg.use_lossless_output=True
         #rend.ffmpeg.audio_codec="AAC"
+        
+    bpy.ops.sound.bake_animation()
 
     # Update .blend file if permitted and we have width or height changed
     if update and ( size_x != rend.resolution_x or size_y != rend.resolution_y or fps != rend.fps ):
@@ -250,7 +252,7 @@ def main():
     #audio_found = False
     #for path in bpy.utils.blend_paths(0):
     #    if path.endswith(".wav"):
-    #        bpy.ops.sound.mixdown(filepath=params[AUDIOFILE], check_existing=False, container="WAV")
+    #        bpy.ops.sound.mixdown(filepath=params[AUDIOFILE], check_existing=False, container="WAV", codec='PCM', accuracy=32, format='S32')
     #        break
 
 if __name__ == '__main__':
