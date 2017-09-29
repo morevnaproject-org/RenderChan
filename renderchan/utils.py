@@ -6,7 +6,6 @@ import time
 import threading
 import io
 import shutil
-import tempfile
 
 if os.name == 'nt':
     import ctypes
@@ -82,20 +81,11 @@ def touch(path, timevalue=None):
     basedir = os.path.dirname(path)
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    try:
+    if not os.path.exists(path):
         with open(path, 'a'):
             os.utime(path, (timevalue, timevalue))
-    except:
-        (f, tmppath) = tempfile.mkstemp()
-        try:
-            shutil.copy2(path, tmppath)
-            os.utime(tmppath, (timevalue, timevalue))
-            os.remove(path)
-            shutil.copy2(tmppath, path)
-        except:
-            os.remove(tmppath)
-            raise Exception("Unable to set timestamp for %s." % path)
-        os.remove(tmppath)
+    else:
+        os.utime(path, (timevalue, timevalue))
 
 def file_is_older_than(path, seconds):
     return (time.time()-os.path.getmtime(path))>seconds
