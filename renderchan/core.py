@@ -1059,6 +1059,7 @@ class RenderChan():
                 touch(output, float(compare_time))
 
         except:
+            print("ERROR: Merge operation failed.", file=sys.stderr)
             for lock in locks:
                 lock.unlock()
             exit(1)
