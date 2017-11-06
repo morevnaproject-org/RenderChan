@@ -43,6 +43,11 @@ class RenderChan():
 
         # Action. Possible values - render (default), print, pack, clean
         self.action = "render"
+
+        # Option, which determines if RenderChan should create placeholders for missing files
+        # TODO: This option is not possible to set via commandline at this moment.
+        # TODO: Allow to configure how to deal with missing files: create empty placeholder (default), create warning placeholder, none or raise exception.
+        self.recreateMissing = False
         
         self.force_proxy = False
         
@@ -704,8 +709,7 @@ class RenderChan():
                 else:
                     dependency = RenderChanFile(path, self.modules, self.projects)
                     if not os.path.exists(dependency.getPath()):
-                        # TODO: Add an option to specify how to deal with missing files: create empty placeholder (default), create warning placeholder, none (most likely throw an erros) or raise exception.
-                        if ( not os.path.exists(path) ) and ( dependency.projectPath!='' ):
+                        if self.recreateMissing and dependency.projectPath!='':
                             # Let's look if we have a placeholder template
                             ext = os.path.splitext(path)[1]
                             placeholder = os.path.join(self.datadir, "missing", "empty" + ext)
