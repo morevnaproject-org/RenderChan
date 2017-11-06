@@ -40,7 +40,16 @@ class RenderChanListModule(RenderChanModule):
             if i==0 and line.startswith("FPS "):
                 pass
             else:
-                info["dependencies"].append(os.path.join(dir,line.strip()))
+                path=os.path.join(dir,line.strip())
+                if os.path.isdir(path):
+                    print("is dir")
+                    for root, dirs, files in os.walk(path):
+                        for file in files:
+                            info["dependencies"].append(os.path.join(root, file))
+                else:
+                    print("is file")
+                    info["dependencies"].append(path)
+
         f.close()
 
         return info
