@@ -139,8 +139,9 @@ class RenderChanProject():
         if needCleanup and os.path.exists(os.path.join(self.path,'render',localedir)):
             print("The language data is inconsistent in %s. Cleaning..." % os.path.join(self.path,'render',localedir))
             shutil.rmtree(os.path.join(self.path,'render',localedir))
-            mkdirs(os.path.join(self.path,'render',localedir))
-            shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
+            if os.path.exists(os.path.join(self.path,localedir)):
+                mkdirs(os.path.join(self.path,'render',localedir))
+                shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
 
         # Project configuration
 
