@@ -352,9 +352,7 @@ class RenderChanProject():
         localedir = "locale"
         localedirpath = os.path.join(self.path, localedir)
         current_language = ''
-        if not os.path.exists(os.path.join(localedirpath,'lang.conf')):
-            print("Warning: The \"locale\" directory isn't configured for localization.")
-        else:
+        if os.path.exists(os.path.join(localedirpath,'lang.conf')):
             with open(os.path.join(localedirpath,'lang.conf'), 'r') as f:
                 current_language = f.readline().strip()
         return current_language
