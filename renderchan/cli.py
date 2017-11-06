@@ -126,7 +126,6 @@ def main(datadir, argv):
     args = process_args(datadir)
 
     filename = os.path.abspath(args.file)
-    action = "render"
 
     renderchan = RenderChan()
 
@@ -167,12 +166,12 @@ def main(datadir, argv):
         renderchan.dry_run = True
         #renderchan.force = True
         renderchan.track = True
-        action = "pack"
+        renderchan.action = "pack"
     elif args.print:
         renderchan.dry_run = True
         #renderchan.force = True
         renderchan.track = True
-        action = "print"
+        renderchan.action = "print"
 
     if args.forceProxy:
         renderchan.force_proxy = args.forceProxy
@@ -199,7 +198,7 @@ def main(datadir, argv):
         for file in files:
             try:
                 print(_("Process file: %s") % (file))
-                renderchan.submit(action, file, args.dependenciesOnly, args.allocateOnly, args.stereo)
+                renderchan.submit(file, args.dependenciesOnly, args.allocateOnly, args.stereo)
             except:
                 while renderchan.trackedFilesStack:
                     renderchan.trackFileEnd()
@@ -207,4 +206,4 @@ def main(datadir, argv):
                 success = False
         return 0 if success else 1
 
-    return renderchan.submit(action, filename, args.dependenciesOnly, args.allocateOnly, args.stereo)
+    return renderchan.submit(filename, args.dependenciesOnly, args.allocateOnly, args.stereo)

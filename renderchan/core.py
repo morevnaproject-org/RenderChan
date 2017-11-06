@@ -17,6 +17,8 @@ import shutil
 import subprocess
 import zipfile
 
+
+#TODO: This class actually should be named something like RenderChanJob (this better reflects its purpose)
 class RenderChan():
     def __init__(self):
 
@@ -38,6 +40,9 @@ class RenderChan():
         self.dry_run = False
         self.force = False
         self.track = False
+
+        # Action. Possible values - render (default), print, pack, clean
+        self.action = "render"
         
         self.force_proxy = False
         
@@ -124,11 +129,9 @@ class RenderChan():
         self.projects.profile=profile
         self.projects.stereo=stereo
 
-    def submit(self, action, filename, dependenciesOnly=False, allocateOnly=False, stereo=""):
+    def submit(self, filename, dependenciesOnly=False, allocateOnly=False, stereo=""):
 
         """
-        :param action: Possible values - render (default), parse, [pack], [clean]
-        :type action: str
         :param filename:
         :type filename: str
         :param dependenciesOnly:
@@ -147,7 +150,7 @@ class RenderChan():
             print(file=sys.stderr)
             self.trackFileEnd()
             return 1
-        
+
         if not taskfile.module:
             print(file=sys.stderr)
             extension = os.path.splitext(taskfile.getPath())[1]
@@ -159,7 +162,7 @@ class RenderChan():
             self.trackFileEnd()
             return 1
 
-        if action =="print":
+        if self.action =="print":
 
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
@@ -172,7 +175,7 @@ class RenderChan():
             for path in self.projects.list.keys():
                 self.projects.list[path].cache.close()
 
-        elif action =="pack":
+        elif self.action =="pack":
 
             self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
@@ -207,7 +210,7 @@ class RenderChan():
             for path in self.projects.list.keys():
                 self.projects.list[path].cache.close()
 
-        elif action =="render":
+        elif self.action =="render":
 
             if self.renderfarm_engine=="afanasy":
                 if not os.path.exists(os.path.join(self.cgru_location,"afanasy")):
@@ -348,7 +351,7 @@ class RenderChan():
             else:
                 # TODO: Render our Graph
                 pass
-        
+
         self.trackFileEnd()
 
 
@@ -800,18 +803,19 @@ class RenderChan():
 
             deps = []
 
-            # pack.lst
-            check_path = os.path.dirname(taskfile.getPath())
-            while len(check_path) >= len(taskfile.projectPath):
-                path = os.path.join(check_path,"pack.lst")
+            if self.action == "pack":
+                # pack.lst
+                check_path = os.path.dirname(taskfile.getPath())
+                while len(check_path) >= len(taskfile.projectPath):
+                    path = os.path.join(check_path,"pack.lst")
+                    if os.path.exists(path) and not path in self.loadedFiles.keys():
+                        deps.append(path)
+                    check_path = os.path.dirname(check_path)
+
+                # FILENAME.pack.lst
+                path = taskfile.getPath()+".pack.lst"
                 if os.path.exists(path) and not path in self.loadedFiles.keys():
                     deps.append(path)
-                check_path = os.path.dirname(check_path)
-
-            # FILENAME.pack.lst
-            path = taskfile.getPath()+".pack.lst"
-            if os.path.exists(path) and not path in self.loadedFiles.keys():
-                deps.append(path)
 
 
             for path in deps:
