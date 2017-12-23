@@ -1,1 +1,1 @@
-python2 "%~dp0\renderchan" %*
+python "%~dp0\renderchan" %*
