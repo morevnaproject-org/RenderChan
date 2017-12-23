@@ -28,17 +28,27 @@ class RenderChanPencil2dModule(RenderChanModule):
         self.extraParams["startFrame"]="1"
         self.extraParams["endFrame"]="last"
 
-        # The CLI features depend on the version
-        with tempfile.TemporaryDirectory() as tmpPath:
-            # The exporting of a fake file is a workaround for older versions which just start the program when passed only -v
-            versionProc = subprocess.run(["pencil2d", tmpPath, "-v", "--export-sequence", "test"], stdout=subprocess.PIPE)
-        if versionProc.returncode != 0:
-            # Some old version which doesn't support the -v flag
-            self.version = StrictVersion('0.5.4')
-        else:
-            # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
-            #print(type(versionProc.stdout.rstrip().decode("utf-8").split(" "))
-            self.version = StrictVersion(versionProc.stdout.decode("utf-8").rstrip().split(" ")[-1])
+        self.version=StrictVersion('0.5.4') #default value
+
+    def checkRequirements(self):
+        RenderChanModule.checkRequirements(self)
+        if self.active:
+            # The CLI features depend on the version
+            with tempfile.TemporaryDirectory() as tmpPath:
+                # The exporting of a fake file is a workaround for older versions which just start the program when passed only -v
+                versionProc = subprocess.run([self.conf['binary'], tmpPath, "-v", "--export-sequence", "test"], stdout=subprocess.PIPE)
+            if versionProc.returncode != 0:
+                # Some old version which doesn't support the -v flag
+                self.version = StrictVersion('0.5.4')
+            else:
+                try:
+                    # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
+                    #print(type(versionProc.stdout.rstrip().decode("utf-8").split(" "))
+                    self.version = StrictVersion(versionProc.stdout.decode("utf-8").rstrip().split(" ")[-1])
+                except:
+                    self.version = StrictVersion('0.5.4')
+
+        return self.active
 
     def analyze(self, filename):
         info={ "dependencies":[] }
