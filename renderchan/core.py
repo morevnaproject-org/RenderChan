@@ -70,8 +70,8 @@ class RenderChan():
 
         self.ffmpeg_binary = ''
         if os.name == 'nt':
-            ffmpeg_path = os.path.join(os.path.dirname(__file__),"..\\..\\ffmpeg\\bin\\ffmpeg.exe")
-            avconv_path = os.path.join(os.path.dirname(__file__),"..\\..\\avconv\\bin\\avconv.exe")
+            ffmpeg_path = os.path.join(os.path.dirname(__file__),"..\\..\\packages\\ffmpeg\\bin\\ffmpeg.exe")
+            avconv_path = os.path.join(os.path.dirname(__file__),"..\\..\\packages\\avconv\\bin\\avconv.exe")
         else:
             ffmpeg_path = 'ffmpeg'
             avconv_path = 'avconv'

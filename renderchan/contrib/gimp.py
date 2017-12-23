@@ -13,7 +13,7 @@ class RenderChanGimpModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\gimp\\gimp.exe")
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\gimp\\gimp.exe")
         else:
             self.conf['binary']="gimp"
         self.conf["packetSize"]=0

@@ -13,7 +13,7 @@ class RenderChanSynfigModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\synfig\\bin\\synfig.exe")
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\synfig\\bin\\synfig.exe")
         else:
             self.conf['binary']="synfig"
         self.conf["packetSize"]=100

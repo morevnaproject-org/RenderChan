@@ -12,7 +12,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\blender\\blender.exe")
+            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\blender\\blender.exe")
         else:
             self.conf['binary']="blender"
         self.conf["packetSize"]=40
