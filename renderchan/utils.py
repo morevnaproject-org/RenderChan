@@ -136,26 +136,27 @@ def sync(profile_output, output, compareTime=None):
                             os.remove(output)
                     except:
                         pass
-                try:
-                    if os.name == 'nt':
-                        kdll.CreateSymbolicLinkA(profile_output, output, 0)
-                    else:
-                        os.link(profile_output, output)
-                except:
-                    print("Warning: Cannot create a symlink.")
-                    if os.name == 'nt':
-                        print("    Note for Windows users: ")
-                        print("    This feature requires Windows Vista or above.")
-                        print("    Your account should have privilege for creating symlinks,")
-                        print("    see http://stackoverflow.com/a/8464306 for details.")
-                        print("    Alternatively, you can run RenderChan with administrator privileges.")
+                
+                if os.name == 'nt':
                     try:
                         shutil.copyfile(profile_output, output)
                     except:
-                        raise Exception('ERROR: Cannot sync profile data.')
+                            raise Exception('ERROR: Cannot sync profile data.')
+                else:
+                    try:
+                        os.link(profile_output, output)
+                    except:
+                        print("Warning: Cannot create a symlink.")
+                        try:
+                            shutil.copyfile(profile_output, output)
+                        except:
+                            raise Exception('ERROR: Cannot sync profile data.')
 
-            # Remember the time of the last sync
-            touch(profile_output + ".sync", time.time())
+                if not os.path.exists(output):
+                    raise Exception('ERROR: Failed to sync profile data.')
+
+                # Remember the time of the last sync
+                touch(profile_output + ".sync", time.time())
 
     elif os.path.exists(output):
         if os.path.isdir(output):
