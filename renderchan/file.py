@@ -48,7 +48,10 @@ class RenderChanFile():
             sourcepath = self.getPath()
             if os.path.exists(sourcepath):
 
-                output_str=os.path.relpath(path)
+                try:
+                    output_str=os.path.relpath(path)
+                except:
+                    output_str=path
                 if len(output_str)>60:
                     output_str="..."+output_str[-60:]
                 print(". Analyzing file: %s" % output_str)
