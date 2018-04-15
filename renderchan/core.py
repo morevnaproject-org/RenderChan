@@ -941,7 +941,8 @@ class RenderChan():
             except:
                 for lock in locks:
                     lock.unlock()
-                exit(1)
+                print("Unexpected error:", sys.exc_info()[0])
+                raise
 
             # Releasing PROJECT LOCK
             for lock in locks:
