@@ -7,6 +7,7 @@ import gzip
 import os, sys
 import errno
 import re
+import locale
 from xml.etree import ElementTree
 
 class RenderChanSynfigModule(RenderChanModule):
@@ -158,10 +159,13 @@ class RenderChanSynfigModule(RenderChanModule):
         rc = None
         #currentFrame = None
         while rc is None:
-            line = out.stdout.readline().decode("utf-8")
+            #line = out.stdout.readline().decode("utf-8")
+            line = out.stdout.readline().decode(locale.getpreferredencoding())
+            #line = out.stdout.readline()
             if not line:
                 break
-            print(line, end=' ')
+            #print(line, end=' ')
+            sys.stdout.buffer.write(line.encode(locale.getpreferredencoding()))
             sys.stdout.flush()
             fn = frameNumberPattern.search(line)
             if fn:

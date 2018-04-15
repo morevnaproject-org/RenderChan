@@ -1,5 +1,5 @@
 == Mandatory: ==
-python3
+python3 >= 3.6
 python3-sqlite
 ffmpeg
 sox
