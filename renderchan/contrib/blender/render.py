@@ -237,10 +237,18 @@ def main():
     if params[FORMAT] == "png":
         rend.image_settings.file_format = "PNG"
     elif params[FORMAT] == "avi":
-        rend.image_settings.file_format = "H264"
-        rend.ffmpeg.format = "H264"
-        rend.ffmpeg.use_lossless_output=True
-        #rend.ffmpeg.audio_codec="AAC"
+        if (2, 79, 0) < bpy.app.version:
+            rend.image_settings.file_format = "H264"
+            rend.ffmpeg.format = "H264"
+            rend.ffmpeg.use_lossless_output=True
+            #rend.ffmpeg.audio_codec="AAC"
+        else:
+            rend.image_settings.file_format = "FFMPEG"
+            rend.ffmpeg.format = "AVI"
+            rend.ffmpeg.codec='H264'
+            rend.ffmpeg.constant_rate_factor='LOSSLESS'
+            rend.ffmpeg.use_lossless_output=True
+            rend.ffmpeg.audio_codec='PCM'
         
     bpy.ops.sound.bake_animation()
 
