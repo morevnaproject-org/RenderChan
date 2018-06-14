@@ -259,7 +259,7 @@ class RenderChan():
 
                     name = "StereoPost - %f" % ( time.time() )
                     block = self.AfanasyBlockClass(name, 'generic')
-                    block.setCommand("renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() ))
+                    block.setCommand("renderchan-job-launcher \"%s\" --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() ))
                     if taskfile.taskPost!=None:
                         block.setDependMask(taskfile.taskPost)
                     block.setNumeric(1,1,100)
@@ -274,7 +274,7 @@ class RenderChan():
                     runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                     # Add parent task which composes results and places it into valid destination
-                    command = "renderchan-job-launcher %s --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
+                    command = "renderchan-job-launcher \"%s\" --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
                     stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                     # Dummy task
@@ -316,7 +316,7 @@ class RenderChan():
 
                     name = "Snapshot - %f" % ( time.time() )
                     block = self.AfanasyBlockClass(name, 'generic')
-                    block.setCommand("renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source,  self.snapshot_path))
+                    block.setCommand("renderchan-job-launcher \"%s\" --action snapshot --target-dir %s" % ( snapshot_source,  self.snapshot_path))
                     if last_task!=None:
                         block.setDependMask(last_task)
                     block.setNumeric(1,1,100)
@@ -329,7 +329,7 @@ class RenderChan():
                     runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                     # Add parent task which composes results and places it into valid destination
-                    command = "renderchan-job-launcher %s --action snapshot --target-dir %s" % ( snapshot_source, self.snapshot_path)
+                    command = "renderchan-job-launcher \"%s\" --action snapshot --target-dir %s" % ( snapshot_source, self.snapshot_path)
                     snapshotTask = self.graph.addNewTask( name="Snapshot: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                     if last_task!=None:
@@ -559,7 +559,7 @@ class RenderChan():
 
                 # Render block
 
-                command = "renderchan-job-launcher %s --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
                 if taskfile.getPacketSize()>0:
@@ -599,7 +599,7 @@ class RenderChan():
 
 
 
-                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                command = "renderchan-job-launcher \"%s\" --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
 
@@ -640,7 +640,7 @@ class RenderChan():
                 runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                 # Add parent task which composes results and places it into valid destination
-                command = "renderchan-job-launcher %s --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                command = "renderchan-job-launcher \"%s\" --action merge --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
                 taskfile.taskPost=graph_destination.addNewTask( name="Post: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
@@ -651,10 +651,10 @@ class RenderChan():
                     end=range[1]
                     if start!=None and end!=None:
                         segment_name = "Render: %s (%s-%s)" % (taskfile.localPath, start, end)
-                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, start, end, compare_time )
+                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, start, end, compare_time )
                     else:
                         segment_name = "Render: %s" % (taskfile.localPath)
-                        command = "renderchan-job-launcher %s --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
                     if self.projects.stereo!="":
                         command += " --stereo %s" % (self.projects.stereo)
 
