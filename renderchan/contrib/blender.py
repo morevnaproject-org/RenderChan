@@ -39,7 +39,7 @@ class RenderChanBlenderModule(RenderChanModule):
 
         env=os.environ.copy()
         env["PYTHONPATH"]=""
-        commandline=[self.conf['binary'], "-b",filename, "-P",script]
+        commandline=[self.conf['binary'], "-b",filename, "-P",script, "-setaudio", "OPENAL"]
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         while True:
@@ -127,7 +127,7 @@ class RenderChanBlenderModule(RenderChanModule):
         env=os.environ.copy()
         env["PYTHONPATH"]=""
 
-        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath]
+        commandline=[self.conf['binary'], "-b",filename, "-S","Scene", "-P",renderscript, "-o",outputPath, "-setaudio", "OPENAL"]
         commandline.append("-y")   # Enable automatic script execution
         if extraParams["single"]=="None":
             commandline.append("-x")
