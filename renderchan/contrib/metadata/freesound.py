@@ -51,8 +51,10 @@ def parse(filename):
         return metadata
 
     sound_id = a[0]
+    # This is actually a dirty hack. Need to figure out a way to properly use Freesound's API
     user = a[1].replace("-","_")
     user_alt = a[1].replace("-","%20")
+    user_alt2 = a[1].replace("-",".")
 
     if True:
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
@@ -66,6 +68,17 @@ def parse(filename):
 
     if error!=None:
         user = user_alt
+        url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
+        print("Fetching data from %s ..." % url)
+        error = None
+        req = Request(url)
+        try:
+            f = urlopen(req)
+        except HTTPError as e:
+            error = e.code
+    
+    if error!=None:
+        user = user_alt2
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
         print("Fetching data from %s ..." % url)
         error = None
