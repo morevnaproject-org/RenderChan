@@ -8,9 +8,7 @@ from distutils.version import StrictVersion
 import subprocess
 import tempfile
 import os
-import re
-import random
-from zipfile import ZipFile
+import time
 from xml.etree import ElementTree
 
 class RenderChanPencil2dModule(RenderChanModule):
@@ -36,17 +34,22 @@ class RenderChanPencil2dModule(RenderChanModule):
             # The CLI features depend on the version
             with tempfile.TemporaryDirectory() as tmpPath:
                 # The exporting of a fake file is a workaround for older versions which just start the program when passed only -v
-                versionProc = subprocess.run([self.conf['binary'], tmpPath, "-v", "--export-sequence", "test"], stdout=subprocess.PIPE)
+                versionProc = subprocess.run([self.conf['binary'], "-v", "--export-sequence", os.path.join(tmpPath,"test")], stdout=subprocess.PIPE, timeout=5)
             if versionProc.returncode != 0:
                 # Some old version which doesn't support the -v flag
                 self.version = StrictVersion('0.5.4')
             else:
                 try:
                     # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
-                    #print(type(versionProc.stdout.rstrip().decode("utf-8").split(" "))
-                    self.version = StrictVersion(versionProc.stdout.decode("utf-8").rstrip().split(" ")[-1])
+                    self.version = versionProc.stdout.rstrip().decode("utf-8").split(" ")[-1]
+                    self.version = ".".join(self.version.split(".")[0:3])
+                    self.version = StrictVersion(self.version)
                 except:
                     self.version = StrictVersion('0.5.4')
+
+            if self.version <= StrictVersion('0.5.4'):
+                print("WARNING: You are using an outdated version of Pencil2D (<=0.5.4), which may result in unpredictable behaviour and troubles. Please consider to get latest version at https://www.pencil2d.org/.")
+                time.sleep(5)
 
         return self.active
 

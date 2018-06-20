@@ -31,6 +31,7 @@ class RenderChanModuleManager():
 
         module = moduleClass()
         module.loadConfiguration()
+        print("Loading module: " + name + "...")
         if not module.checkRequirements():
             print("Warning: Unable load module - %s." % (name))
         self.list[name]=module
