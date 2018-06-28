@@ -53,7 +53,7 @@ class RenderChanPencil2dModule(RenderChanModule):
                 self.active = False
 
             if self.active == False:
-                print("WARNING: The version of Pencil2D on your system is unsupported or too old. Please consider to get latest version at https://www.pencil2d.org/.")
+                print("WARNING: Failed to initialize Pencil2D module. The possible reasons for that could be: missing X connection, or the version of Pencil2D on your system is unsupported (too old?). In latter case please consider to get latest version at https://www.pencil2d.org/.")
 
         return self.active
 
