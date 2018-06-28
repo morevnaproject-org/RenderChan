@@ -34,22 +34,26 @@ class RenderChanPencil2dModule(RenderChanModule):
             # The CLI features depend on the version
             with tempfile.TemporaryDirectory() as tmpPath:
                 # The exporting of a fake file is a workaround for older versions which just start the program when passed only -v
-                versionProc = subprocess.run([self.conf['binary'], "-v", "--export-sequence", os.path.join(tmpPath,"test")], stdout=subprocess.PIPE, timeout=5)
-            if versionProc.returncode != 0:
-                # Some old version which doesn't support the -v flag
-                self.version = StrictVersion('0.5.4')
-            else:
+                proc = subprocess.Popen([self.conf['binary'], "-v", "--export-sequence", os.path.join(tmpPath,"test")], stdout=subprocess.PIPE)
+                try:
+                    outs, errs = proc.communicate(timeout=5)
+                except TimeoutExpired:
+                    proc.kill()
+                    outs, errs = proc.communicate()
+                rc = proc.poll()
+            if rc == 0:
                 try:
                     # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
-                    self.version = versionProc.stdout.rstrip().decode("utf-8").split(" ")[-1]
+                    self.version = outs.rstrip().decode("utf-8").split(" ")[-1]
                     self.version = ".".join(self.version.split(".")[0:3])
                     self.version = StrictVersion(self.version)
                 except:
-                    self.version = StrictVersion('0.5.4')
+                    self.active = False
+            else:
+                self.active = False
 
-            if self.version <= StrictVersion('0.5.4'):
-                print("WARNING: You are using an outdated version of Pencil2D (<=0.5.4), which may result in unpredictable behaviour and troubles. Please consider to get latest version at https://www.pencil2d.org/.")
-                time.sleep(5)
+            if self.active == False:
+                print("WARNING: The version of Pencil2D on your system is unsupported or too old. Please consider to get latest version at https://www.pencil2d.org/.")
 
         return self.active
 
