@@ -570,10 +570,21 @@ class RenderChan():
                 else:
                     name = "%s - %s - %f" % ( taskfile.localPath, taskfile.projectPath, time.time() )
 
-                if taskfile.module.getName() in ("blender"):
-                    blocktype=taskfile.module.getName()
-                else:
-                    blocktype="generic"
+                # Afanasy uses his own algorythms to parse output  for the modules it supports.
+                # For example, it terminates rendering process if Blender complains for missing library 
+                # file.
+                # This behaviour is not desirable, since it can confuse users : file rendered succesfully
+                # with RenderChan in standalone mode, but fails to render on Renderfarm. So, I have diabled 
+                # blocktype assigment below.
+                # Food for thought: In the future we need to think on how to handle integrity check on 
+                # our own.
+                # Food for thought: SHould we make blocktype assigment an option?
+                #
+                #if taskfile.module.getName() in ("blender"):
+                #    blocktype=taskfile.module.getName()
+                #else:
+                #    blocktype="generic"
+                blocktype="generic"
 
 
                 block = self.AfanasyBlockClass(name, blocktype)
