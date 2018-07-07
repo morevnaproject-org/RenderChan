@@ -55,6 +55,8 @@ def parse(filename):
     user = a[1].replace("-","_")
     user_alt = a[1].replace("-","%20")
     user_alt2 = a[1].replace("-",".")
+    user_alt3 = a[1]
+    user_alt4 = a[1].replace("-",".")+"."
 
     if True:
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
@@ -79,6 +81,29 @@ def parse(filename):
     
     if error!=None:
         user = user_alt2
+        url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
+        print("Fetching data from %s ..." % url)
+        error = None
+        req = Request(url)
+        try:
+            f = urlopen(req)
+        except HTTPError as e:
+            error = e.code
+            
+            
+    if error!=None:
+        user = user_alt3
+        url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
+        print("Fetching data from %s ..." % url)
+        error = None
+        req = Request(url)
+        try:
+            f = urlopen(req)
+        except HTTPError as e:
+            error = e.code
+            
+    if error!=None:
+        user = user_alt4
         url = "http://www.freesound.org/people/%s/sounds/%s/" % (user, sound_id)
         print("Fetching data from %s ..." % url)
         error = None
