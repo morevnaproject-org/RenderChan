@@ -318,7 +318,7 @@ class RenderChanProject():
             with open(filename) as f:
                 for line in f:
                     line = line.strip()
-                    if not line in self.frozenPaths:
+                    if line and not line in self.frozenPaths:
                         self.frozenPaths.append(line)
 
     def saveFrozenPaths(self):
