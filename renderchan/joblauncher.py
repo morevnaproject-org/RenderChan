@@ -37,6 +37,17 @@ def process_args():
     parser.add_option("--target-dir", dest="snapshot_target",
             action="store", default=None,
             help=_("Target directory for snapshots."))
+    # This is necessary for correct handling of multi-project rendering.
+    # The option specifies which parent project this job been called from.
+    # The child projects always inherit settings of parent project.
+    # But when job-launcher is called we need to know which project was parent at
+    # the moment when job was created. Otherwise we will have different render settings ->
+    # which lead to configuration file overwrite -> job will fail reporting that module
+    # some files were changed (module configuration file).
+    # So, this is why we need --active-project option.
+    parser.add_option("--active-project", dest="active_project",
+            action="store", default=None,
+            help=_("Active project to inherit options from."))
 
     options, args = parser.parse_args()
 
@@ -65,6 +76,10 @@ def main(argv):
         renderchan.setStereoMode("left")
     elif options.stereo in ("right","r"):
         renderchan.setStereoMode("right")
+
+    if options.active_project:
+        renderchan.projects.load(options.active_project)
+
     if options.compare_time:
         compare_time=float(options.compare_time)
     else:

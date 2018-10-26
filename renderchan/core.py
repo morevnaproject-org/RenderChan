@@ -274,7 +274,7 @@ class RenderChan():
                     runner = "puliclient.contrib.commandlinerunner.CommandLineRunner"
 
                     # Add parent task which composes results and places it into valid destination
-                    command = "renderchan-job-launcher \"%s\" --action merge --profile %s --stereo %s --compare-time %f" % ( taskfile.getPath(), self.projects.profile, stereo, time.time() )
+                    command = "renderchan-job-launcher \"%s\" --action merge --profile %s --stereo %s --compare-time %f --active-project %s" % ( taskfile.getPath(), self.projects.profile, stereo, time.time(), self.projects.active.path)
                     stereoTask = self.graph.addNewTask( name="StereoPost: "+taskfile.localPath, runner=runner, arguments={ "args": command} )
 
                     # Dummy task
@@ -559,7 +559,7 @@ class RenderChan():
 
                 # Render block
 
-                command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s --active-project \"%s\"" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time, self.projects.active.path)
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
                 if taskfile.getPacketSize()>0:
@@ -662,10 +662,10 @@ class RenderChan():
                     end=range[1]
                     if start!=None and end!=None:
                         segment_name = "Render: %s (%s-%s)" % (taskfile.localPath, start, end)
-                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --start %s --end %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, start, end, compare_time )
+                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --start %s --end %s --compare-time %s --active-project \"%s\"" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, start, end, compare_time, self.projects.active.path )
                     else:
                         segment_name = "Render: %s" % (taskfile.localPath)
-                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time )
+                        command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s --active-project \"%s\"" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time, self.projects.active.path )
                     if self.projects.stereo!="":
                         command += " --stereo %s" % (self.projects.stereo)
 
@@ -771,13 +771,13 @@ class RenderChan():
                         if compareTime is None:
                             isDirty = True
                             if os.environ.get('DEBUG'):
-                                print("DEBUG: %s:" % taskfile.localPath)
+                                print("DEBUG: %s:" % taskfile.getPath())
                                 print("DEBUG: Dirty = 1 (no compare time)")
                                 print()
                         elif timestamp > compareTime:
                             isDirty = True
                             if os.environ.get('DEBUG'):
-                                print("DEBUG: %s:" % taskfile.localPath)
+                                print("DEBUG: %s:" % taskfile.getPath())
                                 print("DEBUG: Dirty = 1 (dependency timestamp is higher)")
                                 print("DEBUG:            compareTime     = %f" % (compareTime))
                                 print("DEBUG:            dependency time = %f" % (timestamp))
@@ -798,14 +798,14 @@ class RenderChan():
                 timestamp = float_trunc(taskfile.getTime(), 1)
                 if compareTime is None:
                     if os.environ.get('DEBUG'):
-                        print("DEBUG: %s:" % taskfile.localPath)
+                        print("DEBUG: %s:" % taskfile.getPath())
                         print("DEBUG: Dirty = 1 (no compare time)")
                         print()
                     isDirty = True
                 elif timestamp > compareTime:
                     isDirty = True
                     if os.environ.get('DEBUG'):
-                        print("DEBUG: %s:" % taskfile.localPath)
+                        print("DEBUG: %s:" % taskfile.getPath())
                         print("DEBUG: Dirty = 1 (source timestamp is higher)")
                         print("DEBUG:            compareTime     = %f" % (compareTime))
                         print("DEBUG:            source time = %f" % (timestamp))
