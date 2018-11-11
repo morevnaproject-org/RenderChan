@@ -236,6 +236,7 @@ def main():
     # Force format here
     if params[FORMAT] == "png":
         rend.image_settings.file_format = "PNG"
+        rend.image_settings.color_mode = 'RGB'
     elif params[FORMAT] == "avi":
         if (2, 79, 0) < bpy.app.version:
             rend.image_settings.file_format = "H264"
@@ -243,6 +244,8 @@ def main():
             rend.ffmpeg.use_lossless_output=True
             #rend.ffmpeg.audio_codec="AAC"
         else:
+            rend.image_settings.color_mode = 'RGB'
+            rend.image_settings.color_depth = '16'
             rend.image_settings.file_format = "FFMPEG"
             rend.ffmpeg.format = "AVI"
             rend.ffmpeg.codec='H264'
