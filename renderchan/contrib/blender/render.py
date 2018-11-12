@@ -245,7 +245,7 @@ def main():
             #rend.ffmpeg.audio_codec="AAC"
         else:
             rend.image_settings.color_mode = 'RGB'
-            rend.image_settings.color_depth = '16'
+            #rend.image_settings.color_depth = '16'
             rend.image_settings.file_format = "FFMPEG"
             rend.ffmpeg.format = "AVI"
             rend.ffmpeg.codec='H264'
