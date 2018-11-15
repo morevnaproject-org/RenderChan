@@ -113,6 +113,7 @@ def main():
             if have_builtin_stereo:
                 # Use native blender
                 sce.render.use_multiview = True
+                sce.render.views_format = 'STEREO_3D'
                 side = params[STEREO_CAMERA]
                 alt_side = "left" if side == "right" else "right"
 
