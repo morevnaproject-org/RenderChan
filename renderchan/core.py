@@ -347,7 +347,7 @@ class RenderChan():
                 # (this allows to avoid issues with shared nfs drives)
                 time.sleep(1)
 
-                self.graph.output(True)
+                self.graph.output()
                 self.graph.send()
 
             elif self.renderfarm_engine=="puli":
