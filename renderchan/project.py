@@ -516,6 +516,7 @@ class RenderChanProject():
                         continue
                 else:
                     # something is wrong, because file is vanished
+                    print("Warning: Something is wrong, since lock file is vanished. Waiting for 5 seconds...)
                     time.sleep(5)
                     continue
 
