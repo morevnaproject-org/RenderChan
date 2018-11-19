@@ -71,21 +71,26 @@ class RenderChanSynfigModule(RenderChanModule):
         info["endFrame"] = time_to_frames(root.get("end-time"), fps)
         
         # Parse dependencies
-        
+        dependencies=[]
         # <filename><string>(dependency)</string></filename>
-        info["dependencies"].extend(element.text for element in root.findall(".//filename/string"))
+        dependencies.extend(element.text for element in root.findall(".//filename/string"))
         # <param name="filename"><string>(dependency)</string></param>
-        info["dependencies"].extend(element.text for element in root.findall(".//param[@name='filename']/string"))
+        dependencies.extend(element.text for element in root.findall(".//param[@name='filename']/string"))
         # <param name="family"><string>(dependency)</string></param>
-        info["dependencies"].extend(element.text for element in root.findall(".//param[@name='family']/string"))
+        dependencies.extend(element.text for element in root.findall(".//param[@name='family']/string"))
         # <param name="*" use="(dependency)">
-        info["dependencies"].extend(element.get("use") for element in root.findall(".//param[@name][@use]"))
+        dependencies.extend(element.get("use") for element in root.findall(".//param[@name][@use]"))
         # <switch link_on="(dependency)">
-        info["dependencies"].extend(element.get("link_on").rsplit("#:")[0] for element in root.findall(".//switch[@link_on]"))
+        dependencies.extend(element.get("link_on").rsplit("#:")[0] for element in root.findall(".//switch[@link_on]"))
         # <switch switch="(dependency)">
-        info["dependencies"].extend(element.get("switch").rsplit("#:")[0] for element in root.findall(".//switch[@switch]"))
+        dependencies.extend(element.get("switch").rsplit("#:")[0] for element in root.findall(".//switch[@switch]"))
         
         f.close()
+
+        # Eliminate empty entries
+        for i,val in enumerate(dependencies):
+            if dependencies[i]!=None:
+                info["dependencies"].extend(dependencies[i])
 
         dirname=os.path.dirname(filename)
         for i,val in enumerate(info["dependencies"]):
