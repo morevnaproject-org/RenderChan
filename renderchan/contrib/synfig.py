@@ -90,7 +90,7 @@ class RenderChanSynfigModule(RenderChanModule):
         # Eliminate empty entries
         for i,val in enumerate(dependencies):
             if dependencies[i]!=None:
-                info["dependencies"].extend(dependencies[i])
+                info["dependencies"].extend([dependencies[i]])
 
         dirname=os.path.dirname(filename)
         for i,val in enumerate(info["dependencies"]):
