@@ -91,6 +91,9 @@ def process_args(datadir):
     parser.add_argument("--snapshot-to", metavar=_("SNAPSHOT_TO"),
             action="store",
             help=_("Write a snapshot into specified directory."))
+    parser.add_argument("--post-script", metavar=_("SCRIPT_PATH"),
+            action="store",
+            help=_("Execute script after successful completion. Rendering result is passed as first argument to the script."))
     parser.add_argument("--force", "-f",
             action="store_true",
             default=False,
@@ -159,6 +162,9 @@ def main(datadir, argv):
 
     if args.snapshot_to:
         renderchan.snapshot_path = args.snapshot_to
+        
+    if args.post_script:
+        renderchan.post_script = args.post_script
     
     renderchan.force = args.force
 

@@ -67,6 +67,7 @@ class RenderChan():
         self.cgru_location = "/opt/cgru"
 
         self.snapshot_path = None
+        self.post_script = None
 
         self.ffmpeg_binary = ''
         if os.name == 'nt':
@@ -299,6 +300,31 @@ class RenderChan():
                 self.addToGraph(taskfile, dependenciesOnly, allocateOnly)
 
                 last_task = taskfile.taskPost
+
+            # Post-script
+            if self.post_script:
+                if stereo in ("vertical","v","horizontal","h"):
+                    script_arg = os.path.splitext(taskfile.getRenderPath())[0]+"-stereo-"+stereo[0:1]+os.path.splitext(taskfile.getRenderPath())[1]
+                else:
+                    script_arg = taskfile.getRenderPath()
+
+
+                if self.renderfarm_engine=="":
+
+                    commandline=[self.post_script, script_arg]
+                    subprocess.run("\"%s\" \"%s\"" % ( self.post_script,  script_arg), shell=True, check=True)
+
+                elif self.renderfarm_engine=="afanasy":
+
+                    name = "Post Script - %f" % ( time.time() )
+                    block = self.AfanasyBlockClass(name, 'generic')
+                    block.setCommand("\"%s\" \"%s\"" % ( self.post_script,  script_arg))
+                    if last_task!=None:
+                        block.setDependMask(last_task)
+                    block.setNumeric(1,1,100)
+                    block.setCapacity(100)
+
+                    self.graph.blocks.append(block)
 
             # Snapshot
             if self.snapshot_path:
