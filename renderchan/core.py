@@ -1064,6 +1064,8 @@ class RenderChan():
                                     copytree(line, profile_output, hardlinks=True)
 
                             os.remove(profile_output_list)
+                            for line in segments:
+                                shutil.rmtree(line)
                             touch(profile_output + ".done", float(compare_time))
                         else:
                             print("  This chunk is already merged. Skipping.")
