@@ -59,11 +59,12 @@ class RenderChanFile():
                 info=None
                 if self.project:
                     info=self.project.cache.getInfo(self.localPath)
-                if info and info["timestamp"]>=self.getTime():
+                    dependencies=self.project.cache.getDependencies(self.localPath)
+                if info and dependencies and info["timestamp"]>=self.getTime():
                     print(". . Cache found")
                     self.startFrame=int(info["startFrame"])
                     self.endFrame=int(info["endFrame"])
-                    self.dependencies=self.project.cache.getDependencies(self.localPath)
+                    self.dependencies=dependencies
                     if info["width"]>0:
                         self.width=str(info["width"])
                     if info["height"]>0:
