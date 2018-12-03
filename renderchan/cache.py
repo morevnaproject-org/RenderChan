@@ -30,9 +30,6 @@ class RenderChanCache():
 
 
         try:
-
-
-
             self.connection=sqlite3.connect(path)
             self.connection.text_factory = str
             cur=self.connection.cursor()
@@ -44,9 +41,9 @@ class RenderChanCache():
             self.closed = False
 
         except sqlite3.Error as e:
-
+            print("ERROR: Cannot initializ cache database.")
             print("SQLite error: %s" % e.args[0], file=sys.stderr)
-            sys.exit(1)
+            #sys.exit(1)
 
     def __del__(self):
         if not self.closed:
