@@ -45,7 +45,7 @@ class RenderChanCache():
 
         except sqlite3.Error as e:
 
-            print("Error %s:" % e.args[0], file=sys.stderr)
+            print("SQLite error: %s" % e.args[0], file=sys.stderr)
             sys.exit(1)
 
     def __del__(self):
