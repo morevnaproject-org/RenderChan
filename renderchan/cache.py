@@ -43,6 +43,7 @@ class RenderChanCache():
         except sqlite3.Error as e:
             print("ERROR: Cannot initialize cache database.")
             print("SQLite error: %s" % e.args[0])
+            print("Cache file path: %s" % self.path)
             #sys.exit(1)
 
     def __del__(self):
