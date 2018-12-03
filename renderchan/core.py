@@ -1065,7 +1065,10 @@ class RenderChan():
 
                             os.remove(profile_output_list)
                             for line in segments:
-                                shutil.rmtree(line)
+                                if os.path.isfile(line):
+                                    os.remove(line)
+                                else:
+                                    shutil.rmtree(line, ignore_errors=True)
                             touch(profile_output + ".done", float(compare_time))
                         else:
                             print("  This chunk is already merged. Skipping.")
