@@ -30,7 +30,7 @@ class RenderChanCache():
 
 
         try:
-            self.connection=sqlite3.connect(path)
+            self.connection=sqlite3.connect(self.path)
             self.connection.text_factory = str
             cur=self.connection.cursor()
 
