@@ -41,7 +41,7 @@ class RenderChanCache():
             self.closed = False
 
         except sqlite3.Error as e:
-            print("ERROR: Cannot initializ cache database.")
+            print("ERROR: Cannot initialize cache database.")
             print("SQLite error: %s" % e.args[0])
             #sys.exit(1)
 
