@@ -266,7 +266,7 @@ def main():
         rend.image_settings.file_format = "PNG"
         rend.image_settings.color_mode = 'RGB'
     elif params[FORMAT] == "avi":
-        if (2, 79, 0) < bpy.app.version:
+        if bpy.app.version < (2, 79, 0):
             rend.image_settings.file_format = "H264"
             rend.ffmpeg.format = "H264"
             rend.ffmpeg.use_lossless_output=True
