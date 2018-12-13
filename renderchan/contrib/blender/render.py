@@ -160,23 +160,47 @@ def main():
             print("Cycles: GPU configuration found")
             error=False
 
-            if 'CUDA' in bpy.context.user_preferences.system.compute_device_type:
-                bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+            if (bpy.app.version > (2, 78, 0)) or ((bpy.app.version == (2, 78, 0)) and (bpy.app.version_char == 'b')) or ((bpy.app.version == (2, 78, 0)) and (bpy.app.version_char == 'c')):
+                if 'CUDA' in bpy.context.user_preferences.addons['cycles'].preferences.compute_device_type:
+                    bpy.context.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+                else:
+                    error = True
+                    print("ERROR: Cannot activate CUDA.")
+                if not error and params[GPU_DEVICE] in bpy.context.user_preferences.addons['cycles'].preferences.devices.keys():
+                    # TODO: Allow to use more then one GPU device
+                    for device in bpy.context.user_preferences.addons['cycles'].preferences.devices.keys():
+                        if device == params[GPU_DEVICE]:
+                            bpy.context.user_preferences.addons['cycles'].preferences.devices[device].use = True
+                        else:
+                            bpy.context.user_preferences.addons['cycles'].preferences.devices[device].use = False
+                else:
+                    error = True
+                    # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
+                    print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
+                    print()
+                    print("Available devices:")
+                    for device in bpy.context.user_preferences.addons['cycles'].preferences.devices.keys():
+                        print("   * %s\n" % device)
+                    print()
             else:
-                error = True
-                print("ERROR: Cannot activate CUDA.")
-
-            if not error and params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
-                bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
-            else:
-                error = True
-                # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
-                print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
-                print()
-                print("Available devices:")
-                for device in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
-                    print("   * %s\n" % device)
-                print()
+                if 'CUDA' in bpy.context.user_preferences.system.compute_device_type:
+                    bpy.context.user_preferences.system.compute_device_type = 'CUDA'
+                else:
+                    error = True
+                    print("ERROR: Cannot activate CUDA.")
+                if not error and params[GPU_DEVICE] in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
+                    bpy.context.user_preferences.system.compute_device = params[GPU_DEVICE]
+                else:
+                    error = True
+                    # FIXME: This test probably should go somewhere else (in modules's CheckRequirements?)
+                    print("ERROR: Cannot set GPU device (%s) - not found." % params[GPU_DEVICE])
+                    print()
+                    print("Available devices:")
+                    for device in bpy.context.user_preferences.system.bl_rna.properties['compute_device'].enum_items.keys():
+                        print("   * %s\n" % device)
+                    print()
+                
+            
 
             if not error:
                 sce.cycles.device = 'GPU'
@@ -192,7 +216,10 @@ def main():
             sce.cycles.debug_use_spatial_splits = False
         else:
             print("Cycles: CPU device used")
-            bpy.context.user_preferences.system.compute_device_type = 'NONE'
+            if (bpy.app.version > (2, 78, 0)) or ((bpy.app.version == (2, 78, 0)) and (bpy.app.version_char == 'b')) or ((bpy.app.version == (2, 78, 0)) and (bpy.app.version_char == 'c')):
+                bpy.context.user_preferences.addons['cycles'].preferences.compute_device_type = 'NONE'
+            else:
+                bpy.context.user_preferences.system.compute_device_type = 'NONE'
             sce.render.tile_x = 64
             sce.render.tile_y = 64
             sce.cycles.debug_use_spatial_splits = True
