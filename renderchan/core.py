@@ -1053,7 +1053,10 @@ class RenderChan():
                                     if not os.path.exists(line+".done") or not os.path.exists(line):
                                         print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
                                         exit(1)
-
+                            
+                            if os.path.isfile(profile_output+".done"):
+                                    os.remove(profile_output+".done")
+                            
                             if format == "avi":
                                 subprocess.check_call(
                                     [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
@@ -1069,6 +1072,8 @@ class RenderChan():
                                     os.remove(line)
                                 else:
                                     shutil.rmtree(line, ignore_errors=True)
+                                if os.path.isfile(line+".done"):
+                                    os.remove(line+".done")
                             touch(profile_output + ".done", float(compare_time))
                         else:
                             print("  This chunk is already merged. Skipping.")
