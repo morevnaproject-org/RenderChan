@@ -1,0 +1,13 @@
+
+[Desktop Entry]
+Type=Action
+Name=RenderChan - Pack
+ToolbarLabel=RenderChan - Pack
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name=Default profile
+Exec=renderchan-gui --pack %f
+Basenames=*.*;
+Matchcase=false
+SelectionCount==1
