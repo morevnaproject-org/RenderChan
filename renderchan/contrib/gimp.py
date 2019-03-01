@@ -17,6 +17,7 @@ class RenderChanGimpModule(RenderChanModule):
         else:
             self.conf['binary']="gimp"
         self.conf["packetSize"]=0
+        self.extraParams['use_own_dimensions'] = '1'
 
     def getInputFormats(self):
         return ["xcf", "fli", "flc", "dds", "dcm", "dicom", "eps", "fit", "fits", "g3", "xjt", "cel", "wmf", "ico", "pnm", "ppm", "pgm", "pbm", "psp", "psd", "pdf", "ps", "tiff", "bmp", "xbm", "xwd", "pcx", "pcc", "ora"]
@@ -28,19 +29,19 @@ class RenderChanGimpModule(RenderChanModule):
 
         comp=0.0
         updateCompletion(comp)
-        
+
         # Determines drawable (depending on layer support)
         if format in ("gif", "ico", "mng", "psd"):
             drawable="gimp-image-get-active-drawable image"
         else:
             drawable="gimp-image-merge-visible-layers image CLIP-TO-IMAGE"
-        
+
         # Preprocessing procedures
         if format == "gif":
             preprocedure="(gimp-image-convert-indexed image 0 0 255 0 0 \"\")"
         else:
             preprocedure=""
-        
+
         # Determine procedure name
         if format in ("png", "tiff"):
             saveProcedure="file-%s-save2" % format
@@ -54,7 +55,7 @@ class RenderChanGimpModule(RenderChanModule):
             saveProcedure="file-%s-save" % format
         else:
             saveProcedure="gimp-file-save"
-        
+
         # Determine paramters
         if format == "png":
             # PNG get special treatment because default parameters can be fetched from GIMP
@@ -80,8 +81,14 @@ class RenderChanGimpModule(RenderChanModule):
         else:
             saveParameters=""
 
+        if extraParams['use_own_dimensions']:
+            width_arg = '(car (gimp-image-width image))'
+            height_arg = '(car (gimp-image-height image))'
+        else:
+            width_arg = extraParams['width']
+            width_arg = extraParams['height']
         # See docs for readable script-fu code
-        commandline=[self.conf['binary'], "-i", "-b", "(let*  ((filename \"%s\") (outpath \"%s\") (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename))) (drawable (car (%s)))) %s (gimp-image-scale image %s %s) (%s RUN-NONINTERACTIVE image drawable outpath outpath %s) (gimp-image-delete image))" % (filename, outputPath, drawable, preprocedure, extraParams['width'], extraParams['height'], saveProcedure, saveParameters), "-b", "(gimp-quit 0)"]
+        commandline=[self.conf['binary'], "-i", "-b", "(let*  ((filename \"%s\") (outpath \"%s\") (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename))) (drawable (car (%s)))) %s (gimp-image-scale image %s %s) (%s RUN-NONINTERACTIVE image drawable outpath outpath %s) (gimp-image-delete image))" % (filename, outputPath, drawable, preprocedure, width_arg, height_arg, saveProcedure, saveParameters), "-b", "(gimp-quit 0)"]
 
         subprocess.check_call(commandline)
 
