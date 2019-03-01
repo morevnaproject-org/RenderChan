@@ -81,8 +81,14 @@ class RenderChanGimpModule(RenderChanModule):
         else:
             saveParameters=""
 
+        if extraParams['use_own_dimensions']:
+            width_arg = '(car (gimp-image-width image))'
+            height_arg = '(car (gimp-image-height image))'
+        else:
+            width_arg = extraParams['width']
+            width_arg = extraParams['height']
         # See docs for readable script-fu code
-        commandline=[self.conf['binary'], "-i", "-b", "(let*  ((filename \"%s\") (outpath \"%s\") (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename))) (drawable (car (%s)))) %s (gimp-image-scale image %s %s) (%s RUN-NONINTERACTIVE image drawable outpath outpath %s) (gimp-image-delete image))" % (filename, outputPath, drawable, preprocedure, extraParams['width'], extraParams['height'], saveProcedure, saveParameters), "-b", "(gimp-quit 0)"]
+        commandline=[self.conf['binary'], "-i", "-b", "(let*  ((filename \"%s\") (outpath \"%s\") (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename))) (drawable (car (%s)))) %s (gimp-image-scale image %s %s) (%s RUN-NONINTERACTIVE image drawable outpath outpath %s) (gimp-image-delete image))" % (filename, outputPath, drawable, preprocedure, width_arg, height_arg, saveProcedure, saveParameters), "-b", "(gimp-quit 0)"]
 
         subprocess.check_call(commandline)
 
