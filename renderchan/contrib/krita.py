@@ -2,9 +2,10 @@ __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
 import subprocess
-import random
+import sys
 import os
 import tempfile
+import shutil
 from zipfile import ZipFile
 from xml.etree import ElementTree
 from renderchan.utils import which
@@ -25,6 +26,25 @@ class RenderChanKritaModule(RenderChanModule):
 
         self.extraParams['use_own_dimensions']='1'
         self.extraParams['proxy_scale']='1.0'
+
+        self.canRenderAnimation = False
+        commandline = [self.conf['binary'], "--help"]
+        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        rc = None
+        while rc is None:
+            line = out.stdout.readline()
+            line = line.decode(sys.stdout.encoding)
+            if not line:
+                break
+            #print(line)
+            sys.stdout.flush()
+
+            if line.find("--export-sequence")!=-1:
+                self.canRenderAnimation = True
+
+            rc = out.poll()
+
+        out.communicate()
 
     def getInputFormats(self):
         return ["kra"]
@@ -77,20 +97,67 @@ class RenderChanKritaModule(RenderChanModule):
                 deps_count+=1
                 break
 
-        with tempfile.TemporaryDirectory() as tmpPath:
-            outputPathTmp = os.path.join(tmpPath, "image." + format)
-            if deps_count==0:
-                with ZipFile(filename) as zip:
-                    zip.extract('mergedimage.png', tmpPath)
-                #TODO: Compress image?
-                os.rename(os.path.join(tmpPath,"mergedimage.png"), outputPathTmp)
-            else:
-                #TODO: PNG transperency settings at ~/.kde/share/config/kritarc ? use KDEHOME env ?
-                commandline=[self.conf['binary'], "--export", filename, "--export-filename", outputPathTmp]
-                subprocess.check_call(commandline)
+        # First, try to render animation sequence
+        if self.canRenderAnimation:
+            noAnimation = False
 
-            dimensions = extraParams["width"]+"x"+extraParams["height"]
-            commandline=[self.conf['convert_binary'], outputPathTmp, "-resize", dimensions, outputPath]
-            subprocess.check_call(commandline)
+            outputPathTmp = os.path.join(outputPath + ".tmp", "file.png")
+            if os.path.exists(outputPath + ".tmp"):
+                shutil.rmtree(outputPath + ".tmp")
+            os.mkdir(outputPath + ".tmp")
+
+            commandline = [self.conf['binary'], "--export-sequence", filename, "--export-filename", outputPathTmp]
+            out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            rc = None
+
+            while rc is None:
+                line = out.stdout.readline()
+                line = line.decode(sys.stdout.encoding)
+                if not line:
+                    break
+                print(line)
+                sys.stdout.flush()
+
+                if line.startswith("krita.general: This file has no animation."):
+                    noAnimation = True
+
+                rc = out.poll()
+
+            out.communicate()
+            # rc = out.poll()
+
+            if not noAnimation:
+                # Resize result
+
+                if os.path.exists(outputPath):
+                    shutil.rmtree(outputPath)
+                os.mkdir(outputPath)
+
+                dimensions = extraParams["width"] + "x" + extraParams["height"]
+
+                for filename in os.listdir(os.path.dirname(outputPathTmp)):
+                    if filename.endswith(".png"):
+                        #print(os.path.join(outputPath, filename))
+
+                        commandline = [self.conf['convert_binary'], os.path.join(os.path.dirname(outputPathTmp), filename), "-resize", dimensions, os.path.join(outputPath, filename)]
+                        subprocess.check_call(commandline)
+
+        # Render single image if Krita reported the file has no animation
+        if (not self.canRenderAnimation) or noAnimation:
+            with tempfile.TemporaryDirectory() as tmpPath:
+                outputPathTmp = os.path.join(tmpPath, "image." + format)
+                if deps_count==0:
+                    with ZipFile(filename) as zip:
+                        zip.extract('mergedimage.png', tmpPath)
+                    #TODO: Compress image?
+                    os.rename(os.path.join(tmpPath,"mergedimage.png"), outputPathTmp)
+                else:
+                    #TODO: PNG transperency settings at ~/.kde/share/config/kritarc ? use KDEHOME env ?
+                    commandline=[self.conf['binary'], "--export", filename, "--export-filename", outputPathTmp]
+                    subprocess.check_call(commandline)
+
+                dimensions = extraParams["width"]+"x"+extraParams["height"]
+                commandline=[self.conf['convert_binary'], outputPathTmp, "-resize", dimensions, outputPath]
+                subprocess.check_call(commandline)
 
         updateCompletion(1)
