@@ -141,8 +141,6 @@ def main():
 
     #rend.alpha_mode = "PREMUL"
 
-    #rend.color_mode = "RGBA"
-
     # Cycles special tweaks
     if sce.render.engine == 'CYCLES':
 
@@ -264,7 +262,7 @@ def main():
     # Force format here
     if params[FORMAT] == "png":
         rend.image_settings.file_format = "PNG"
-        rend.image_settings.color_mode = 'RGB'
+        rend.image_settings.color_mode = 'RGBA'
     elif params[FORMAT] == "avi":
         if bpy.app.version < (2, 79, 0):
             rend.image_settings.file_format = "H264"
