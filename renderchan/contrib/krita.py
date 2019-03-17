@@ -98,7 +98,8 @@ class RenderChanKritaModule(RenderChanModule):
                 break
 
         # First, try to render animation sequence
-        if self.canRenderAnimation:
+        noAnimation = True
+        if self.canRenderAnimation and extraParams["single"] != "None":
             noAnimation = False
 
             outputPathTmp = os.path.join(outputPath + ".tmp", "file.png")
@@ -113,8 +114,6 @@ class RenderChanKritaModule(RenderChanModule):
             while rc is None:
                 line = out.stdout.readline()
                 line = line.decode(sys.stdout.encoding)
-                if not line:
-                    break
                 print(line)
                 sys.stdout.flush()
 
