@@ -99,7 +99,7 @@ class RenderChanKritaModule(RenderChanModule):
 
         # First, try to render animation sequence
         noAnimation = True
-        if self.canRenderAnimation and extraParams["single"] != "None":
+        if self.canRenderAnimation and (not "single" in extraParams.keys() or extraParams["single"] != "None"):
             noAnimation = False
 
             outputPathTmp = os.path.join(outputPath + ".tmp", "file.png")
