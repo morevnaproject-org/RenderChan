@@ -26,6 +26,7 @@ class RenderChanKritaModule(RenderChanModule):
 
         self.extraParams['use_own_dimensions']='1'
         self.extraParams['proxy_scale']='1.0'
+        self.extraParams["single"] = "None"
 
         self.canRenderAnimation = False
         commandline = [self.conf['binary'], "--help"]
@@ -99,7 +100,7 @@ class RenderChanKritaModule(RenderChanModule):
 
         # First, try to render animation sequence
         noAnimation = True
-        if self.canRenderAnimation and (not "single" in extraParams.keys() or extraParams["single"] != "None"):
+        if self.canRenderAnimation and (not "single" in extraParams.keys() or extraParams["single"] == "None"):
             noAnimation = False
 
             outputPathTmp = os.path.join(outputPath + ".tmp", "file.png")
