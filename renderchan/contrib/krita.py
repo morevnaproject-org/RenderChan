@@ -130,7 +130,10 @@ class RenderChanKritaModule(RenderChanModule):
                 # Resize result
 
                 if os.path.exists(outputPath):
-                    shutil.rmtree(outputPath)
+                    if os.path.isdir(outputPath):
+                        shutil.rmtree(outputPath)
+                    else:
+                        os.remove(outputPath)
                 os.mkdir(outputPath)
 
                 dimensions = extraParams["width"] + "x" + extraParams["height"]
