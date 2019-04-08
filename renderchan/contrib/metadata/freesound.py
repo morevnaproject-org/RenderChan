@@ -121,16 +121,24 @@ def parse(filename):
 
 
         parser = MyHTMLParser()
-        parser.feed(resp)
         artist_url = "http://www.freesound.org/people/%s/" % (user)
-        metadata.authors.append("%s ( %s )" % (parser.artist, artist_url))
-        metadata.title=parser.title
-        metadata.license=parser.license
-        metadata.sources=['freesound']
+        try:
+            parser.feed(resp)
+            metadata.authors.append("%s ( %s )" % (parser.artist, artist_url))
+            metadata.title=parser.title
+            metadata.license=parser.license
+            metadata.sources=['freesound']
+        except:
+            print("ERROR: Error parsing data from freesound! Looks like this sound was deleted...")
+            metadata.authors.append("%s ( %s ) [DELETED!]" % (user, artist_url))
+            metadata.title = basename
+            metadata.license = "DELETED"
+            metadata.sources = ['freesound']
+
     else:
-        metadata.authors.append("UNKONOWN ( UNKONOWN )")
-        metadata.title = "UNKONOWN"
-        metadata.license = "UNKONOWN"
-        metadata.sources = ['UNKONOWN']
+        metadata.authors.append("UNKNOWN ( UNKNOWN )")
+        metadata.title = "UNKNOWN"
+        metadata.license = "UNKNOWN"
+        metadata.sources = ['UNKNOWN']
 
     return metadata
