@@ -111,18 +111,26 @@ def parse(filename):
         try:
             f = urlopen(req)
         except HTTPError as e:
-            raise Exception(e.code)
-
-    resp = f.read()
-    f.close()
+            error = e.code
+            print("ERROR: Cannot fetch information for %s" % filename)
 
 
-    parser = MyHTMLParser()
-    parser.feed(resp)
-    artist_url = "http://www.freesound.org/people/%s/" % (user)
-    metadata.authors.append("%s ( %s )" % (parser.artist, artist_url))
-    metadata.title=parser.title
-    metadata.license=parser.license
-    metadata.sources=['freesound']
+    if error==None:
+        resp = f.read()
+        f.close()
+
+
+        parser = MyHTMLParser()
+        parser.feed(resp)
+        artist_url = "http://www.freesound.org/people/%s/" % (user)
+        metadata.authors.append("%s ( %s )" % (parser.artist, artist_url))
+        metadata.title=parser.title
+        metadata.license=parser.license
+        metadata.sources=['freesound']
+    else:
+        metadata.authors.append("UNKONOWN ( UNKONOWN )")
+        metadata.title = "UNKONOWN"
+        metadata.license = "UNKONOWN"
+        metadata.sources = ['UNKONOWN']
 
     return metadata
