@@ -133,23 +133,15 @@ class RenderChanFile():
             localpath=path[len(self.projectPath):]
 
             # cleanup
-            if os.name=='nt':
-                while localpath.startswith('\\'):
-                    localpath=localpath[1:]
-            else:
-                while localpath.startswith('/'):
-                    localpath=localpath[1:]
+            while localpath.startswith(os.sep):
+                localpath=localpath[1:]
 
-            if (localpath.startswith("render/") or localpath.startswith("render\\")) and not localpath.startswith(os.path.join("render","project.conf")):
+            if (localpath.startswith("render"+os.sep) and not localpath.startswith(os.path.join("render","project.conf"))):
                 localpath=localpath[6:]
 
                 # cleanup
-                if os.name=='nt':
-                    while localpath.startswith('\\'):
-                        localpath=localpath[1:]
-                else:
-                    while localpath.startswith('/'):
-                        localpath=localpath[1:]
+                while localpath.startswith(os.sep):
+                    localpath=localpath[1:]
 
                 # now, let's have some heuristics...
 
