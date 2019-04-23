@@ -8,6 +8,12 @@ from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
+
+        if os.name == 'nt':
+            path=path.replace('/',os.sep)
+        else:
+            path = path.replace('\\', os.sep)
+
         path = os.path.abspath(path)
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
