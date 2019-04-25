@@ -623,8 +623,9 @@ class RenderChan():
 
                 if taskfile.module.getName() in ("flac","mp3","vorbis"):
                     block.setCapacity(50)
-                elif taskfile.module.getName() in ("synfig"):
+                elif taskfile.module.getName() in ("krita"):
                     block.setCapacity(500)
+
 
                 depend_mask=[]
                 for dep_task in tasklist:
