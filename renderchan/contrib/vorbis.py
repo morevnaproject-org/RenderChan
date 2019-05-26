@@ -6,7 +6,6 @@ from renderchan.module import RenderChanModule
 from renderchan.utils import which
 import subprocess
 import os
-import re
 import random
 
 class RenderChanVorbisModule(RenderChanModule):

@@ -9,7 +9,6 @@ import shutil
 from zipfile import ZipFile
 from xml.etree import ElementTree
 from renderchan.utils import which
-from renderchan.utils import mkdirs
 
 class RenderChanKritaModule(RenderChanModule):
     def __init__(self):
