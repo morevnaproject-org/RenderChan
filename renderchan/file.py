@@ -260,7 +260,7 @@ class RenderChanFile():
             if supported_formats:
                 format=supported_formats[0]
             else:
-                format=""
+                format="undefined"
         return format
 
     def getParams(self, force_proxy):
