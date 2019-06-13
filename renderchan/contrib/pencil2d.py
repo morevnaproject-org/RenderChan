@@ -43,10 +43,12 @@ class RenderChanPencil2dModule(RenderChanModule):
                 rc = proc.poll()
             if rc == 0:
                 try:
-                    # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
-                    self.version = outs.rstrip().decode("utf-8").split(" ")[-1]
-                    self.version = ".".join(self.version.split(".")[0:3])
-                    self.version = StrictVersion(self.version)
+                    for line in outs.decode("utf-8"):
+                        if line.startswith("Pencil2D "):
+                            # Get the version from stdout. An example of the output: "Pencil2D 0.6.0\n"
+                            self.version = line.rstrip().split(" ")[-1]
+                            self.version = ".".join(self.version.split(".")[0:3])
+                            self.version = StrictVersion(self.version)
                 except:
                     self.active = False
             else:
