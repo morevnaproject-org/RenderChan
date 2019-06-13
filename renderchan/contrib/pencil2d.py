@@ -99,10 +99,10 @@ class RenderChanPencil2dModule(RenderChanModule):
             os.mkdir(outputPath)
 
         if self.version > StrictVersion('0.6.0'):
-            commandline=[self.conf['binary'], filename, "-o", output, "--width", extraParams['width'], "--height", extraParams['height'], "--start", startFrame, "--end", endFrame]
+            commandline=[self.conf['binary'], filename, "-o", output, "--width", extraParams['width'], "--height", extraParams['height'], "--start", str(startFrame), "--end", str(endFrame)]
             if is_true_string(extraParams['transparency']):
                 commandline.append("--transparency")
-            if extraParams['camera']:
+            if ('camera' in extraParams) and (extraParams['camera']):
                 commandline.extend(["--camera", extraParams['camera']])
         elif self.version == StrictVersion('0.6.0'):
             commandline=[self.conf['binary'], filename, "--export-sequence", output, "--width", extraParams['width'], "--height", extraParams['height']]
