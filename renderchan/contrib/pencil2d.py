@@ -3,12 +3,11 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which, is_true_string
+from renderchan.utils import is_true_string
 from distutils.version import StrictVersion
 import subprocess
 import tempfile
 import os
-import time
 from xml.etree import ElementTree
 
 class RenderChanPencil2dModule(RenderChanModule):
