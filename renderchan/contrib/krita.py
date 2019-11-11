@@ -28,23 +28,6 @@ class RenderChanKritaModule(RenderChanModule):
         self.extraParams["single"] = "None"
 
         self.canRenderAnimation = False
-        commandline = [self.conf['binary'], "--help"]
-        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        rc = None
-        while rc is None:
-            line = out.stdout.readline()
-            line = line.decode(sys.stdout.encoding)
-            if not line:
-                break
-            #print(line)
-            sys.stdout.flush()
-
-            if line.find("--export-sequence")!=-1:
-                self.canRenderAnimation = True
-
-            rc = out.poll()
-
-        out.communicate()
 
     def getInputFormats(self):
         return ["kra"]
@@ -64,6 +47,24 @@ class RenderChanKritaModule(RenderChanModule):
             print("    Please install ImageMagick package.")
             return False
         self.active=True
+
+        commandline = [self.conf['binary'], "--help"]
+        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        rc = None
+        while rc is None:
+            line = out.stdout.readline()
+            line = line.decode(sys.stdout.encoding)
+            if not line:
+                break
+            # print(line)
+            sys.stdout.flush()
+
+            if line.find("--export-sequence") != -1:
+                self.canRenderAnimation = True
+
+            rc = out.poll()
+        out.communicate()
+
         return True
 
     def analyze(self, filename):
