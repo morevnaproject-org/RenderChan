@@ -162,13 +162,13 @@ class RenderChanSynfigModule(RenderChanModule):
         #print(" ".join(commandline))
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         rc = None
-        #currentFrame = None
-        while rc is None:
+        while True:
             #line = out.stdout.readline().decode("utf-8")
             line = out.stdout.readline().decode(locale.getpreferredencoding())
             #line = out.stdout.readline()
             if not line:
-                break
+                if rc is not None:
+                    break
             #print(line, end=' ')
             sys.stdout.buffer.write(line.encode(locale.getpreferredencoding()))
             sys.stdout.flush()
@@ -179,8 +179,6 @@ class RenderChanSynfigModule(RenderChanModule):
                 updateCompletion(comp + fc)
             rc = out.poll()
 
-        out.communicate()
-        rc = out.poll()
         print('====================================================')
         print('  Synfig command returns with code %d' % rc)
         print('====================================================')

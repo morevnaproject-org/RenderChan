@@ -42,15 +42,17 @@ class RenderChanBlenderModule(RenderChanModule):
         commandline=[self.conf['binary'], "-b",filename, "-P",script, "-setaudio", "NULL"]
         commandline.append("-y")   # Enable automatic script execution
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+        rc = None
         while True:
             line = out.stdout.readline()
+            if not line:
+                if rc is not None:
+                    break
             try:
                 line = line.decode(sys.stdout.encoding)
             except:
                 # In some files we hit weird strings, not handled properly by utf-8. Here goes a faillback.
                 line = line.decode('latin-1')
-            if not line:
-                break
             #print line,
             sys.stdout.flush()
 
@@ -66,11 +68,10 @@ class RenderChanBlenderModule(RenderChanModule):
             if end:
                 info["endFrame"]=end.group(1).strip()
 
-
-        rc = out.poll()
+            rc = out.poll()
 
         if rc != 0:
-            print('  Blender command failed...')
+            print("  Blender command failed (exit code %d)!" % rc)
 
         return info
 
@@ -144,13 +145,16 @@ class RenderChanBlenderModule(RenderChanModule):
             commandline.append(extraParams["single"])
 
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-        rc = None
+
         currentFrame = None
-        while rc is None:
+        rc = None
+        while True:
             line = out.stdout.readline()
-            line = line.decode(sys.stdout.encoding)
             if not line:
-                break
+                if rc is not None:
+                    break
+            line = line.decode(sys.stdout.encoding)
+
             print(line, end=' ')
             sys.stdout.flush()
 
@@ -163,7 +167,7 @@ class RenderChanBlenderModule(RenderChanModule):
                 currentFrame = float(fn.group(1).strip())
             elif currentFrame is not None:
                 fcp = frameCompletionPattern.search(line)
-                if fcp :
+                if fcp:
                     fc = float(currentFrame / 100) / float(totalFrames)
                     updateCompletion(comp + fc)
                 else:
@@ -173,8 +177,6 @@ class RenderChanBlenderModule(RenderChanModule):
                         updateCompletion(comp + fc)
             rc = out.poll()
 
-        out.communicate()
-        rc = out.poll()
         print('====================================================')
         print('  Blender command returns with code %d' % rc)
         print('====================================================')
