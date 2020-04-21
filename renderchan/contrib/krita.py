@@ -50,20 +50,23 @@ class RenderChanKritaModule(RenderChanModule):
 
         commandline = [self.conf['binary'], "--help"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        rc = None
-        while rc is None:
+        while True:
             line = out.stdout.readline()
-            line = line.decode(sys.stdout.encoding)
             if not line:
-                break
+                rc = out.poll()
+                if rc != None:
+                    break
+            line = line.decode(sys.stdout.encoding)
+
             # print(line)
             sys.stdout.flush()
 
             if line.find("--export-sequence") != -1:
                 self.canRenderAnimation = True
 
-            rc = out.poll()
-        out.communicate()
+        rc = out.poll()
+        if rc != 0:
+            print('  Krita command failed (exit code %d)!' % rc)
 
         return True
 
@@ -110,21 +113,23 @@ class RenderChanKritaModule(RenderChanModule):
 
             commandline = [self.conf['binary'], "--export-sequence", filename, "--export-filename", outputPathTmp]
             out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            rc = None
 
-            while rc is None:
+            while True:
                 line = out.stdout.readline()
+                if not line:
+                    rc = out.poll()
+                    if rc != None:
+                        break
                 line = line.decode(sys.stdout.encoding)
-                print(line)
+                #print(line)
                 sys.stdout.flush()
 
                 if line.startswith("krita.general: This file has no animation."):
                     noAnimation = True
 
-                rc = out.poll()
-
-            out.communicate()
-            # rc = out.poll()
+            rc = out.poll()
+            if rc != 0:
+                print('  Krita command failed (exit code %d)!' % rc)
 
             if not noAnimation:
                 # Resize result
@@ -163,4 +168,6 @@ class RenderChanKritaModule(RenderChanModule):
                 commandline=[self.conf['convert_binary'], outputPathTmp, "-resize", dimensions, outputPath]
                 subprocess.check_call(commandline)
 
+        if os.path.exists(os.path.dirname(outputPathTmp)):
+            shutil.rmtree(os.path.dirname(outputPathTmp))
         updateCompletion(1)
