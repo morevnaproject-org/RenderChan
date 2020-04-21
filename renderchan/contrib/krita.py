@@ -50,11 +50,12 @@ class RenderChanKritaModule(RenderChanModule):
 
         commandline = [self.conf['binary'], "--help"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        rc = None
         while True:
             line = out.stdout.readline()
             if not line:
-                rc = out.poll()
-                if rc != None:
+                if rc is not None:
                     break
             line = line.decode(sys.stdout.encoding)
 
@@ -64,7 +65,9 @@ class RenderChanKritaModule(RenderChanModule):
             if line.find("--export-sequence") != -1:
                 self.canRenderAnimation = True
 
-        rc = out.poll()
+            rc = out.poll()
+
+
         if rc != 0:
             print('  Krita command failed (exit code %d)!' % rc)
 
@@ -114,11 +117,11 @@ class RenderChanKritaModule(RenderChanModule):
             commandline = [self.conf['binary'], "--export-sequence", filename, "--export-filename", outputPathTmp]
             out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
+            rc = None
             while True:
                 line = out.stdout.readline()
                 if not line:
-                    rc = out.poll()
-                    if rc != None:
+                    if rc is not None:
                         break
                 line = line.decode(sys.stdout.encoding)
                 #print(line)
@@ -127,7 +130,8 @@ class RenderChanKritaModule(RenderChanModule):
                 if line.startswith("krita.general: This file has no animation."):
                     noAnimation = True
 
-            rc = out.poll()
+                rc = out.poll()
+
             if rc != 0:
                 print('  Krita command failed (exit code %d)!' % rc)
 
