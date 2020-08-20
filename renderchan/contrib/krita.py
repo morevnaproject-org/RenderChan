@@ -99,10 +99,15 @@ class RenderChanKritaModule(RenderChanModule):
                 deps_count+=1
                 break
 
-        # First, try to render animation sequence
-        noAnimation = True
-        if self.canRenderAnimation and (not "single" in extraParams.keys() or extraParams["single"] == "None"):
-            noAnimation = False
+        hasAnimation = False
+        contents=[]
+        with ZipFile(filename) as zip:
+            contents=zip.namelist()
+        for item in contents:
+            if item.endswith(".keyframes.xml"):
+                hasAnimation = True
+        
+        if hasAnimation and self.canRenderAnimation and (not "single" in extraParams.keys() or extraParams["single"] == "None"):
 
             outputPathTmp = os.path.join(outputPath + ".tmp", "file.png")
             if os.path.exists(outputPath + ".tmp"):
@@ -122,17 +127,13 @@ class RenderChanKritaModule(RenderChanModule):
                 #print(line)
                 sys.stdout.flush()
 
-                if line.startswith("krita.general: This file has no animation."):
-                    noAnimation = True
-
                 rc = out.poll()
 
             if rc != 0:
                 print('  Krita command failed (exit code %d)!' % rc)
-
-            if not noAnimation:
+            else:
                 # Resize result
-
+                
                 if os.path.exists(outputPath):
                     if os.path.isdir(outputPath):
                         shutil.rmtree(outputPath)
@@ -150,7 +151,7 @@ class RenderChanKritaModule(RenderChanModule):
                         subprocess.check_call(commandline)
 
         # Render single image if Krita reported the file has no animation
-        if (not self.canRenderAnimation) or noAnimation:
+        else:
             with tempfile.TemporaryDirectory() as tmpPath:
                 outputPathTmp = os.path.join(tmpPath, "image." + format)
                 if deps_count==0:
