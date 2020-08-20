@@ -38,7 +38,7 @@ def _configure_python_path():
         locale.bindtextdomain('renderchan', localedir)
         locale.textdomain('renderchan')
     except:
-        print("Couldn't set locale.")
+        pass
     try:
         gettext.bindtextdomain('renderchan', localedir)
         gettext.textdomain('renderchan')
