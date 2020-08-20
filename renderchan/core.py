@@ -70,12 +70,8 @@ class RenderChan():
         self.post_script = None
 
         self.ffmpeg_binary = ''
-        if os.name == 'nt':
-            ffmpeg_path = os.path.join(os.path.dirname(__file__),"..\\..\\packages\\ffmpeg\\bin\\ffmpeg.exe")
-            avconv_path = os.path.join(os.path.dirname(__file__),"..\\..\\packages\\avconv\\bin\\avconv.exe")
-        else:
-            ffmpeg_path = 'ffmpeg'
-            avconv_path = 'avconv'
+        ffmpeg_path = RenderChanModule.findBinary(self,'ffmpeg')
+        avconv_path = RenderChanModule.findBinary(self,'avconv')
         if which(ffmpeg_path) != None:
             self.ffmpeg_binary = ffmpeg_path
         elif which(avconv_path) != None:

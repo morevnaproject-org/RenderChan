@@ -12,10 +12,7 @@ from xml.etree import ElementTree
 class RenderChanInkscapeModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\inkscape\\inkscape.exe")
-        else:
-            self.conf['binary']="inkscape"
+        self.conf['binary']=self.findBinary("inkscape")
         self.conf["packetSize"]=0
         
         self.extraParams['use_own_dimensions']='1'

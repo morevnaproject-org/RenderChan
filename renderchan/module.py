@@ -150,22 +150,26 @@ class RenderChanModule():
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
         pass
         
-    def findBinary(self, name, win_installation_location, win_binary):
-        if os.name == 'nt':
-            path=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages", name, win_binary)
-            if os.path.exists(path):
-                self.conf['binary']=path
+    def findBinary(self, name):
+        path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..","env",name+".txt"))
+        if os.path.exists(path):
+            
+            with open(path) as f:
+                first_line = f.readline().strip()
+            if not os.path.isabs(first_line):
+                first_line = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", first_line))
+            if os.path.exists(first_line):
+                return first_line
             else:
-                path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\"+name+".txt"))
-                if not os.path.exists(path):
-                    with open(path, 'a') as f:
-                        f.write(os.path.join(win_installation_location,win_binary)+"\n")
-                with open(path) as f:
-                    first_line = f.readline().strip()
-                if os.path.exists(first_line):
-                    self.conf['binary']=first_line
-                else:
-                    print("    Cannot find %s package in %s." % (name, first_line))
-                    print("    Please make sure to install %s and write correct path to %s file." % (name, path))
+                print("    Cannot find %s package in %s." % (name, first_line))
+                print("    Please make sure to install %s and write correct path to %s file." % (name, path))
+                return name
         else:
-            self.conf['binary']=name
+            binary_suffix=""
+            if os.name == 'nt':
+                binary_suffix=".exe"
+            path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", name, name+binary_suffix))
+            if os.path.exists(path):
+                return path
+            else:
+                return name

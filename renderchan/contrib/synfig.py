@@ -13,7 +13,8 @@ from xml.etree import ElementTree
 class RenderChanSynfigModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.findBinary("synfig", "C:\\Program Files\\Synfig\\", "bin\\synfig.exe")
+        
+        self.conf["binary"]=self.findBinary("synfig")
         self.conf["packetSize"]=100
         self.conf["maxNbCores"]=1
 

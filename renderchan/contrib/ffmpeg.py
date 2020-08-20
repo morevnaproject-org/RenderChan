@@ -11,10 +11,7 @@ import random
 class RenderChanFfmpegModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\ffmpeg\\bin\\ffmpeg.exe")
-        else:
-            self.conf['binary']="ffmpeg"
+        self.conf['binary']=self.findBinary("ffmpeg")
         self.conf["packetSize"]=0
 
     def getInputFormats(self):

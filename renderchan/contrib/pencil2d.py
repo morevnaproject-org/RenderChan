@@ -13,10 +13,7 @@ from xml.etree import ElementTree
 class RenderChanPencil2dModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        if os.name == 'nt':
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\pencil2d\\pencil2d.exe")
-        else:
-            self.conf['binary']="pencil2d"
+        self.conf['binary']=self.findBinary("pencil2d")
         self.conf["packetSize"]=0
         # Extra params
         self.extraParams["transparency"]="0"

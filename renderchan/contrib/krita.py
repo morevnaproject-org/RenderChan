@@ -13,13 +13,8 @@ from renderchan.utils import which
 class RenderChanKritaModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        if os.name == 'nt':
-            self.conf['convert_binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\imagemagick\\bin\\convert.exe")
-            self.conf['binary']=os.path.join(os.path.dirname(__file__),"..\\..\\..\\packages\\krita\\bin\\krita.exe")
-        else:
-            #TODO: Additional bunaries should be separate modules
-            self.conf['convert_binary']="convert"
-            self.conf['binary']="krita"
+        self.conf['convert_binary']=self.findBinary("convert")
+        self.conf['binary']=self.findBinary("krita")
 
         self.conf["packetSize"]=0
 

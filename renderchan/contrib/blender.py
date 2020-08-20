@@ -11,7 +11,7 @@ import tempfile
 class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.findBinary("blender", "C:\\Program Files\\Blender\\", "blender.exe")
+        self.conf["binary"]=self.findBinary("blender")
         self.conf["packetSize"]=40
         self.conf["gpu_device"]=""
         # Extra params
