@@ -6,6 +6,7 @@ import sys
 import os
 import tempfile
 import shutil
+import locale
 from zipfile import ZipFile
 from xml.etree import ElementTree
 from renderchan.utils import which
@@ -52,7 +53,7 @@ class RenderChanKritaModule(RenderChanModule):
             if not line:
                 if rc is not None:
                     break
-            line = line.decode(sys.stdout.encoding)
+            line = line.decode(locale.getpreferredencoding())
 
             # print(line)
             sys.stdout.flush()
@@ -123,7 +124,7 @@ class RenderChanKritaModule(RenderChanModule):
                 if not line:
                     if rc is not None:
                         break
-                line = line.decode(sys.stdout.encoding)
+                line = line.decode(locale.getpreferredencoding())
                 #print(line)
                 sys.stdout.flush()
 
