@@ -151,25 +151,27 @@ class RenderChanModule():
         pass
         
     def findBinary(self, name):
-        path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..","env",name+".txt"))
-        if os.path.exists(path):
-            
-            with open(path) as f:
-                first_line = f.readline().strip()
-            if not os.path.isabs(first_line):
-                first_line = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", first_line))
-            if os.path.exists(first_line):
-                return first_line
-            else:
-                print("    Cannot find %s package in %s." % (name, first_line))
-                print("    Please make sure to install %s and write correct path to %s file." % (name, path))
-                return name
-        else:
-            binary_suffix=""
-            if os.name == 'nt':
-                binary_suffix=".exe"
-            path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", name, name+binary_suffix))
+        if "RENDERCHAN_ENVDIR" in os.environ:
+            envdir=os.environ.get('RENDERCHAN_ENVDIR')
+            path=os.path.abspath(os.path.join(envdir,name+".txt"))
             if os.path.exists(path):
-                return path
-            else:
-                return name
+                
+                with open(path) as f:
+                    first_line = f.readline().strip()
+                if not os.path.isabs(first_line):
+                    first_line = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", first_line))
+                if os.path.exists(first_line):
+                    return first_line
+                else:
+                    print("    Cannot find %s package in %s." % (name, first_line))
+                    print("    Please make sure to install %s and write correct path to %s file." % (name, path))
+                    return name
+        
+        binary_suffix=""
+        if os.name == 'nt':
+            binary_suffix=".exe"
+        path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", name, name+binary_suffix))
+        if os.path.exists(path):
+            return path
+        else:
+            return name
