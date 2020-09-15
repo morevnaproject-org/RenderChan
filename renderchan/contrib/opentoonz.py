@@ -13,7 +13,13 @@ class RenderChanOpentoonzModule(RenderChanModule):
         RenderChanModule.__init__(self)
         self.conf['binary']=self.findBinary("tcomposer")
         self.conf["packetSize"]=0
-
+        # Extra params
+        self.extraParams["range"]="1"
+        self.extraParams["step"]="1"
+        self.extraParams["shrink"]="1"
+        self.extraParams["multimedia"]="0"
+        self.extraParams["maxtilesize"]="none"
+        self.extraParams["nthreads"]="all"
 
     def getInputFormats(self):
         return ["tnz"]
@@ -30,7 +36,7 @@ class RenderChanOpentoonzModule(RenderChanModule):
 
         # TODO: Progress callback
 
-        commandline=[self.conf['binary'], "-nthreads", "all", filename, "-o", os.path.join(outputPath, "image."+format)]
+        commandline=[self.conf['binary'], filename, "-o", os.path.join(outputPath, "image."+format), "-nthreads", extraParams['nthreads'],  "-step", extraParams['step'], "-shrink", extraParams['shrink'], "-multimedia", extraParams['multimedia']]
         subprocess.check_call(commandline)
 
         updateCompletion(1.0)
