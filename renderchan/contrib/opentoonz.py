@@ -36,7 +36,8 @@ class RenderChanOpentoonzModule(RenderChanModule):
 
         # TODO: Progress callback
 
-        commandline=[self.conf['binary'], filename, "-o", os.path.join(outputPath, "image."+format), "-nthreads", extraParams['nthreads'],  "-step", extraParams['step'], "-shrink", extraParams['shrink'], "-multimedia", extraParams['multimedia']]
+        os.chdir(os.path.dirname(self.conf['binary']))
+        commandline=[self.conf['binary'], filename, "-o", os.path.join(outputPath, "image."+format), "-nthreads", extraParams['nthreads'], "-step", extraParams['step'], "-shrink", extraParams['shrink'], "-multimedia", extraParams['multimedia']]
         subprocess.check_call(commandline)
 
         updateCompletion(1.0)
