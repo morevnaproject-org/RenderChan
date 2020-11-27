@@ -25,7 +25,7 @@ class RenderChanOpentoonzModule(RenderChanModule):
         return ["tnz"]
 
     def getOutputFormats(self):
-        return ["tiff" , "png"]
+        return ["png", "tiff"]
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
