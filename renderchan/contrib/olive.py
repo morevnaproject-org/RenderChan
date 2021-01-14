@@ -33,16 +33,15 @@ class RenderChanOliveModule(RenderChanModule):
                 outs, errs = proc.communicate()
             rc = proc.poll()
             if rc == 0:
-                #try:
-                    line = outs.decode("utf-8")
-                    if line.startswith("Olive "):
-                        self.version = StrictVersion("0.1.0")
-                    else:
-                        # Get the version from stdout. An example of the output: "0.2.0-19eabf28\n"
-                        self.version = line.rstrip().split("-")[0]
-                        self.version = StrictVersion(self.version)
-                #except:
-                #    self.active = False
+                line = outs.decode("utf-8")
+                if line.startswith("Olive "):
+                    self.version = StrictVersion("0.1.0")
+                else:
+                    # Get the version from stdout. An example of the output: "0.2.0-19eabf28\n"
+                    self.version = line.rstrip().split("-")[0]
+                    self.version = StrictVersion(self.version)
+                    print("WARNING: Olive version >= 0.2.0 not supported yet.")
+                    self.active = False
             else:
                 self.active = False
 
@@ -82,10 +81,17 @@ class RenderChanOliveModule(RenderChanModule):
         
         # Parse dependencies
         dependencies=[]
-        media_tag = root.find(".//media")
-        if media_tag:
-            for footage_tag in media_tag.iter('footage'):
-                dependencies.append(footage_tag.get('url'))
+
+        # TODO: Detect if file version is compatible with installed version of Olive
+
+        if self.version < StrictVersion('0.2.0'):
+            media_tag = root.find(".//media")
+            if media_tag:
+                for footage_tag in media_tag.iter('footage'):
+                    dependencies.append(footage_tag.get('url'))
+        else:
+            #TODO: Add support for parsing Olive 0.2.0 format
+            pass
         
         f.close()
 
@@ -98,14 +104,6 @@ class RenderChanOliveModule(RenderChanModule):
         for i, val in enumerate(info["dependencies"]):
             fullpath = os.path.abspath(os.path.join(dirname, info["dependencies"][i]))
             info["dependencies"][i] = fullpath
-            #fallbackpath = os.path.dirname(fullpath)
-            #if not os.path.exists(fullpath) and os.path.exists(fallbackpath):
-                # Even if path to the file is wrong, synfig looks for the file with the same
-                # name in current directory, so we should treat this case.
-            #    info["dependencies"][i] = fallbackpath
-            #else:
-                # This is a path to a nonexistent file if fullpath and fallbackpath are both nonexistent
-            #    info["dependencies"][i] = fullpath
 
         return info
 
