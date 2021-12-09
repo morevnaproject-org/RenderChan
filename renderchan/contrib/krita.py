@@ -66,8 +66,9 @@ class RenderChanKritaModule(RenderChanModule):
 
         if rc != 0:
             print('  Krita command failed (exit code %d)!' % rc)
+            self.active = False
 
-        return True
+        return self.active
 
     def analyze(self, filename):
         info={'dependencies':[], 'width':0, 'height':0}
