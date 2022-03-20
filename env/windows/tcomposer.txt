@@ -1,1 +1,2 @@
+C:\Program Files\OpenToonz\tcomposer.exe
 C:\Program Files\OpenToonz\bin\tcomposer.exe
