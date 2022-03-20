@@ -155,15 +155,19 @@ class RenderChanModule():
             envdir=os.environ.get('RENDERCHAN_ENVDIR')
             path=os.path.abspath(os.path.join(envdir,name+".txt"))
             if os.path.exists(path):
-                
+                binary_path=None
                 with open(path) as f:
-                    first_line = f.readline().strip()
-                if not os.path.isabs(first_line):
-                    first_line = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", first_line))
-                if os.path.exists(first_line):
-                    return first_line
+                    for line in f.readlines():
+                        line = line.strip()
+                        if not os.path.isabs(line):
+                            line = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", line))
+                        if os.path.exists(line):
+                            binary_path=line
+                            break
+                if binary_path:
+                    return binary_path
                 else:
-                    print("    Cannot find %s package in %s." % (name, first_line))
+                    print("    Cannot find path to %s package in %s." % (name, path))
                     print("    Please make sure to install %s and write correct path to %s file." % (name, path))
                     return name
         
