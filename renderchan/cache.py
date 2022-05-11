@@ -111,28 +111,34 @@ class RenderChanCache():
         if self.closed:
             print("ERROR: Database is closed. Writing isn't possible.")
             return None
-        try:
-            cur=self.connection.cursor()
+        
+        cur=self.connection.cursor()
 
-            # First, delete all records for given path if present
-            cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
-            rows = cur.fetchall()
-            for row in rows:
-                cur.execute("DELETE FROM Paths WHERE Id=%s" % (row[0]))
-                cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (row[0]))
-            self.connection.commit()
+        # First, delete all records for given path if present
+        cur.execute("SELECT Id FROM Paths WHERE Path = ?", (path,))
+        rows = cur.fetchall()
+        for row in rows:
+            cur.execute("DELETE FROM Paths WHERE Id=%s" % (row[0]))
+            cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (row[0]))
+        self.connection.commit()
 
-            # Now, write the data
-            cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End, Width, Height) VALUES(?, ?, ?, ?, ?, ?)", (path, timestamp, start, end, width, height))
-            id = cur.lastrowid
+        # Now, write the data
+        cur.execute("INSERT INTO Paths(Path, Timestamp, Start, End, Width, Height) VALUES(?, ?, ?, ?, ?, ?)", (path, timestamp, start, end, width, height))
+        id = cur.lastrowid
 
-            # Again, make sure we have no associated data in dependency table
-            cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (id))
+        # Again, make sure we have no associated data in dependency table
+        cur.execute("DELETE FROM Dependencies WHERE Id=%s" % (id))
 
-            # Write a list of dependencies
-            for dep in dependencies:
+        # Write a list of dependencies
+        for dep in dependencies:
+            relpath=""
+            try:
                 relpath=os.path.relpath(os.path.realpath(dep), os.path.realpath(os.path.dirname(os.path.dirname(self.path))))
-                cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
+            except:
+                # Workaround for Windows, which gives wrong paths in some cases (returns path on different drive)
+                relpath=os.path.realpath(dep)
+            cur.execute("INSERT INTO Dependencies(Id, Dependency) VALUES(?, ?)", (id, relpath))
+        try:
             self.connection.commit()
         except:
             print("ERROR: Cannot write into database.")
