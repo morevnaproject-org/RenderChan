@@ -186,3 +186,12 @@ def ini_wrapper(filename):
 def is_true_string(string):
     string = string.lower()
     return string == "1" or string == "true" or string == "yes"
+
+
+def sanitize_path(path):
+    assert isinstance(path, str)
+    if os.name == 'nt':
+        path = path.replace('/', os.sep)
+    else:
+        path = path.replace('\\', os.sep)
+    return path

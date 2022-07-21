@@ -3,18 +3,13 @@ __author__ = 'Konstantin Dmitriev'
 import os.path
 import configparser
 from renderchan.module import RenderChanModule
-from renderchan.utils import float_trunc, ini_wrapper, is_true_string
+from renderchan.utils import float_trunc, ini_wrapper, is_true_string, sanitize_path
 from renderchan.metadata import RenderChanMetadata
 
 class RenderChanFile():
     def __init__(self, path, modules, projects):
 
-        if os.name == 'nt':
-            path=path.replace('/',os.sep)
-        else:
-            path = path.replace('\\', os.sep)
-
-        path = os.path.abspath(path)
+        path = os.path.abspath(sanitize_path(path))
         self.projectPath = self._findProjectRoot(path)
         self.localPath = self._findLocalPath(path)
         self.project=None
@@ -70,7 +65,8 @@ class RenderChanFile():
                     print(". . Cache found")
                     self.startFrame=int(info["startFrame"])
                     self.endFrame=int(info["endFrame"])
-                    self.dependencies=dependencies
+                    for dep in dependencies:
+                        self.dependencies.append(sanitize_path(dep))
                     if info["width"]>0:
                         self.width=str(info["width"])
                     if info["height"]>0:
@@ -78,7 +74,8 @@ class RenderChanFile():
                 else:
                     info=self.module.analyze(self.getPath())
                     if "dependencies" in info.keys():
-                        self.dependencies=list(set(info["dependencies"]))
+                        for dep in list(set(info["dependencies"])):
+                            self.dependencies.append(sanitize_path(dep))
 
                     if "startFrame" in info.keys():
                         self.startFrame=int(info["startFrame"])
