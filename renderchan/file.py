@@ -238,6 +238,8 @@ class RenderChanFile():
     def setFormat(self, format):
         # Check if format is supported by the module
         if not format in self.module.getOutputFormats():
+            if format=="mov" and "png" in self.module.getOutputFormats():
+                return True
             return False
         self.config["format"]=format
         return True
@@ -254,7 +256,9 @@ class RenderChanFile():
         # Check if format is supported by the module
         supported_formats = self.module.getOutputFormats()
         if not format in supported_formats:
-            if supported_formats:
+            if format == "mov" and "png" in supported_formats:
+                format="mov"
+            elif supported_formats:
                 format=supported_formats[0]
             else:
                 format="undefined"

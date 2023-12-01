@@ -573,7 +573,10 @@ class RenderChan():
                 for range in segments:
                     start=range[0]
                     end=range[1]
-                    self.job_render(taskfile, taskfile.getFormat(), self.updateCompletion, start, end, compare_time)
+                    format=taskfile.getFormat()
+                    if format=="mov":
+                        format="png"
+                    self.job_render(taskfile, format, self.updateCompletion, start, end, compare_time)
 
                 self.job_merge(taskfile, taskfile.getFormat(), taskfile.project.getConfig("stereo"), compare_time)
 
@@ -1011,7 +1014,12 @@ class RenderChan():
             for suffix in suffix_list:
 
                 output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
-                profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+                
+                if format=="mov":
+                    profile_output_format="png"
+                else:
+                    profile_output_format=format
+                profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + profile_output_format
                 profile_output_list = os.path.splitext(profile_output)[0] + ".txt"
 
                 # We need to merge the rendered files into single one
@@ -1062,6 +1070,12 @@ class RenderChan():
                                 for line in segments:
                                     print(line)
                                     copytree(line, profile_output, hardlinks=True)
+                                if format=="mov":
+                                    profile_output_mov = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+                                    subprocess.check_call(
+                                        [self.ffmpeg_binary, "-y", "-i", os.path.join(profile_output, "file.%04d.png"), "-r", params["fps"], "-vcodec", "png", profile_output_mov])
+                                    shutil.rmtree(profile_output, ignore_errors=True)
+                                    profile_output=profile_output_mov
 
                             os.remove(profile_output_list)
                             for line in segments:
