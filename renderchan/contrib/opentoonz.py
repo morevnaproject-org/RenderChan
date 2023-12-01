@@ -52,7 +52,7 @@ class RenderChanOpentoonzModule(RenderChanModule):
         
         if format == "avi":
             #TODO: Detect frame rate!
-            commandline=[self.findBinary("ffmpeg"), "-r", "24", "-f", "image2", "-i", os.path.join(img_outputPath, "image.%04d."+img_format), outputPath]
+            commandline=[self.findBinary("ffmpeg"), "-r", "24", "-f", "image2", "-i", os.path.join(img_outputPath, "image.%04d."+img_format), "-c:v", "libx264", outputPath]
             subprocess.check_call(commandline)
             shutil.rmtree(img_outputPath)
 
