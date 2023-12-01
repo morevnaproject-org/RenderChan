@@ -26,7 +26,7 @@ class RenderChanSynfigModule(RenderChanModule):
         return ["sif", "sifz"]
 
     def getOutputFormats(self):
-        return ["png","exr", "avi"]
+        return ["png","exr", "avi", "mp4"]
 
     def analyze(self, filename):
 
