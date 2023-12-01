@@ -152,7 +152,6 @@ class RenderChanProject():
         self.frozenPaths=[]
         self.loadFrozenPaths()
 
-
     def loadRenderConfig(self, profile=None):
 
         """
@@ -172,12 +171,25 @@ class RenderChanProject():
 
             for key in config.options('default'):
                 self.config[key]=config.get('default', key)
-        else:
+        else: # self.version==1
 
             # Native RenderChan project format
-
+            realConfigPath = self.confPath
+            # check if we need to load parent config
+            if os.stat(realConfigPath).st_size == 0:
+                realConfigPath = os.path.dirname(realConfigPath)
+                while True:
+                    if os.path.exists(os.path.join(realConfigPath,"project.conf")) and not os.path.isdir(os.path.join(realConfigPath,"project.conf")) and not os.stat(os.path.join(realConfigPath,"project.conf")).st_size == 0:
+                        break
+                    if os.path.realpath(os.path.dirname(realConfigPath)) == os.path.realpath(realConfigPath):
+                        # We have reached roo directory, no parent config found
+                        # let's rollack to initial file path
+                        realConfigPath = os.path.dirname(self.confPath)
+                        break
+                    realConfigPath = os.path.dirname(realConfigPath)
+                realConfigPath = os.path.join(realConfigPath,"project.conf")
             config = configparser.ConfigParser()
-            config.readfp(open(self.confPath))
+            config.readfp(open(realConfigPath))
 
             # sanity check
             for section in config.sections():
