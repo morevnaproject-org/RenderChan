@@ -163,11 +163,11 @@ def sync(profile_output, output, compareTime=None):
                         except:
                             raise Exception('ERROR: Cannot sync profile data.')
 
-                if not os.path.exists(output):
-                    raise Exception('ERROR: Failed to sync profile data.')
+            if not os.path.exists(output):
+                raise Exception('ERROR: Failed to sync profile data.')
 
-                # Remember the time of the last sync
-                touch(profile_output + ".sync", time.time())
+            # Remember the time of the last sync
+            touch(profile_output + ".sync", time.time())
 
     elif os.path.exists(output):
         if os.path.isdir(output):
