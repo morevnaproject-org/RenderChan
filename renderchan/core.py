@@ -1062,7 +1062,7 @@ class RenderChan():
                             if os.path.isfile(profile_output+".done"):
                                     os.remove(profile_output+".done")
                             
-                            if format == "avi":
+                            if format == "avi" or format == "mp4":
                                 subprocess.check_call(
                                     [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                             else:
