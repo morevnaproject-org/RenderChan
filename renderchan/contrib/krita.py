@@ -44,6 +44,9 @@ class RenderChanKritaModule(RenderChanModule):
             return False
         self.active=True
 
+        #TODO:  Optimization suggestion:
+        #       This part takes much time, as it is fully loads krita.
+        #       It would be nice to check modtime/md5sum of binary and don't invoke the check extra time
         commandline = [self.conf['binary'], "--help"]
         out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
