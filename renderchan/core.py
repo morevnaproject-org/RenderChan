@@ -196,7 +196,7 @@ class RenderChan():
 
             if os.path.exists(os.path.join(os.getcwd(),zipname)):
                 print("ERROR: File "+os.path.join(os.getcwd(),zipname)+" already exists.")
-                exit()
+                sys.exit()
 
 
             with zipfile.ZipFile(zipname, 'x') as myzip:
@@ -1057,7 +1057,7 @@ class RenderChan():
                                     
                                     if not os.path.exists(line+".done") or not os.path.exists(line):
                                         print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
-                                        exit(1)
+                                        sys.exit(1)
                             
                             if os.path.isfile(profile_output+".done"):
                                     os.remove(profile_output+".done")
@@ -1097,7 +1097,7 @@ class RenderChan():
                                 touch(profile_output + ".done", float(compare_time))
                         else:
                                 print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
-                                exit(1)
+                                sys.exit(1)
 
                 # Add LST file
                 if format in RenderChanModule.imageExtensions and os.path.isdir(profile_output):
@@ -1129,7 +1129,7 @@ class RenderChan():
             print("ERROR: Merge operation failed.", file=sys.stderr)
             for lock in locks:
                 lock.unlock()
-            exit(1)
+            sys.exit(1)
 
         # Releasing PROJECT LOCK
         for lock in locks:
