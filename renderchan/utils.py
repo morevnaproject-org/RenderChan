@@ -121,12 +121,23 @@ def sync(profile_output, output, compareTime=None):
                 # Copy to temporary path to ensure quick switching
                 output_tmp= output+"%08d" % (random.randint(0,99999999))
                 copytree(profile_output, output_tmp, hardlinks=True)
-                if os.path.exists(output):
-                    if os.path.isdir(output):
-                        shutil.rmtree(output)
-                    else:
-                        os.remove(output)
-                os.rename(output_tmp, output)
+                while os.path.exists(output):
+                    try:
+                        if os.path.isdir(output):
+                            shutil.rmtree(output)
+                        else:
+                            os.remove(output)
+                    except:
+                        print("Failed to remove %s... Trying again..." % output)
+                        pass
+                rename_success=False
+                while not rename_success:
+                    try:
+                        os.rename(output_tmp, output)
+                        rename_success=True
+                    except:
+                        print("Failed to rename %s -> %s... Trying again..." % (output_tmp, output))
+                        pass
             else:
                 if os.path.exists(output):
                     try:
