@@ -58,10 +58,11 @@ class RenderChanFile():
                 print(". Analyzing file: %s" % output_str)
 
                 info=None
+                dependencies=None
                 if self.project:
                     info=self.project.cache.getInfo(self.localPath)
                     dependencies=self.project.cache.getDependencies(self.localPath)
-                if info and dependencies and info["timestamp"]>=self.getTime():
+                if info!=None and dependencies!=None and info["timestamp"]>=self.getTime():
                     print(". . Cache found")
                     self.startFrame=int(info["startFrame"])
                     self.endFrame=int(info["endFrame"])
