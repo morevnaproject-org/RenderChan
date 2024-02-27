@@ -1,0 +1,40 @@
+name: "ci export Linux"
+
+on:
+  push:
+    branches: [ v2.0.1 ]
+  pull_request:
+    branches: [ v2.0.1 ]
+
+env:
+  VERSION: 3.3.4
+  EXPORT_NAME: source_code
+ 
+jobs:
+
+  export-linux:
+    name: Linux Export
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Dependencies
+        run: |
+          apt-get update
+          apt-get install libssl-dev -y  
+      - name: Setup
+        run: |
+          ls -al 
+          neofetch
+      - name: Linux Build
+        run: |
+          mkdir -v -p build/linux
+          cd $EXPORT_NAME
+          ls -al
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: linux
+          path: build/linux
