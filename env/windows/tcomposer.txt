@@ -1,2 +1,2 @@
-/snap/bin/opentoonz.tcomposer
-/snap/opentoonz/147/bin/tcomposer
+C:\Program Files\OpenToonz\tcomposer.exe
+C:\Program Files\OpenToonz\bin\tcomposer.exe
