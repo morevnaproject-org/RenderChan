@@ -36,3 +36,6 @@ nosetests.xml
 
 # Release dirs
 _release/files*
+
+# project files
+projects/Dystopia*
