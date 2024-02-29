@@ -43,3 +43,4 @@ projects/Dystopia*
 
 # Binary files and Binanry Config files
 env/linux*
+env/linux/tcomposer.txt

@@ -30,6 +30,7 @@ jobs:
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           chmod +x ${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
           cd ${RENDERCHAN_ENVDIR} 
+          ls -al
           sed -i '1s|^|'/home/runner/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
 
       - name: RenderChan (^U^)/
