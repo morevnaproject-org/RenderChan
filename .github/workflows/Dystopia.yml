@@ -10,7 +10,7 @@ env:
   VERSION: 0.0.1
   EXPORT_NAME: source_code
   OPENTOONZ_BINARY : OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage
-  RENDERCHAN_ENVDIR : /home/runner/RenderChan/env/linux/
+  RENDERCHAN_ENVDIR : ${HOME}/RenderChan/env/linux/
 jobs:
 
   export-linux:
