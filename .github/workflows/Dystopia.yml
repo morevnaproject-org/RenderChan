@@ -42,6 +42,7 @@ jobs:
           cd projects && ls 
           cd ../bin 
           export RENDERCHAN_DIR=/home/runner/work/RenderChan/env/linux/${OPENTOONZ_BINARY} 
+          
           ./renderchan "../projects/Dystopia/project.blend"
 
       - name: Linux Build
