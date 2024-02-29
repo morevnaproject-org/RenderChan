@@ -26,9 +26,11 @@ jobs:
           sudo apt update -y
           sudo apt install blender krita 
           sudo snap install opentoonz-morevna 
+          git clone https://github.com/Sam2much96/RenderChan
           cd RenderChan/projects && git clone https://github.com/Sam2much96/Dystopia  
           cd ../env/linux 
           wget -P . https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+          chmod +x ${OPENTOONZ_BINARY}
           export RENDERCHAN_ENVDIR = ~/RenderChan/env/linux/${OPENTOONZ_BINARY}
 
       - name: Render
