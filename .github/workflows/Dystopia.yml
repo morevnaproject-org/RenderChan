@@ -49,5 +49,5 @@ jobs:
       - name: Upload Render
         uses: actions/upload-artifact@v1
         with:
-          name: Video
+          name: Video.avi
           path: projects/Dystopia/render/project.blend.avi
