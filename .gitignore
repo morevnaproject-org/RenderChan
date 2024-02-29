@@ -39,3 +39,7 @@ _release/files*
 
 # project files
 projects/Dystopia*
+
+
+# Binary files and Binanry Config files
+env/linux*
