@@ -35,9 +35,9 @@ jobs:
           cd .. && ls -al
           cd .. && ls -al
           cd .. && ls -al
-          cd RenderChan && ls -al
+          cd work && ls -al
           cd ..
-          cd runners && ls -al
+          
 
       - name: RenderChan (^U^)/
         run: |
