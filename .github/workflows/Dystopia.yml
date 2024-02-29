@@ -29,9 +29,10 @@ jobs:
           git clone https://github.com/Sam2much96/RenderChan
           git clone https://github.com/Sam2much96/Dystopia ~/RenderChan/projects/Dystopia  
            
-          wget -P ~/RenderChan/env/linux https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+          wget -P ~/RenderChan/env/linux/ https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           chmod +x ~/RenderChan/env/linux/${OPENTOONZ_BINARY}
-          cd ~/RenderChan/env/linux && sed -i '1s|^|'~/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
+          cd ~/RenderChan/env/linux && ls
+          sed -i '1s|^|'~/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
 
 
       - name: Render
