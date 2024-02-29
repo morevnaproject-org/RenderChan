@@ -10,7 +10,7 @@ env:
   VERSION: 0.0.1
   EXPORT_NAME: source_code
   OPENTOONZ_BINARY : OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage
-  RENDERCHAN_ENVDIR : env/linux/
+  RENDERCHAN_ENVDIR : /home/runner/RenderChan/env/linux/
 jobs:
 
   export-linux:
@@ -27,19 +27,19 @@ jobs:
           sudo apt install blender krita ffmpeg
           sudo snap install opentoonz-morevna 
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
-          wget -P ${HOME}/${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
-          chmod +x ${HOME}/${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
-      - name: RenderChan (^U^)/
-        run: |
-          cd ${HOME}/${RENDERCHAN_ENVDIR} 
-          touch tcomposer.txt  
-          sed -i '1s|^|'OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt  
+          wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+          chmod +x ${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
+          cd ${RENDERCHAN_ENVDIR} && touch tcomposer.txt  
+          sed -i '1s|^|'OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
           ls -al
           cd .. && ls -al
           cd .. && ls -al
           cd .. && ls -al
-          echo $HOME
-          cd /bin  
+
+      - name: RenderChan (^U^)/
+        run: |
+          cd projects && ls  
+          cd ../bin  
           ./renderchan "../projects/Dystopia/project.blend"
 
       - name: Linux Build
