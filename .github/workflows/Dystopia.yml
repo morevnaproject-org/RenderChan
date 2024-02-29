@@ -23,10 +23,11 @@ jobs:
           lfs: true
       - name: Dependencies
         run: |
-          apt-get update -y
-          apt-get install blender krita opentoonz-morevna  -y
+          sudo apt update -y
+          sudo apt install blender krita opentoonz-morevna  -y
           cd RenderChan/projects && git clone https://github.com/Sam2much96/Dystopia  
-          cd ../env/linux && wget https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+          cd ../env/linux 
+          wget -P . https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           export RENDERCHAN_ENVDIR = ~/RenderChan/env/linux/${OPENTOONZ_BINARY}
 
       - name: Render
