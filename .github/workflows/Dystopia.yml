@@ -38,7 +38,7 @@ jobs:
       - name: Render
         run: |
           ls -al 
-          cd ~/RenderChan/bin 
+          cd bin 
           ./renderchan "../projects/Dystopia/project.blend"
 
       - name: Linux Build
