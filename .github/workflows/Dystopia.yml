@@ -33,7 +33,7 @@ jobs:
         run: |
           cd ${RENDERCHAN_ENVDIR} && touch tcomposer.txt  
           sed -i '1s|^|'OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt  
-          cd ../bin  
+          cd && cd RenderChan/bin  
           ./renderchan "../projects/Dystopia/project.blend"
 
       - name: Linux Build
