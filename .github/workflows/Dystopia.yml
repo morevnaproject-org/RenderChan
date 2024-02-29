@@ -24,7 +24,8 @@ jobs:
       - name: Dependencies
         run: |
           sudo apt update -y
-          sudo apt install blender krita opentoonz-morevna  -y
+          sudo apt install blender krita -y
+          snap install opentoonz-morevna -y
           cd RenderChan/projects && git clone https://github.com/Sam2much96/Dystopia  
           cd ../env/linux 
           wget -P . https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
