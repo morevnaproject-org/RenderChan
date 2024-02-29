@@ -37,7 +37,9 @@ jobs:
           ls -al
           cd .. && ls -al
           cd .. && ls -al
-          cd ${HOME}/bin  
+          cd .. && ls -al
+          echo $HOME
+          cd /bin  
           ./renderchan "../projects/Dystopia/project.blend"
 
       - name: Linux Build
