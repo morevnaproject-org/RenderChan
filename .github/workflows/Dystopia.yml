@@ -32,13 +32,14 @@ jobs:
           ls -al
           cd ${RENDERCHAN_ENVDIR} && touch tcomposer.txt  
           sed -i '1s|^|'/home/runner/work/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
-          
-      - name: RenderChan (^U^)/
-        run: |
+          cd ../,,
           cd projects && ls  
           cd ../bin  
           ./renderchan "../projects/Dystopia/project.blend"
 
+      - name: RenderChan (^U^)/
+        run: |
+          ls -al          
       - name: Linux Build
         run: |
 
