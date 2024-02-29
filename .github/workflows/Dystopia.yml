@@ -27,7 +27,7 @@ jobs:
           sudo apt update -y
           sudo apt install blender krita ffmpeg
           sudo snap install opentoonz-morevna 
-          git clone https://github.com/Sam2much96/Dystopia ~/RenderChan/projects/Dystopia  
+          cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ~/RenderChan/env/linux/ https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           chmod +x ~/RenderChan/env/linux/${OPENTOONZ_BINARY}
           cd ~/RenderChan/env/linux && touch tcomposer.txt 
@@ -37,7 +37,7 @@ jobs:
       - name: Render
         run: |
           ls -al
-          cd projects && ls 
+          cd projects && ls  
           cd ../bin 
           export RENDERCHAN_DIR=/home/runner/work/RenderChan/env/linux/${OPENTOONZ_BINARY} 
           ./renderchan "../projects/Dystopia/project.blend"
