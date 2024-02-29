@@ -21,8 +21,8 @@ Detailed explanation of the concept here - http://www.youtube.com/watch?v=8EkQRL
 **(3) Download Latest Opentoonz app image binary and place in "/home/your_pc/renderchan/env/linux" folder**
 
 
-**(4) Create A tcomposer.txt file in this linux directory and add the path to your Opentoonz app image binary like
-    /home/your_pc/renderchan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage**
+**(4) Create A tcomposer.txt file in this linux directory and add the name of your Opentoonz app image binary like
+    OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage**
 
 
 **(5) cd ../..**
