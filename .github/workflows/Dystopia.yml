@@ -31,8 +31,8 @@ jobs:
           chmod +x ${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
           ls -al
           cd ${RENDERCHAN_ENVDIR} && touch tcomposer.txt  
-          sed -i '1s|^|'/home/runner/work/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
-          cd ..
+          sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
+          cd ../..
           ls -al
           cd bin  
           ./renderchan "../projects/Dystopia/project.blend"
