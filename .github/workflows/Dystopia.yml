@@ -2,18 +2,19 @@ name: "ci export Linux"
 
 on:
   push:
-    branches: [ v2.0.1 ]
+    branches: [ master ]
   pull_request:
-    branches: [ v2.0.1 ]
+    branches: [ master ]
 
 env:
-  VERSION: 3.3.4
+  VERSION: 0.0.1
   EXPORT_NAME: source_code
+  OPENTOONZ_BINARY : OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage
  
 jobs:
 
   export-linux:
-    name: Linux Export
+    name: Fetch
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -23,17 +24,23 @@ jobs:
       - name: Dependencies
         run: |
           apt-get update
-          apt-get install libssl-dev -y  
-      - name: Setup
+          apt-get install blender krita opentoonz-morevna  -y
+          cd RenderChan/projects && git clone https://github.com/Sam2much96/Dystopia  
+          cd ../env/linux && wget https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+          export RENDERCHAN_ENVDIR = ~/RenderChan/env/linux/${OPENTOONZ_BINARY}
+          
+      - name: Render
         run: |
           ls -al 
-          neofetch
+          cd ..
+          cd bin 
+          ./renderchan "../projects/Dystopia/project.blend"
+
       - name: Linux Build
         run: |
-          mkdir -v -p build/linux
-          cd $EXPORT_NAME
+
           ls -al
-      - name: Upload Artifact
+      - name: Upload 
         uses: actions/upload-artifact@v1
         with:
           name: linux
