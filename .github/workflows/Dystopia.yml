@@ -35,8 +35,9 @@ jobs:
           touch tcomposer.txt  
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
           touch krita.txt
-          sed -i '1s|^|'/usr/bin/krita'\n|' krita.txt
+          sed -i '1s|^|'krita-5.0.2-x86_64.appimage'\n|' krita.txt
           ls -al
+          krita --version
           cd ../..
 
       - name: RenderChan \(^U^)/
