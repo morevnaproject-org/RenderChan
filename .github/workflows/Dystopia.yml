@@ -37,7 +37,6 @@ jobs:
           touch krita.txt
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
           ls -al
-          echo ${github.workspace}
           cd ../..
 
       - name: RenderChan \(^U^)/
