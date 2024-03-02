@@ -41,6 +41,7 @@ jobs:
           # sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
           ls -al
           # Missing Qt Dependency Debugger
+          #Debugging Display Connections
           DISPLAY=:0.0 xterm
           QT_DEBUG_PLUGINS=1 DISPLAY=:0 ./krita-5.0.2-x86_64.appimage --version
           cd ../..
