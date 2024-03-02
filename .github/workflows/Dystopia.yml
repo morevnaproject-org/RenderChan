@@ -39,7 +39,8 @@ jobs:
         run: |
           ls -al       
           cd bin  
-          ./renderchan "../projects/Dystopia/project.blend"
+          chmod +x render-test.sh
+          ./render-test.sh
    
       - name: Linux Build
         run: |

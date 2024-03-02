@@ -93,7 +93,7 @@ class RenderChanKritaModule(RenderChanModule):
 
         return info
 
-    def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
+    def render(self, filename : str, outputPath : str, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
         comp = 0.0
         updateCompletion(comp)
