@@ -11,6 +11,7 @@ env:
   EXPORT_NAME: source_code
   OPENTOONZ_BINARY : OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage
   RENDERCHAN_ENVDIR : ${{ github.workspace }}/env/linux/
+  DISPLAY : :99
 jobs:
 
   export-linux:
@@ -37,13 +38,11 @@ jobs:
           touch tcomposer.txt  
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
           
-          # Krita Setup
-          # touch krita.txt 
-          # sed -i '1s|^|'/snap/bin/krita'\n|' krita.txt
-               
+          # Krita Setup               
           # Setup Display Server For Krita
           # Docs: https://stackoverflow.com/questions/63125480/running-a-gui-application-on-a-ci-service-without-x11
-          export DISPLAY=:99
+          # export DISPLAY=:99
+          
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           
           #Test Krita Runtime with fake display server
