@@ -45,18 +45,17 @@ jobs:
           
           #Test Krita Runtime with fake display server
           QT_DEBUG_PLUGINS=1 krita --version
-          cd ../..
+          cd ${{ github.workspace }}/bin
+          chmod +x render-test.sh
+          ./render-test.sh
 
       - name: RenderChan \(^U^)/
         run: |      
-          cd bin  
-          chmod +x render-test.sh
-          ./render-test.sh
-   
-      - name: Linux Build
-        run: |
-
+          #cd bin  
+          #chmod +x render-test.sh
+          #./render-test.sh
           ls -al
+   
       - name: Upload Render
         uses: actions/upload-artifact@v1
         with:
