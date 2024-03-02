@@ -26,8 +26,6 @@ jobs:
         run: | 
           sudo apt update -y
           sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox
-          #  libx11-xcb1 qtcreator libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxcb-randr0 libxcb-icccm4
-          # sudo snap install krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           wget -P ${RENDERCHAN_ENVDIR} https://download.kde.org/stable/krita/5.0.2/${KRITA_BINARY}
@@ -37,15 +35,14 @@ jobs:
           touch tcomposer.txt  
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
           
-          # touch krita.txt
-          # sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
+          touch krita.txt
+          sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
           
           # Setup Display Server For Krita
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           
-          echo $DISPLAY
-          #DISPLAY=:0.0 xterm
+          #Test Krita App Image
           QT_DEBUG_PLUGINS=1 ./krita-5.0.2-x86_64.appimage --version
           cd ../..
 
