@@ -24,8 +24,7 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg qtcreator fuse libfuse2 
-          # xorg openbox 
+          sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox  
           sudo snap install krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
@@ -33,10 +32,14 @@ jobs:
           sudo chmod +x ${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
 
           cd ${RENDERCHAN_ENVDIR}  
+          
+          # OpenToonz Setup
           touch tcomposer.txt  
-          touch krita.txt 
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
-          sed -i '1s|^|'/snap/bin/krita'\n|' krita.txt
+          
+          # Krita Setup
+          # touch krita.txt 
+          # sed -i '1s|^|'/snap/bin/krita'\n|' krita.txt
                
           # Setup Display Server For Krita
           # Docs: https://stackoverflow.com/questions/63125480/running-a-gui-application-on-a-ci-service-without-x11
