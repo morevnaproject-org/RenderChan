@@ -25,7 +25,7 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg qtcreator
+          sudo apt install blender ffmpeg qtcreator fuse libfuse2
           # qtcreator libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxcb-randr0 libxcb-icccm4
           # sudo snap install krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
