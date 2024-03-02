@@ -25,7 +25,7 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox
+          sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           wget -P ${RENDERCHAN_ENVDIR} https://download.kde.org/stable/krita/5.0.2/${KRITA_BINARY}
@@ -39,6 +39,7 @@ jobs:
           sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
           
           # Setup Display Server For Krita
+          # Docs: https://stackoverflow.com/questions/63125480/running-a-gui-application-on-a-ci-service-without-x11
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           
