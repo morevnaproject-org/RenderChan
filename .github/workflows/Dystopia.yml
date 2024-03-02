@@ -25,7 +25,8 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg krita qtcreator
+          sudo apt install blender ffmpeg qtcreator
+          snap install krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
           wget -P ${RENDERCHAN_ENVDIR} https://download.kde.org/stable/krita/5.0.2/${KRITA_BINARY}
