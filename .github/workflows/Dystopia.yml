@@ -25,8 +25,8 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg qtcreator fuse libfuse2 xserver-xorg
-          #libx11-xcb1 qtcreator libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxcb-randr0 libxcb-icccm4
+          sudo apt install blender ffmpeg qtcreator fuse libfuse2 
+          # xserver-xorg libx11-xcb1 qtcreator libgl1-mesa-dev libvulkan-dev libxcb-xinput-dev libxcb-xinerama0-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xkb1 libxcb-randr0 libxcb-icccm4
           # sudo snap install krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
@@ -41,6 +41,7 @@ jobs:
           # sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/krita-5.0.2-x86_64.appimage'\n|' krita.txt
           ls -al
           # Missing Qt Dependency Debugger
+          DISPLAY=:0.0 xterm
           QT_DEBUG_PLUGINS=1 DISPLAY=:0 ./krita-5.0.2-x86_64.appimage --version
           cd ../..
 
