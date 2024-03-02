@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           lfs: true
-      - name: Dependencies
+      - name: Dependencies & RenderChan \(^U^)/
         run: | 
           sudo apt update -y
           sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox  
@@ -48,17 +48,12 @@ jobs:
           
           #Test Krita Runtime with fake display server
           QT_DEBUG_PLUGINS=1 krita --version
+
+          # Render
           cd ${{ github.workspace }}/bin
           chmod +x render-test.sh
           ./render-test.sh
 
-      - name: RenderChan \(^U^)/
-        run: |      
-          #cd bin  
-          #chmod +x render-test.sh
-          #./render-test.sh
-          ls -al
-   
       - name: Upload Render
         uses: actions/upload-artifact@v1
         with:
