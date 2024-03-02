@@ -15,7 +15,7 @@ jobs:
 
   export-linux:
     name: RenderChan UwU
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
       - name: Dependencies
         run: | 
           sudo apt update -y
-          sudo apt install blender ffmpeg libglu1-mesa
+          sudo apt install blender ffmpeg krita libglu1-mesa
           sudo snap install opentoonz-morevna krita
           cd projects && git clone https://github.com/Sam2much96/Dystopia   
           wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
