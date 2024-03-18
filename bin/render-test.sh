@@ -21,11 +21,16 @@
 # Shot 1 Props
 ./renderchan '../projects/Dystopia/extras/Truck 1/Truck.kra' && cp -r "../projects/Dystopia/render/extras/Truck 1" "../projects/Dystopia/scenes/" 
 
+
 # Shot 1 Backgrounds
 # Desert Bckground
 # make background file and rename background image file
-./renderchan "../projects/Dystopia/extras/backgrounds/raw 3 Dystopia Bckgrnd-1.psd" && mkdir "../projects/Dystopia/scenes/backgrounds" && mv "../projects/Dystopia/render/extras/backgrounds/raw 3 Dystopia Bckgrnd-1.psd.jpg" "../projects/Dystopia/scenes/backgrounds/raw 3 Dystopia Bckgrnd-1.jpg"
+echo "Desert Background"
+./renderchan "../projects/Dystopia/extras/backgrounds/raw 3 Dystopia Bckgrnd-1.psd" && mkdir "../projects/Dystopia/scenes/backgrounds"
 
+mv "../projects/Dystopia/render/extras/backgrounds/raw 3 Dystopia Bckgrnd-1.psd.jpg" "../projects/Dystopia/scenes/backgrounds/raw 3 Dystopia Bckgrnd-1.jpg"
+
+echo "Market Background"
 # market background
 ./renderchan "../projects/Dystopia/extras/backgrounds/Market background.psd" && cp "../projects/Dystopia/render/extras/backgrounds/Market background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/Market background.jpg"
 
@@ -45,6 +50,7 @@
 
 #shot 3 props
 #man & cow
+echo "Man and Cow"
 ./renderchan "../projects/Dystopia/inputs/shot 3/shot 3.kra" && cp -r "../projects/Dystopia/render/inputs/shot 3/shot 3.kra.png/" "../projects/Dystopia/scenes/"
 
 
