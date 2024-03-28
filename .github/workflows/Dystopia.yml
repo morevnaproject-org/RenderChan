@@ -1,0 +1,61 @@
+name: "CI Render Linux"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  VERSION: 0.0.1
+  EXPORT_NAME: source_code
+  OPENTOONZ_BINARY : OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage
+  RENDERCHAN_ENVDIR : ${{ github.workspace }}/env/linux/
+  DISPLAY : :99
+jobs:
+
+  export-linux:
+    name: RenderChan UwU
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Dependencies & RenderChan \(^U^)/
+        run: | 
+          sudo apt update -y
+          sudo apt install blender ffmpeg qtcreator fuse libfuse2 xorg openbox  
+          sudo snap install krita
+          cd projects && git clone https://github.com/Sam2much96/Dystopia   
+          wget -P ${RENDERCHAN_ENVDIR} https://github.com/morevnaproject-org/opentoonz/releases/download/v1.4.0-morevna/${OPENTOONZ_BINARY}
+
+          sudo chmod +x ${RENDERCHAN_ENVDIR}/${OPENTOONZ_BINARY}
+
+          cd ${RENDERCHAN_ENVDIR}  
+          
+          # OpenToonz Setup
+          touch tcomposer.txt  
+          sed -i '1s|^|'/home/runner/work/RenderChan/RenderChan/env/linux/OpenToonz-1.4.0-morevna-2020.06.14-linux64-b6177.appimage'\n|' tcomposer.txt
+          
+          # Krita Setup               
+          # Setup Display Server For Krita
+          # Docs: https://stackoverflow.com/questions/63125480/running-a-gui-application-on-a-ci-service-without-x11
+          # export DISPLAY=:99
+          
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          
+          #Test Krita Runtime with fake display server
+          QT_DEBUG_PLUGINS=1 krita --version
+
+          # Render
+          cd ${{ github.workspace }}/bin
+          chmod +x render-test.sh
+          ./render-test.sh
+
+      - name: Upload Render
+        uses: actions/upload-artifact@v1
+        with:
+          name: Dystopia.avi
+          path: projects/Dystopia/render/project.blend.avi
+  
