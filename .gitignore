@@ -36,3 +36,11 @@ nosetests.xml
 
 # Release dirs
 _release/files*
+
+# project files
+projects/Dystopia*
+
+
+# Binary files and Binanry Config files
+env/linux*
+env/linux/tcomposer.txt

@@ -13,6 +13,7 @@ if os.name == 'nt':
 
 def which(program):
     def is_exe(fpath):
+        #print(os.name) # for debug purposes only
         if os.name=='nt':
             return os.path.isfile(fpath) or os.path.isfile(fpath+".exe") or os.path.isfile(fpath+".bat")
         else:
