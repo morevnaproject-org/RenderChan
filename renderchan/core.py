@@ -1071,9 +1071,16 @@ class RenderChan():
                                     print(line)
                                     copytree(line, profile_output, hardlinks=True)
                                 if format=="mov":
+                                    if taskfile.module.getName() == "blender":
+                                        if taskfile.project.version<1:
+                                            name_template = "file.%04d.png"
+                                        else:
+                                            name_template = "file.%05d.png"
+                                    else:
+                                        name_template = "file.%04d.png"
                                     profile_output_mov = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
                                     subprocess.check_call(
-                                        [self.ffmpeg_binary, "-y", "-f", "image2", "-i", os.path.join(profile_output, "file.%04d.png"), "-r", params["fps"], "-c:v", "prores_ks", "-profile:v", "3", "-qscale:v", "3", "-vendor", "apl0", "-pix_fmt", "yuv422p10le",  profile_output_mov])
+                                        [self.ffmpeg_binary, "-y", "-f", "image2", "-i", os.path.join(profile_output, name_template), "-r", params["fps"], "-c:v", "prores_ks", "-profile:v", "3", "-qscale:v", "3", "-vendor", "apl0", "-pix_fmt", "yuv422p10le",  profile_output_mov])
                                     shutil.rmtree(profile_output, ignore_errors=True)
                                     profile_output=profile_output_mov
 
