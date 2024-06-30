@@ -1016,7 +1016,7 @@ class RenderChan():
                 output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
                 
                 if format=="mov":
-                    profile_output_format="png"
+                    profile_output_format="0-0.mov"
                 else:
                     profile_output_format=format
                 profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + profile_output_format
@@ -1044,7 +1044,6 @@ class RenderChan():
                 if not uptodate:
 
                     if taskfile.getPacketSize() > 0:
-
                         if os.path.exists(profile_output_list):
 
                             # Check if we really have all segments rendered correctly
@@ -1065,24 +1064,63 @@ class RenderChan():
                             if format == "avi" or format == "mp4":
                                 subprocess.check_call(
                                     [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                            elif format=="mov":
+                                num=0
+                                errors = []
+                                for line in segments:
+                                    src_dir=line
+                                    dst_dir=profile_output
+                                    if not os.path.exists(dst_dir):
+                                        os.makedirs(dst_dir)
+                                    png_files = [f for f in os.listdir(src_dir) if f.lower().endswith('.png')]
+                                    png_files.sort()
+                                    for filename in png_files:
+                                        new_filename = f"file.{num:05d}.png"
+                                        src_file_path = os.path.join(src_dir, filename)
+                                        dst_file_path = os.path.join(dst_dir, new_filename)
+                                        try:
+                                            if not os.path.isdir(src_file_path):
+                                                os.link(src_file_path, dst_file_path)
+                                        except (IOError, os.error) as why:
+                                            errors.append((src_file_path, dst_file_path, str(why)))
+                                        # catch the Error from the recursive copytree so that we can
+                                        # continue with other files
+                                        except shutil.Error as err:
+                                            errors.extend(err.args[0])
+                                        num=num+1
+                                if errors:
+                                    raise shutil.Error(errors)
+
+                                name_template = "file.%05d.png"
+                                ffmpeg_cmd=[]
+                                ffmpeg_cmd.append(self.ffmpeg_binary)
+                                ffmpeg_cmd.append("-y")
+                                ffmpeg_cmd.append("-f")
+                                ffmpeg_cmd.append("image2")
+                                ffmpeg_cmd.append("-i")
+                                ffmpeg_cmd.append(os.path.join(profile_output, name_template))
+                                ffmpeg_cmd.append("-r")
+                                ffmpeg_cmd.append(params["fps"])
+                                ffmpeg_cmd.append("-c:v")
+                                ffmpeg_cmd.append("prores_ks")
+                                ffmpeg_cmd.append("-profile:v")
+                                ffmpeg_cmd.append("3")
+                                ffmpeg_cmd.append("-qscale:v")
+                                ffmpeg_cmd.append("3")
+                                ffmpeg_cmd.append("-vendor")
+                                ffmpeg_cmd.append("apl0")
+                                ffmpeg_cmd.append("-pix_fmt")
+                                ffmpeg_cmd.append("yuv422p10le")
+                                profile_output_mov = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+                                ffmpeg_cmd.append(profile_output_mov)
+                                subprocess.check_call(ffmpeg_cmd)
+                                shutil.rmtree(profile_output, ignore_errors=True)
+                                profile_output=profile_output_mov
                             else:
                                 # Merge all sequences into single directory
                                 for line in segments:
                                     print(line)
                                     copytree(line, profile_output, hardlinks=True)
-                                if format=="mov":
-                                    if taskfile.module.getName() == "blender":
-                                        if taskfile.project.version<1:
-                                            name_template = "file.%04d.png"
-                                        else:
-                                            name_template = "file.%05d.png"
-                                    else:
-                                        name_template = "file.%04d.png"
-                                    profile_output_mov = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
-                                    subprocess.check_call(
-                                        [self.ffmpeg_binary, "-y", "-f", "image2", "-i", os.path.join(profile_output, name_template), "-r", params["fps"], "-c:v", "prores_ks", "-profile:v", "3", "-qscale:v", "3", "-vendor", "apl0", "-pix_fmt", "yuv422p10le",  profile_output_mov])
-                                    shutil.rmtree(profile_output, ignore_errors=True)
-                                    profile_output=profile_output_mov
 
                             os.remove(profile_output_list)
                             for line in segments:
