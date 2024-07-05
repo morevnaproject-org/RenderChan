@@ -1016,7 +1016,7 @@ class RenderChan():
                 output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
                 
                 if format=="mov":
-                    profile_output_format="0-0.mov"
+                    profile_output_format="png"
                 else:
                     profile_output_format=format
                 profile_output = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + profile_output_format

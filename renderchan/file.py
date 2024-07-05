@@ -205,7 +205,10 @@ class RenderChanFile():
         if start==None or end==None:
             path=os.path.join(self.project.getProfilePath(profiles_path), self.localPath+"."+self.getFormat() )
         else:
-            path=os.path.join(self.project.getProfilePath(profiles_path), self.localPath+"-"+str(start)+"-"+str(end)+"."+self.getFormat() )
+            format=self.getFormat()
+            if format=="mov":
+                format="png"
+            path=os.path.join(self.project.getProfilePath(profiles_path), self.localPath+"-"+str(start)+"-"+str(end)+"."+ format)
         #if self.getOutputFormat() in RenderChanFile.imageExtensions:
         #    path=os.path.join(path, "file"+"."+self.getOutputFormat())
         return path
