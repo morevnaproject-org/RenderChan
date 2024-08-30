@@ -36,6 +36,8 @@ echo "Market Background"
 # market background
 ./renderchan "../projects/Dystopia/extras/backgrounds/Market background.psd" && cp "../projects/Dystopia/render/extras/backgrounds/Market background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/Market background.jpg"
 
+# shot 1, 43,46 background
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 1, 43, 46 rally crowd Background.psd" && cp "../projects/Dystopia/render/extras/backgrounds/shot 1, 43, 46 rally crowd Background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 1, 43, 46 rally crowd Background.jpg"
 
 
 
@@ -130,10 +132,127 @@ cp "../projects/Dystopia/scenes/shot 9/mask.psd.jpg" "../projects/Dystopia/scene
 ./renderchan "../projects/Dystopia/scenes/Shot 9.tnz"
 
 
+# shot 10
+./renderchan "../projects/Dystopia/inputs/shot 10/Shot 10.kra" && mkdir "../projects/Dystopia/scenes/shot 10" && cp -r "../projects/Dystopia/render/inputs/shot 10/Shot 10.kra.png" "../projects/Dystopia/scenes/shot 10"
+
+# shot 10 tnz file
+
+./renderchan "../projects/Dystopia/scenes/Shot 10.tnz"
+
+# shot 11a
+./renderchan "../projects/Dystopia/inputs/shot 11a/Shot 11a.kra" && mkdir "../projects/Dystopia/scenes/shot 11a" && cp -r "../projects/Dystopia/render/inputs/shot 11a/Shot 11a.kra.png" "../projects/Dystopia/scenes/shot 11a/"
+
+# shot 11a toonz file
+./renderchan "../projects/Dystopia/scenes/shot 11a.tnz"
+
+# speedline effects
+cp "../projects/Dystopia/extras/speedlines/speedlines.png" "../projects/Dystopia/scenes"
+
+# shot 11b
+./renderchan "../projects/Dystopia/inputs/shot 11b/Shot 11 animation B.kra" && mkdir "../projects/Dystopia/scenes/shot 11b" && cp -r "../projects/Dystopia/render/inputs/shot 11b/Shot 11 animation B.kra.png" "../projects/Dystopia/scenes/shot 11b"
+
+
+#shot 11b tnz file
+./renderchan "../projects/Dystopia/scenes/shot 11b.tnz"
+
+
+
+# shot 14 Animation files
+./renderchan "../projects/Dystopia/inputs/shot 14/Shot 14 Animation.kra"
+cp -r "../projects/Dystopia/render/inputs/shot 14/Shot 14 Animation.kra.png" "../projects/Dystopia/scenes"
+
+# shot 14 backgrounds
+./renderchan "../projects/Dystopia/extras/backgrounds/Shot 14 Background.psd"
+
+# shot 14 smoke fx
+./renderchan "../projects/Dystopia/extras/smoke fx/igb_fx_coloured.kra"
+cp -r "../projects/Dystopia/render/extras/smoke fx" "../projects/Dystopia/scenes"
+
+cp "../projects/Dystopia/render/extras/backgrounds/Shot 14 Background.kra.png" "../projects/Dystopia/scenes/backgrounds/Shot 14 Background.png"
+
+# shot 14 Toonz files
+./renderchan "../projects/Dystopia/scenes/shot 14.tnz"
+
+
+# shot 15 animation files
+./renderchan "../projects/Dystopia/inputs/shot 15/Shot 15.kra"
+ 
+cp -r "../projects/Dystopia/render/inputs/shot 15/Shot 15.kra.png" "../projects/Dystopia/scenes"
+
+# shot 15 Toonz files
+./renderchan "../projects/Dystopia/scenes/shot 15.tnz"
+
+# shot 16 animation files
+./renderchan "../projects/Dystopia/inputs/shot 16/Shot 16.kra"
+
+cp -r "../projects/Dystopia/render/inputs/shot 16/Shot 16.kra.png" "../projects/Dystopia/scenes"
+
+# shot 16 backgrounds
+./renderchan "../projects/Dystopia/extras/backgrounds/Shot 16 background.psd"
+cp "../projects/Dystopia/render/extras/backgrounds/Shot 16 background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/Shot 16 background.jpg"
+
+# shot 16 Toonz files
+./renderchan "../projects/Dystopia/scenes/shot 16.tnz"
+
+# shot 17 animation files
+./renderchan "../projects/Dystopia/inputs/shot 17/shot 17 V-shot.kra"
+mkdir "../projects/Dystopia/scenes/shot 17"
+cp "../projects/Dystopia/render/inputs/shot 17/shot 17 V-shot.kra.png" "../projects/Dystopia/scenes/shot 17/shot 17 V-shot.png"
+
+
+# shot 17 smoke fx
+./renderchan "../projects/Dystopia/extras/smoke fx/smoke_3.kra"
+cp -r "../projects/Dystopia/render/extras/smoke fx" "../projects/Dystopia/scenes"
+
+
+# shot 17 Toonz file
+./renderchan "../projects/Dystopia/scenes/shot 17.tnz"
+
+# shot 18 animation files
+./renderchan "../projects/Dystopia/inputs/shot 18/Shot 18.psd"
+mkdir "../projects/Dystopia/scenes/shot 18"
+cp "../projects/Dystopia/render/inputs/shot 18/Shot 18.psd.png" "../projects/Dystopia/scenes/shot 18/Shot 18.png"
+
+# shot 18 smoke fx
+./renderchan "../projects/Dystopia/extras/smoke fx/smoke_1.kra" &&
+cp -r "../projects/Dystopia/render/extras/smoke fx" "../projects/Dystopia/scenes"
+
+
+# shot 18 toonz files
+./renderchan "../projects/Dystopia/scenes/shot 18.tnz"
+
+# shot 19 animation files
+./renderchan "../projects/Dystopia/inputs/shot 19/Shot 19 animation.kra"
+cp -r "../projects/Dystopia/render/inputs/shot 19/Shot 19 animation.kra.png" "../projects/Dystopia/scenes"
+
+
+# shot 19 toonz file
+./renderchan "../projects/Dystopia/scenes/shot 19.tnz"
+
 # SHot 20 Animation Files
+# shot 20 combines with shot 19 for render
 ./renderchan "../projects/Dystopia/inputs/shot 20/Shot 20.psd" 
 mkdir "../projects/Dystopia/scenes/shot 20"
 cp "../projects/Dystopia/render/inputs/shot 20/Shot 20.psd.png" "../projects/Dystopia/scenes/shot 20/Shot 20.png"
+
+
+# shot 23 animation files
+./renderchan "../projects/Dystopia/inputs/shot 23/shot 23.kra"
+
+cp -r "../projects/Dystopia/render/inputs/shot 23/shot 23.kra.png"  "../projects/Dystopia/scenes"
+
+
+# shot 23 Toons files
+./renderchan "../projects/Dystopia/scenes/Shot 23.tnz"
+
+# shot 24 animation files
+
+./renderchan "../projects/Dystopia/inputs/shot 24/shot 24 animation.kra"
+cp -r "../projects/Dystopia/render/inputs/shot 24/shot 24 animation.kra.png" "../projects/Dystopia/scenes"
+
+
+# shot 24 toonz files
+./renderchan "../projects/Dystopia/scenes/shot 24.tnz"
 
 # Shot 39
 ./renderchan "../projects/Dystopia/inputs/shot 39/shot 39 background.psd"
@@ -150,6 +269,21 @@ cp "../projects/Dystopia/render/inputs/shot 39/shot 39 background.psd.jpg" "../p
 # shot 39 toonz files
 ./renderchan "../projects/Dystopia/scenes/Shot 39.tnz"
 ./renderchan "../projects/Dystopia/scenes/Shot 39_1.tnz"
+
+
+#Sky Background
+./renderchan "../projects/Dystopia/extras/backgrounds/sky.psd" && cp "../projects/Dystopia/render/extras/backgrounds/sky.psd.jpg" "../projects/Dystopia/scenes/backgrounds/sky.jpg"
+
+
+
+# Shot 49
+./renderchan "../projects/Dystopia/inputs/shot 49/shot 49.psd" && mkdir "../projects/Dystopia/scenes/shot 49" && cp "../projects/Dystopia/render/inputs/shot 49/shot 49.psd.png" "../projects/Dystopia/scenes/shot 49/shot 49.png" 
+
+# shot 49 tnz file
+./renderchan "../projects/Dystopia/scenes/shot 49.tnz"
+
+
+
 # shot 50
 ./renderchan "../projects/Dystopia/inputs/shot 50/shot 50 animation.kra" 
 #mkdir "../projects/Dystopia/scenes/shot 50"
@@ -187,6 +321,64 @@ cp -r "../projects/Dystopia/render/inputs/shot 50/shot 50 animation.kra.png" "..
 # Shot 58 toonz files
 ./renderchan "../projects/Dystopia/scenes/Shot 58.tnz"
 
+# shot 60 Backgrounds
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 60 background.psd"
+
+cp "../projects/Dystopia/render/extras/backgrounds/shot 60 background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 60 background.jpg"
+
+# shot 60 Dust Fx
+./renderchan "../projects/Dystopia/extras/dust fx/dustfx.kra"
+
+cp -r "../projects/Dystopia/render/extras/dust fx/dustfx.kra.png" "../projects/Dystopia/scenes"
+
+# shot 71 animation files
+./renderchan "../projects/Dystopia/inputs/shot 71/shot 71.kra" && cp -r "../projects/Dystopia/render/inputs/shot 71/shot 71.kra.png" "../projects/Dystopia/scenes"
+
+
+
+# shot 71 A animation files
+# shots 71 and 71A are combined shots for render
+./renderchan "../projects/Dystopia/inputs/shot 71A/bird_flight_coloured.kra" && cp -r "../projects/Dystopia/render/inputs/shot 71A" "../projects/Dystopia/scenes"
+
+
+
+# shot 71 toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 71.tnz"
+
+# shot 72 animation files
+./renderchan "../projects/Dystopia/inputs/shot 72/shot 72_Background.psd" && cp "../projects/Dystopia/render/inputs/shot 72/shot 72_Background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 72_Background.jpg"  
+
+
+# shot 72 toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 72.tnz"
+
+#shot 73 animation files
+./renderchan "../projects/Dystopia/inputs/shot 73/shot 73.kra" && cp -r "../projects/Dystopia/render/inputs/shot 73/shot 73.kra.png" "../projects/Dystopia/scenes"
+
+# shot 73 Backgrounds
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 73_background.psd" && cp "../projects/Dystopia/render/extras/backgrounds/shot 73_background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 73_background.jpg"
+
+
+# shot 73 toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 73.tnz"
+
+# shot 74 animation files
+./renderchan "../projects/Dystopia/inputs/shot 74/shot 74 animation.kra" && cp -r "../projects/Dystopia/render/inputs/shot 74/shot 74 animation.kra.png" "../projects/Dystopia/scenes"
+
+
+#shot 74 toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 74.tnz"
+
+
+#shot 100 animation files
+./renderchan "../projects/Dystopia/inputs/shot 100/shot 100.psd"
+
+mkdir "../projects/Dystopia/scenes/shot 100"
+cp "../projects/Dystopia/render/inputs/shot 100/shot 100.psd.jpg" "../projects/Dystopia/scenes/shot 100/shot 100.jpg"
+
+# shot 100 Toonz file
+./renderchan "../projects/Dystopia/scenes/shot 100.tnz"
+
 
 # Spritesheets
 ./renderchan "../projects/Dystopia/extras/spritesheets/spritesheet.kra" && cp -r "../projects/Dystopia/render/extras/spritesheets/spritesheet.kra.png" "../projects/Dystopia/scenes/"
@@ -211,7 +403,17 @@ cp -r "../projects/Dystopia/render/inputs/shot 50/shot 50 animation.kra.png" "..
 
 
 # Widescreen Render
-./renderchan --profile hd "../projects/Dystopia/project.blend"
+#./renderchan --profile hd "../projects/Dystopia/project.blend"
 
-# Shorts Render
+# Shorts Render for mobile
+# for Youtube default (1080o) 
+
+#ep 1
 ./renderchan --profile mobile "../projects/Dystopia/project.blend"
+
+#ep 2 widescreen
+./renderchan --profile youtube "../projects/Dystopia/project2.blend"
+
+
+#ep 3 shorts
+./renderchan --profile mobile "../projects/Dystopia/project3.blend"
