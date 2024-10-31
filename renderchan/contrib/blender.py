@@ -24,7 +24,7 @@ class RenderChanBlenderModule(RenderChanModule):
         return ["blend"]
 
     def getOutputFormats(self):
-        return ["png","exr","avi"]
+        return ["png","exr","avi","mp4"]
 
     def analyze(self, filename):
         info={"dependencies":[]}
