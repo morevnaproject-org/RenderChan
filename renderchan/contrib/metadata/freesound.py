@@ -9,37 +9,31 @@ from renderchan.metadata import RenderChanMetadata
 class MyHTMLParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
-        self.artist = None
-        self.title = None
         self.license = None
         self._license_block = False
     def handle_starttag(self, tag, attrs):
-        if (tag == 'meta'):
-            if attrs[0][0] == 'property' and attrs[0][1] == 'og:audio:artist' and attrs[1][0] == 'content':
-                self.artist = attrs[1][1]
-            if attrs[0][0] == 'property' and attrs[0][1] == 'og:audio:title' and attrs[1][0] == 'content':
-                self.title = attrs[1][1]
-        if (self._license_block and tag == 'a'):
-            if attrs[0][0] == 'href':
-                value = attrs[0][1]
-                if value.startswith("http://creativecommons.org/publicdomain/zero/"):
-                    self.license = "cc-0"
-                elif value.startswith("http://creativecommons.org/licenses/by/"):
-                    self.license = "cc-by"
-                elif value.startswith("http://creativecommons.org/licenses/by-nc"):
-                    self.license = "cc-by-nc"
-                elif value.startswith("http://creativecommons.org/licenses/sampling+"):
-                    self.license = "cc-sampling+"
-                else:
-                    print("Error: Unknown license - %s" % value)
+        if tag == 'a' :
             self._license_block = False
-        if (tag == 'div'):
-            if attrs[0][0] == 'id' and attrs[0][1] == 'sound_license':
-                self._license_block = True
+            for item in attrs:
+                if item[0] == 'title' and item[1]=='Go to the full license text':
+                    self._license_block = True
+                elif self._license_block and item[0] == 'href':
+                    value = item[1]
+                    if value.startswith("http://creativecommons.org/publicdomain/zero/"):
+                        self.license = "cc-0"
+                    elif value.startswith("http://creativecommons.org/licenses/by/"):
+                        self.license = "cc-by"
+                    elif value.startswith("http://creativecommons.org/licenses/by-nc"):
+                        self.license = "cc-by-nc"
+                    elif value.startswith("http://creativecommons.org/licenses/sampling+"):
+                        self.license = "cc-sampling+"
+                    else:
+                        print("Error: Unknown license - %s" % value)
+
     def feed(self, data):
         HTMLParser.feed(self, str(data))
-        if self.artist == None or self.title == None or self.license == None:
-            raise Exception("Error parsing data from freesound!")
+        if self.license == None:
+            raise Exception("Can't detect license")
 
 def parse(filename):
 
@@ -124,8 +118,8 @@ def parse(filename):
         artist_url = "http://www.freesound.org/people/%s/" % (user)
         try:
             parser.feed(resp)
-            metadata.authors.append("%s ( %s )" % (parser.artist, artist_url))
-            metadata.title=parser.title
+            metadata.authors.append("%s ( %s )" % (user, artist_url))
+            metadata.title=basename
             metadata.license=parser.license
             metadata.sources=['freesound']
         except:
