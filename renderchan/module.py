@@ -68,25 +68,34 @@ class RenderChanModuleManager():
 class RenderChanModule():
     imageExtensions = ['png','exr']
     def __init__(self):
-        self.conf = {}
-        self.conf['binary']=""
+        # Create A Data Structure for Config files
+        self.conf : dict = {"binary" : "", # pointer to required binary for current rendering
+                            "packetSize" : 20,
+                            "compatVersion" : 1,
+                            "extraParams": None,
+                            "maxNbCores": 0
+                            }
+        
+        #self.conf['binary']=""
         #TODO: "packetSize" should be renamed to "extra_params" and merged with self.extraParams?
-        self.conf["packetSize"]=20
-        self.conf["compatVersion"]=1
-        self.conf["maxNbCores"]=0
+        #self.conf["packetSize"]=20
+        #self.conf["compatVersion"]=1
+        #self.conf["maxNbCores"]=0
 
         # Extra params - additional rendering parameters. supplied through the project.conf and
         # file-specific .conf files.
         #TODO: ExtraParams should be registered in a special way
         #TODO:    So, if a module registers its own extra param we should now it isn't already registered as global extraParam.
-        self.extraParams={}
+        self.extraParams : dict = { "use_own_dimensions" : "0",
+                                   "proxy_scale" : "1.0"
+                                   }
         #   'use_own_dimensions' - Don't use project dimensions, use image dimensions defined it the source file
         #   'proxy_scale' - Apply scale factor to resulting image. Valid only if 'use_own_dimensions' == 1.
         #  Those options are applied in RenderChanFile.getParams() - file.py.
-        self.extraParams['use_own_dimensions']='0'
-        self.extraParams['proxy_scale']='1.0'
+        #self.extraParams['use_own_dimensions']='0'
+        #self.extraParams['proxy_scale']='1.0'
 
-        self.active=False
+        self.active : bool = False
 
     def getName(self):
         return os.path.splitext(os.path.basename(inspect.getfile(self.__class__)))[0]
@@ -94,7 +103,8 @@ class RenderChanModule():
     def loadConfiguration(self):
 
         filename = os.path.join(os.path.expanduser("~"), ".config", "renderchan", "modules.conf")
-
+        # Debug Config File Name
+        #print(filename) # For debug purposes only
         if os.path.exists(filename):
 
             config = configparser.ConfigParser()
@@ -150,12 +160,20 @@ class RenderChanModule():
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
         pass
         
-    def findBinary(self, name):
+    def findBinary(self, name: str) -> str:
+        
         if "RENDERCHAN_ENVDIR" in os.environ:
+            #print(os.environ) # for debug purposes only    
             envdir=os.environ.get('RENDERCHAN_ENVDIR')
+
+            # Path to Renderchan env files for windows and linux
             path=os.path.abspath(os.path.join(envdir,name+".txt"))
+            
+            # Nested Ifs? Code Smell!!!
             if os.path.exists(path):
-                binary_path=None
+                binary_path : str =None
+
+                # open the path to env config and use a loop to read the file path
                 with open(path) as f:
                     for line in f.readlines():
                         line = line.strip()
@@ -165,6 +183,7 @@ class RenderChanModule():
                             binary_path=line
                             break
                 if binary_path:
+                    print(name,": ",binary_path) # for debug purposes only
                     return binary_path
                 else:
                     print("    Cannot find path to %s package in %s." % (name, path))
