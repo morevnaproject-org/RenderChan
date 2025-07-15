@@ -15,7 +15,7 @@ class RenderChanSynfigModule(RenderChanModule):
         RenderChanModule.__init__(self)
         
         self.conf["binary"]=self.findBinary("synfig")
-        self.conf["packetSize"]=100
+        self.conf["packetSize"]=250
         self.conf["maxNbCores"]=1
 
         # Extra params
