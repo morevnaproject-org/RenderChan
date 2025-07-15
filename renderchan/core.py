@@ -1358,6 +1358,7 @@ class Attribution():
         if self.projects==None:
             self.projects = RenderChanProjectManager()
 
+        self.filename = filename
         self.licenses = {}
         self.freesound_items = {}  # author:[title1,title2,...]
 
@@ -1383,21 +1384,29 @@ class Attribution():
             self.parse(t)
 
     def output(self):
-        print()
-        print("== Sound FX ==")
-        print("This video uses these sounds from freesound:")
-        print()
+		
+        output="\n"
+        output+="== Sound FX ==\n"
+        output+="This video uses these sounds from freesound:\n"
+        
         for author in self.freesound_items.keys():
-            print('"'+'", "'.join(self.freesound_items[author])+'" by '+author)
-        print()
-        print("== Licenses ==")
-        print(", ".join(self.licenses.keys()))
-        print()
-        print("== Files sorted by license ==")
+            output+='"'+'", "'.join(self.freesound_items[author])+'" by '+author+"\n"
+        output+="\n== Licenses ==\n"
+        output+=", ".join(self.licenses.keys())+"\n"
+        output+="\n== Files sorted by license ==\n"
         for license in self.licenses.keys():
-            print(license+":")
+            output+=license+":\n"
             for file in self.licenses[license]:
-                print("   "+file)
-        print()
+                output+="   "+file+"\n"
+        
+        print(output)
+        
+        output_filename=self.filename+".sounds.txt"
+        new_file=open(f"{output_filename}", "w")
+        new_file.write(output)
+        print ("\nCompleted\n")
+        # check if file exists and remove if so
+		
+        
 
 
