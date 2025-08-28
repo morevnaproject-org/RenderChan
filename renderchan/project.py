@@ -189,7 +189,13 @@ class RenderChanProject():
                     realConfigPath = os.path.dirname(realConfigPath)
                 realConfigPath = os.path.join(realConfigPath,"project.conf")
             config = configparser.ConfigParser()
-            config.readfp(open(realConfigPath))
+            # method read_file added in Python version 3.2: Replaces readfp().
+            # in Python version 3.12 method readfp was deleted
+            if sys.version_info < (3, 2):
+                config.readfp(open(realConfigPath))
+            else:
+                with open(realConfigPath) as configFile:
+                    config.read_file(configFile)
 
             # sanity check
             for section in config.sections():

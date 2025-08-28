@@ -1062,8 +1062,11 @@ class RenderChan():
                                     os.remove(profile_output+".done")
                             
                             if format == "avi" or format == "mp4":
-                                subprocess.check_call(
-                                    [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
+                                if len(segments)==1:
+                                    os.rename(segments[0], profile_output)
+                                else:
+                                    subprocess.check_call(
+                                        [self.ffmpeg_binary, "-y", "-safe", "0", "-f", "concat", "-i", profile_output_list, "-c", "copy", profile_output])
                             elif format=="mov":
                                 num=0
                                 errors = []
@@ -1117,10 +1120,13 @@ class RenderChan():
                                 shutil.rmtree(profile_output, ignore_errors=True)
                                 profile_output=profile_output_mov
                             else:
-                                # Merge all sequences into single directory
-                                for line in segments:
-                                    print(line)
-                                    copytree(line, profile_output, hardlinks=True)
+                                if len(segments)==1:
+                                    os.rename(segments[0], profile_output)
+                                else:
+                                    # Merge all sequences into single directory
+                                    for line in segments:
+                                        print(line)
+                                        copytree(line, profile_output, hardlinks=True)
 
                             os.remove(profile_output_list)
                             for line in segments:
@@ -1136,10 +1142,35 @@ class RenderChan():
                         #updateCompletion(0.5)
 
                     else:
-                        segment = os.path.splitext( taskfile.getProfileRenderPath(0,0) )[0] + suffix + "." + format
+                        segment = os.path.splitext( taskfile.getProfileRenderPath(0,0) )[0] + suffix + "." + profile_output_format
                         if os.path.exists(segment+".done") and os.path.exists(segment):
+                            if format=="mov":
+                                ffmpeg_cmd=[]
+                                ffmpeg_cmd.append(self.ffmpeg_binary)
+                                ffmpeg_cmd.append("-y")
+                                ffmpeg_cmd.append("-f")
+                                ffmpeg_cmd.append("image2")
+                                ffmpeg_cmd.append("-r")
+                                ffmpeg_cmd.append(params["fps"])
+                                ffmpeg_cmd.append("-i")
+                                ffmpeg_cmd.append(segment)
+                                ffmpeg_cmd.append("-c:v")
+                                ffmpeg_cmd.append("prores_ks")
+                                ffmpeg_cmd.append("-profile:v")
+                                ffmpeg_cmd.append("3")
+                                ffmpeg_cmd.append("-qscale:v")
+                                ffmpeg_cmd.append("3")
+                                ffmpeg_cmd.append("-vendor")
+                                ffmpeg_cmd.append("apl0")
+                                ffmpeg_cmd.append("-pix_fmt")
+                                ffmpeg_cmd.append("yuv422p10le")
+                                profile_output_mov = os.path.splitext( taskfile.getProfileRenderPath() )[0] + suffix + "." + format
+                                ffmpeg_cmd.append(profile_output_mov)
+                                subprocess.check_call(ffmpeg_cmd)
+                                profile_output=profile_output_mov
+                            else:
                                 os.rename(segment, profile_output)
-                                touch(profile_output + ".done", float(compare_time))
+                            touch(profile_output + ".done", float(compare_time))
                         else:
                                 print("ERROR: Not all segments were rendered. Aborting.", file=sys.stderr)
                                 sys.exit(1)
@@ -1327,6 +1358,7 @@ class Attribution():
         if self.projects==None:
             self.projects = RenderChanProjectManager()
 
+        self.filename = filename
         self.licenses = {}
         self.freesound_items = {}  # author:[title1,title2,...]
 
@@ -1352,21 +1384,29 @@ class Attribution():
             self.parse(t)
 
     def output(self):
-        print()
-        print("== Sound FX ==")
-        print("This video uses these sounds from freesound:")
-        print()
+		
+        output="\n"
+        output+="== Sound FX ==\n"
+        output+="This video uses these sounds from freesound:\n"
+        
         for author in self.freesound_items.keys():
-            print('"'+'", "'.join(self.freesound_items[author])+'" by '+author)
-        print()
-        print("== Licenses ==")
-        print(", ".join(self.licenses.keys()))
-        print()
-        print("== Files sorted by license ==")
+            output+='"'+'", "'.join(self.freesound_items[author])+'" by '+author+"\n"
+        output+="\n== Licenses ==\n"
+        output+=", ".join(self.licenses.keys())+"\n"
+        output+="\n== Files sorted by license ==\n"
         for license in self.licenses.keys():
-            print(license+":")
+            output+=license+":\n"
             for file in self.licenses[license]:
-                print("   "+file)
-        print()
+                output+="   "+file+"\n"
+        
+        print(output)
+        
+        output_filename=self.filename+".sounds.txt"
+        new_file=open(f"{output_filename}", "w")
+        new_file.write(output)
+        print ("\nCompleted\n")
+        # check if file exists and remove if so
+		
+        
 
 
