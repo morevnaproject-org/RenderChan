@@ -40,6 +40,8 @@ echo "Market Background"
 ./renderchan "../projects/Dystopia/extras/backgrounds/shot 1, 43, 46 rally crowd Background.psd" && cp "../projects/Dystopia/render/extras/backgrounds/shot 1, 43, 46 rally crowd Background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 1, 43, 46 rally crowd Background.jpg"
 
 
+# mro interior backgrounds
+./renderchan "../projects/Dystopia/extras/backgrounds/mro_interior_background_2.kra" && cp "../projects/Dystopia/render/extras/backgrounds/mro_interior_background_2.kra.png/file0000.png" "../projects/Dystopia/scenes/backgrounds/mro_1.png" && cp "../projects/Dystopia/render/extras/backgrounds/mro_interior_background_2.kra.png/file0001.png" "../projects/Dystopia/scenes/backgrounds/mro_2.png"
 
 # copy background recursively (Depreciated)
 #cp -r "../projects/Dystopia/render/extras/backgrounds" "../projects/Dystopia/scenes/"
@@ -235,6 +237,24 @@ cp -r "../projects/Dystopia/render/inputs/shot 19/Shot 19 animation.kra.png" "..
 mkdir "../projects/Dystopia/scenes/shot 20"
 cp "../projects/Dystopia/render/inputs/shot 20/Shot 20.psd.png" "../projects/Dystopia/scenes/shot 20/Shot 20.png"
 
+# Shot 21 Animation files
+./renderchan "../projects/Dystopia/inputs/shot 21/shot 21.kra"
+
+
+# Copy the animation files
+cp -r "../projects/Dystopia/render/inputs/shot 21" "../projects/Dystopia/scenes/"
+
+# Copy the mesh 
+cp "../projects/Dystopia/inputs/shot 21/body.mesh" "../projects/Dystopia/scenes/shot 21/shot 21.kra.png/"
+
+# Shot 30 Background
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 30 background.psd"
+cp "../projects/Dystopia/render/extras/backgrounds/shot 30 background.psd.png" "../projects/Dystopia/scenes/backgrounds/shot 30 background.png"
+
+
+# Shot 21 Toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 21.tnz"
+
 
 # shot 23 animation files
 ./renderchan "../projects/Dystopia/inputs/shot 23/shot 23.kra"
@@ -253,6 +273,59 @@ cp -r "../projects/Dystopia/render/inputs/shot 24/shot 24 animation.kra.png" "..
 
 # shot 24 toonz files
 ./renderchan "../projects/Dystopia/scenes/shot 24.tnz"
+
+# shot 26 animation blender files
+./renderchan "../projects/Dystopia/scenes/shot 26.blend"
+
+
+# shot 27 animation files
+./renderchan "../projects/Dystopia/inputs/shot 27/shot 27.kra"
+
+# copy the animation folder and mesh data
+cp -r "../projects/Dystopia/render/inputs/shot 27/shot 27.kra.png" "../projects/Dystopia/scenes" &&
+cp "../projects/Dystopia/inputs/shot 27/bands.mesh" "../projects/Dystopia/scenes/shot 27.kra.png" &&
+cp "../projects/Dystopia/inputs/shot 27/foreground_coloured.mesh" "../projects/Dystopia/scenes/shot 27.kra.png"
+
+# shot 27 toonz files
+./renderchan "../projects/Dystopia/scenes/Shot 27.tnz"
+
+# shot 28 background
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 28 background.psd" &&
+cp "../projects/Dystopia/render/extras/backgrounds/shot 28 background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 28 background.jpg"
+
+
+#Shot 28 animation files
+./renderchan "../projects/Dystopia/inputs/shot 28/shot 28.kra"
+
+# copy the animation and mesh files
+cp -r "../projects/Dystopia/render/inputs/shot 28/shot 28.kra.png" "../projects/Dystopia/scenes"
+
+cp "../projects/Dystopia/inputs/shot 28/hand.mesh" "../projects/Dystopia/scenes/shot 28.kra.png"
+
+#render shot 28 toonz file
+./renderchan "../projects/Dystopia/scenes/Shot 28.tnz"
+
+# shot 29 animation files
+./renderchan "../projects/Dystopia/inputs/shot 29/shot 29.kra"
+
+# shot 29 effects
+./renderchan "../projects/Dystopia/inputs/shot 29/shot_29_blood_fx.kra"
+
+cp -r "../projects/Dystopia/render/inputs/shot 29" "../projects/Dystopia/scenes"
+
+#shot 38 background is needed for shot 29
+./renderchan "../projects/Dystopia/extras/backgrounds/Shot 38 background.psd"
+
+# copy background files
+cp "../projects/Dystopia/render/extras/backgrounds/Shot 38 background.psd.jpg" "../projects/Dystopia/scenes/backgrounds/shot 38 background.jpg"
+
+#shot 29 toonz file
+./renderchan "../projects/Dystopia/scenes/Shot 29.tnz"
+
+# Shot 30 background
+./renderchan "../projects/Dystopia/extras/backgrounds/shot 30 background.psd"
+
+#shot 30
 
 # Shot 39
 ./renderchan "../projects/Dystopia/inputs/shot 39/shot 39 background.psd"
@@ -380,8 +453,8 @@ cp "../projects/Dystopia/render/inputs/shot 100/shot 100.psd.jpg" "../projects/D
 ./renderchan "../projects/Dystopia/scenes/shot 100.tnz"
 
 
-# Spritesheets
-./renderchan "../projects/Dystopia/extras/spritesheets/spritesheet.kra" && cp -r "../projects/Dystopia/render/extras/spritesheets/spritesheet.kra.png" "../projects/Dystopia/scenes/"
+# Spritesheets are depreciated
+#./renderchan "../projects/Dystopia/extras/spritesheets/spritesheet.kra" #&& cp -r "../projects/Dystopia/render/extras/spritesheets/#spritesheet.kra.png" "../projects/Dystopia/scenes/"
 
 
 # Animated Title
@@ -416,4 +489,4 @@ cp "../projects/Dystopia/render/inputs/shot 100/shot 100.psd.jpg" "../projects/D
 
 
 #ep 3 shorts
-./renderchan --profile mobile "../projects/Dystopia/project3.blend"
+./renderchan "../projects/Dystopia/project3.blend"
