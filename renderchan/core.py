@@ -570,11 +570,14 @@ class RenderChan():
 
             if self.renderfarm_engine=="":
 
+                # Check if module can render mov directly (like Nuke) or needs png+ffmpeg workaround
+                module_supports_direct_mov = "mov" in taskfile.module.getOutputFormats()
+
                 for range in segments:
                     start=range[0]
                     end=range[1]
                     format=taskfile.getFormat()
-                    if format=="mov":
+                    if format=="mov" and not module_supports_direct_mov:
                         format="png"
                     self.job_render(taskfile, format, self.updateCompletion, start, end, compare_time)
 
@@ -1015,7 +1018,10 @@ class RenderChan():
 
                 output = os.path.splitext(taskfile.getRenderPath())[0] + suffix + "." + format
                 
-                if format=="mov":
+                # Check if module can render mov directly (like Nuke) or needs png+ffmpeg workaround
+                module_supports_direct_mov = "mov" in taskfile.module.getOutputFormats()
+                
+                if format=="mov" and not module_supports_direct_mov:
                     profile_output_format="png"
                 else:
                     profile_output_format=format
@@ -1061,7 +1067,7 @@ class RenderChan():
                             if os.path.isfile(profile_output+".done"):
                                     os.remove(profile_output+".done")
                             
-                            if format == "avi" or format == "mp4":
+                            if format == "avi" or format == "mp4" or (format == "mov" and module_supports_direct_mov):
                                 if len(segments)==1:
                                     os.rename(segments[0], profile_output)
                                 else:
@@ -1144,7 +1150,8 @@ class RenderChan():
                     else:
                         segment = os.path.splitext( taskfile.getProfileRenderPath(0,0) )[0] + suffix + "." + profile_output_format
                         if os.path.exists(segment+".done") and os.path.exists(segment):
-                            if format=="mov":
+                            if format=="mov" and not module_supports_direct_mov:
+                                # Module doesn't support mov directly - convert from png sequence via ffmpeg
                                 ffmpeg_cmd=[]
                                 ffmpeg_cmd.append(self.ffmpeg_binary)
                                 ffmpeg_cmd.append("-y")
@@ -1406,7 +1413,3 @@ class Attribution():
         new_file.write(output)
         print ("\nCompleted\n")
         # check if file exists and remove if so
-		
-        
-
-
