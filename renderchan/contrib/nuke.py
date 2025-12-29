@@ -20,7 +20,7 @@ class RenderChanNukeModule(RenderChanModule):
         RenderChanModule.__init__(self)
         
         self.conf['binary'] = self.findBinary("nuke")
-        self.conf["packetSize"] = 50
+        self.conf["packetSize"] = 0  # Render all frames in one go
         self.conf["maxNbCores"] = 0  # Use all available cores
         
         # Extra params
