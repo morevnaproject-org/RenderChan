@@ -42,9 +42,9 @@ if START_FRAME > 0 and END_FRAME > 0:
     nuke.root()["last_frame"].setValue(END_FRAME)
 
 # Set format/resolution if specified
-if WIDTH > 0 and HEIGHT > 0:
-    fmt = nuke.addFormat("%d %d RenderChan" % (WIDTH, HEIGHT))
-    nuke.root()["format"].setValue(fmt)
+# if WIDTH > 0 and HEIGHT > 0:
+#     fmt = nuke.addFormat("%d %d RenderChan" % (WIDTH, HEIGHT))
+#     nuke.root()["format"].setValue(fmt)
 
 # Find Write nodes and select the best one
 write_nodes = [n for n in nuke.allNodes("Write")]
