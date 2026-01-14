@@ -32,9 +32,17 @@ OUTPUT_FILE = params[OUTPUT_FILE]
 FORMAT = params[FORMAT]
 WRITE_NODE = params[WRITE_NODE]
 SINGLE = params[SINGLE]
+PROXY = params[PROXY]
 
 # Load the script
 nuke.scriptOpen(FILENAME)
+
+# Force proxy mode according to RenderChan settings (default off)
+try:
+    proxy_enabled = bool(int(PROXY))
+except Exception:
+    proxy_enabled = False
+nuke.root()["proxy"].setValue(proxy_enabled)
 
 # Set frame range
 if START_FRAME > 0 and END_FRAME > 0:

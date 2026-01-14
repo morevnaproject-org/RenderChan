@@ -334,7 +334,8 @@ class RenderChanNukeModule(RenderChanModule):
             .replace("params[OUTPUT_FILE]", '"%s"' % outputFile.replace('\\', '/').replace('"', '\\"')) \
             .replace("params[FORMAT]", '"%s"' % format) \
             .replace("params[WRITE_NODE]", '"%s"' % extraParams.get("write_node", "")) \
-            .replace("params[SINGLE]", '"%s"' % extraParams.get("single", "None"))
+            .replace("params[SINGLE]", '"%s"' % extraParams.get("single", "None")) \
+            .replace("params[PROXY]", '"%s"' % extraParams.get("proxy", "0"))
         
         with open(renderScript, 'w') as f:
             f.write(scriptContent)
@@ -356,10 +357,6 @@ class RenderChanNukeModule(RenderChanModule):
                 commandline.append("--gpu")
             else:
                 print("================== FORCE DISABLE GPU =====================")
-            
-            # Proxy mode
-            if extraParams.get("proxy", "0") == "1":
-                commandline.append("--proxy")
             
             # Execute script and exit
             commandline.append("-x")
