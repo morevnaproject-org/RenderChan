@@ -178,6 +178,10 @@ class RenderChanNukeModule(RenderChanModule):
         # Regex patterns for parsing Nuke script
         rootNodePattern = re.compile(r'Root\s*\{')
         endFramePattern = re.compile(r'last_frame\s+(\d+)')
+        frameRangeNodePattern = re.compile(r'FrameRange\s*\{')
+        frameRangeFirstPattern = re.compile(r'first_frame\s+(-?\d+)')
+        frameRangeLastPattern = re.compile(r'last_frame\s+(-?\d+)')
+        frameRangeDisablePattern = re.compile(r'disable\s+([^\s\}]+)', re.IGNORECASE)
         readNodePattern = re.compile(r'Read\s*\{', re.DOTALL)
         filePathQuotedPattern = re.compile(r'file\s+"([^"]+)"')
         filePathUnquotedPattern = re.compile(r'file\s+(\S+)')
@@ -190,16 +194,48 @@ class RenderChanNukeModule(RenderChanModule):
             return info
         
         dirName = os.path.dirname(filename)
+
+        # Parse FrameRange nodes first; take the last enabled one
+        frameRangeMatches = list(frameRangeNodePattern.finditer(content))
+        startFrame = None
+        endFrame = None
+
+        if frameRangeMatches:
+            for frMatch in frameRangeMatches:
+                frContent = self._extract_node_content(content, frMatch.end())
+                frFirstMatch = frameRangeFirstPattern.search(frContent)
+                frLastMatch = frameRangeLastPattern.search(frContent)
+
+                if not frFirstMatch or not frLastMatch:
+                    continue
+
+                frDisableMatch = frameRangeDisablePattern.search(frContent)
+                isDisabled = False
+                if frDisableMatch:
+                    disableValue = frDisableMatch.group(1).strip().lower()
+                    isDisabled = disableValue in ("1", "true", "yes")
+
+                if isDisabled:
+                    continue
+
+                startFrame = int(frFirstMatch.group(1).strip())
+                endFrame = int(frLastMatch.group(1).strip())
+
+        if startFrame is not None and endFrame is not None:
+            info["startFrame"] = startFrame
+            info["endFrame"] = endFrame
+            print("    Nuke script frame range (FrameRange node): %d to %d" % (startFrame, endFrame))
         
         # Parse Root node for frame range
-        rootMatch = rootNodePattern.search(content)
-        if rootMatch:
-            rootContent = self._extract_node_content(content, rootMatch.end())
-            endFrameMatch = endFramePattern.search(rootContent)
-            if endFrameMatch:
-                info["startFrame"] = 1
-                info["endFrame"] = int(endFrameMatch.group(1).strip())
-                print("    Nuke script frame range: %d to %d" % (info["startFrame"], info["endFrame"]))
+        if startFrame is None or endFrame is None:
+            rootMatch = rootNodePattern.search(content)
+            if rootMatch:
+                rootContent = self._extract_node_content(content, rootMatch.end())
+                endFrameMatch = endFramePattern.search(rootContent)
+                if endFrameMatch:
+                    info["startFrame"] = 1
+                    info["endFrame"] = int(endFrameMatch.group(1).strip())
+                    print("    Nuke script frame range (Root node): %d to %d" % (info["startFrame"], info["endFrame"]))
 
         # Parse Read nodes for dependencies
         readMatches = list(readNodePattern.finditer(content))
