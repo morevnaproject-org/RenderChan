@@ -20,7 +20,7 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         self._last_fps = None
 
         # Extra params
-        self.extraParams["layer_composition"]=""
+        self.extraParams["layer_composition"]="1"
         #self.extraParams['use_own_dimensions']='1'
         self.extraParams["half_size"]="0"
         
@@ -98,9 +98,12 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         fps_value = self._last_fps if self._last_fps is not None else 24
         file_lines = None
 
-        if extraParams["layer_composition"]:
+        layer_comp_value = extraParams.get("layer_composition", "1")
+        layer_comp_enabled = is_true_string(layer_comp_value) or layer_comp_value.upper() == "ALL"
+
+        if layer_comp_enabled:
             print('====================================================')
-            print('  AnimeStudio9 layer_composition: enabled (%s)' % extraParams["layer_composition"])
+            print('  AnimeStudio9 layer_composition: enabled (%s)' % layer_comp_value)
             if file_lines is None:
                 file_lines = self._read_file_lines(filename)
             compositions = self._parse_layer_compositions(file_lines)
