@@ -212,7 +212,8 @@ def main(datadir, argv):
                 if 'render' in (part.lower() for part in rel_parts):
                     continue
                 if os.path.isfile(file):
-                    if os.path.splitext(file)[1][1:] in formats:
+                    ext = os.path.splitext(file)[1][1:].lower()
+                    if ext in formats:
                         files.append(file)
                 if os.path.isdir(file):
                     dirs.append(file)
