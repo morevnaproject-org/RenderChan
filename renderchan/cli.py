@@ -195,7 +195,12 @@ def main(datadir, argv):
         files = []
         while len(dirs):
             d = dirs.pop(0)
-            for f in sorted(os.listdir(d)):
+            try:
+                entries = sorted(os.listdir(d))
+            except OSError as e:
+                print("WARNING: Cannot list directory %s: %s" % (d, e), file=sys.stderr)
+                continue
+            for f in entries:
                 file = os.path.join(d, f)
                 # Skip hidden entries, like .git, .svn, .DS_Store, etc.
                 if f[0] == '.':
