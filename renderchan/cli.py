@@ -6,8 +6,23 @@ from argparse import Action
 from argparse import SUPPRESS
 import os
 import sys
+import stat
 
 from renderchan.core import RenderChan, __version__
+
+
+def _is_hidden(path, name):
+    """Detect hidden entries on both Unix (dotfiles) and Windows (hidden/system attributes)."""
+    if name.startswith('.'):
+        return True
+    if os.name == 'nt':
+        try:
+            attrs = os.stat(path, follow_symlinks=False).st_file_attributes
+        except OSError as e:
+            print("WARNING: Cannot stat %s: %s" % (path, e), file=sys.stderr)
+            return False
+        return bool(attrs & (stat.FILE_ATTRIBUTE_HIDDEN | stat.FILE_ATTRIBUTE_SYSTEM))
+    return False
 
 class FormatsAction(Action):
     def __init__(self,
@@ -203,7 +218,7 @@ def main(datadir, argv):
             for f in entries:
                 file = os.path.join(d, f)
                 # Skip hidden entries, like .git, .svn, .DS_Store, etc.
-                if f[0] == '.':
+                if _is_hidden(file, f):
                     continue
                 # Skip symlinks
                 if os.path.islink(file):
