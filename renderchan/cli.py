@@ -197,7 +197,19 @@ def main(datadir, argv):
             d = dirs.pop(0)
             for f in sorted(os.listdir(d)):
                 file = os.path.join(d, f)
-                if f[0] == '.' or file[0:len(renderDir)] == renderDir:
+                # Skip hidden entries, like .git, .svn, .DS_Store, etc.
+                if f[0] == '.':
+                    continue
+                # Skip symlinks
+                if os.path.islink(file):
+                    continue
+                try:
+                    rel_parts = os.path.relpath(file, filename).split(os.sep)
+                except ValueError:
+                    # Happens on Windows when crossing drive letters; skip to avoid crashing
+                    continue
+                # Skip anything under render/ directory
+                if 'render' in (part.lower() for part in rel_parts):
                     continue
                 if os.path.isfile(file):
                     if os.path.splitext(file)[1][1:] in formats:
