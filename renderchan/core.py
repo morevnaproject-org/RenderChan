@@ -359,8 +359,9 @@ class RenderChan():
 
 
             # Make sure to close cache before submitting job to renderfarm
-            for path in self.projects.list.keys():
-                self.projects.list[path].cache.close()
+            if self.renderfarm_engine != "":
+                for path in self.projects.list.keys():
+                    self.projects.list[path].cache.close()
 
             # Submit job to renderfarm
             if self.renderfarm_engine=="afanasy":
