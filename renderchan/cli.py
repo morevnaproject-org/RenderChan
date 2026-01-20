@@ -210,8 +210,9 @@ def main(datadir, argv):
                     continue
                 try:
                     rel_parts = os.path.relpath(file, filename).split(os.sep)
-                except ValueError:
+                except ValueError as e:
                     # Happens on Windows when crossing drive letters; skip to avoid crashing
+                    print("WARNING: Cannot build relative path for %s: %s" % (file, e), file=sys.stderr)
                     continue
                 # Skip anything under render/ directory
                 if 'render' in (part.lower() for part in rel_parts):
