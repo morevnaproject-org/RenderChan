@@ -183,6 +183,10 @@ def main(datadir, argv):
         renderchan.force_proxy = args.forceProxy
         
     if args.recursive:
+        if not os.path.isdir(filename):
+            print("ERROR: --recursive expects a directory, got a file: %s" % filename, file=sys.stderr)
+            return 1
+
         success = True
         renderDir = os.path.join(filename, "render") + os.path.sep
         formats = renderchan.modules.getAllInputFormats()
