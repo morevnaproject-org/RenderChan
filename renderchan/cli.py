@@ -220,9 +220,6 @@ def main(datadir, argv):
                 # Skip hidden entries, like .git, .svn, .DS_Store, etc.
                 if _is_hidden(file, f):
                     continue
-                # Skip symlinks
-                if os.path.islink(file):
-                    continue
                 try:
                     rel_parts = os.path.relpath(file, filename).split(os.sep)
                 except ValueError as e:
