@@ -182,10 +182,11 @@ class RenderChanProject():
                     if os.path.exists(os.path.join(realConfigPath,"project.conf")) and not os.path.isdir(os.path.join(realConfigPath,"project.conf")) and not os.stat(os.path.join(realConfigPath,"project.conf")).st_size == 0:
                         break
                     if os.path.realpath(os.path.dirname(realConfigPath)) == os.path.realpath(realConfigPath):
-                        # We have reached roo directory, no parent config found
-                        # let's rollack to initial file path
-                        realConfigPath = os.path.dirname(self.confPath)
-                        break
+                        # We have reached root directory, no parent config found
+                        print(file=sys.stderr)
+                        print("ERROR: Empty project.conf found, but no non-empty parent project.conf could be located.", file=sys.stderr)
+                        print(file=sys.stderr)
+                        sys.exit(1)
                     realConfigPath = os.path.dirname(realConfigPath)
                 realConfigPath = os.path.join(realConfigPath,"project.conf")
             config = configparser.ConfigParser()
