@@ -14,7 +14,7 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         RenderChanModule.__init__(self)
         
         self.conf["binary"]=self.findBinary("animestudio9")
-        self.conf["packetSize"]=100
+        self.conf["packetSize"]=0
         self.conf["maxNbCores"]=1
 
         self._last_fps = None
@@ -53,9 +53,13 @@ class RenderChanAnimestudio9Module(RenderChanModule):
             stripped = line.strip()
             match = frame_pattern.match(stripped)
             if match:
-                info["startFrame"] = int(match.group(1))
-                info["endFrame"] = int(match.group(2))
-                print("    AnimeStudio9 frame range: %d to %d" % (info["startFrame"], info["endFrame"]))
+                # Temporarily disabled: generating .lst files for compositions breaks
+                # packet merging, and the .lst files themselves fail to merge properly.
+                # A robust solution requires moving composition .lst generation to
+                # core.py, which is currently deferred.
+                # info["startFrame"] = int(match.group(1))
+                # info["endFrame"] = int(match.group(2))
+                # print("    AnimeStudio9 frame range: %d to %d" % (info["startFrame"], info["endFrame"]))
                 continue
 
             match = fps_pattern.match(stripped)
@@ -169,10 +173,14 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         
         commandline=[self.conf['binary'], "-r", filename_cli, "-v", "-f", "png", "-outfolder", outputPath_cli]
 
-        if startFrame is not None:
-            commandline.extend(["-start", str(int(startFrame))])
-        if endFrame is not None:
-            commandline.extend(["-end", str(int(endFrame))])
+        # Temporarily disabled: generating .lst files for compositions breaks
+        # packet merging, and the .lst files themselves fail to merge properly.
+        # A robust solution requires moving composition .lst generation to
+        # core.py, which is currently deferred.
+        # if startFrame is not None:
+        #     commandline.extend(["-start", str(int(startFrame))])
+        # if endFrame is not None:
+        #     commandline.extend(["-end", str(int(endFrame))])
 
         if platform.system()=="Linux" and self.conf['binary'].lower().endswith(".exe"):
             commandline = ["wine"] + commandline
