@@ -56,7 +56,7 @@ class RenderChanKritaModule(RenderChanModule):
             if not line:
                 if rc is not None:
                     break
-            line = line.decode(locale.getpreferredencoding())
+            line = line.decode(locale.getpreferredencoding(), errors='replace')
 
             # print(line)
             sys.stdout.flush()
@@ -128,7 +128,7 @@ class RenderChanKritaModule(RenderChanModule):
                 if not line:
                     if rc is not None:
                         break
-                line = line.decode(locale.getpreferredencoding())
+                line = line.decode(locale.getpreferredencoding(), errors='replace')
                 #print(line)
                 sys.stdout.flush()
 
