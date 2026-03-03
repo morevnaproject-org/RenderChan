@@ -6,8 +6,23 @@ from argparse import Action
 from argparse import SUPPRESS
 import os
 import sys
+import stat
 
 from renderchan.core import RenderChan, __version__
+
+
+def _is_hidden(path, name):
+    """Detect hidden entries on both Unix (dotfiles) and Windows (hidden/system attributes)."""
+    if name.startswith('.'):
+        return True
+    if os.name == 'nt':
+        try:
+            attrs = os.stat(path, follow_symlinks=False).st_file_attributes
+        except OSError as e:
+            print("WARNING: Cannot stat %s: %s" % (path, e), file=sys.stderr)
+            return False
+        return bool(attrs & (stat.FILE_ATTRIBUTE_HIDDEN | stat.FILE_ATTRIBUTE_SYSTEM))
+    return False
 
 class FormatsAction(Action):
     def __init__(self,
@@ -183,6 +198,10 @@ def main(datadir, argv):
         renderchan.force_proxy = args.forceProxy
         
     if args.recursive:
+        if not os.path.isdir(filename):
+            print("ERROR: --recursive expects a directory, got a file: %s" % filename, file=sys.stderr)
+            return 1
+
         success = True
         renderDir = os.path.join(filename, "render") + os.path.sep
         formats = renderchan.modules.getAllInputFormats()
@@ -191,12 +210,28 @@ def main(datadir, argv):
         files = []
         while len(dirs):
             d = dirs.pop(0)
-            for f in sorted(os.listdir(d)):
+            try:
+                entries = sorted(os.listdir(d))
+            except OSError as e:
+                print("WARNING: Cannot list directory %s: %s" % (d, e), file=sys.stderr)
+                continue
+            for f in entries:
                 file = os.path.join(d, f)
-                if f[0] == '.' or file[0:len(renderDir)] == renderDir:
+                # Skip hidden entries, like .git, .svn, .DS_Store, etc.
+                if _is_hidden(file, f):
+                    continue
+                try:
+                    rel_parts = os.path.relpath(file, filename).split(os.sep)
+                except ValueError as e:
+                    # Happens on Windows when crossing drive letters; skip to avoid crashing
+                    print("WARNING: Cannot build relative path for %s: %s" % (file, e), file=sys.stderr)
+                    continue
+                # Skip anything under render/ directory
+                if 'render' in (part.lower() for part in rel_parts):
                     continue
                 if os.path.isfile(file):
-                    if os.path.splitext(file)[1][1:] in formats:
+                    ext = os.path.splitext(file)[1][1:].lower()
+                    if ext in formats:
                         files.append(file)
                 if os.path.isdir(file):
                     dirs.append(file)
