@@ -1209,8 +1209,8 @@ class RenderChan():
                 #touch(output+".done",arguments["maxTime"])
                 touch(output, float(compare_time))
 
-        except:
-            print("ERROR: Merge operation failed.", file=sys.stderr)
+        except Exception as e:
+            print("ERROR: Merge operation failed: %s" % e, file=sys.stderr)
             for lock in locks:
                 lock.unlock()
             sys.exit(1)
