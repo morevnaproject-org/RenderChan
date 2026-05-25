@@ -176,18 +176,18 @@ def sync(profile_output, output, compareTime=None):
             os.remove(output)
 
 class LockThread(threading.Thread):
-    def __init__(self, filename):
+    def __init__(self, filename, interval=5):
         super(LockThread, self).__init__()
+        self.daemon = True
         self.filename = filename
-        self.active = True
+        self.interval = interval
+        self._stop_event = threading.Event()
     def run(self):
-        while self.active:
+        while not self._stop_event.is_set():
             touch(self.filename, time.time())
-            for i in (1,2,3,4,5):
-                if self.active:
-                    time.sleep(1)
+            self._stop_event.wait(self.interval)
     def unlock(self):
-        self.active = False
+        self._stop_event.set()
 
 def ini_wrapper(filename):
     with open(filename, 'r') as f:

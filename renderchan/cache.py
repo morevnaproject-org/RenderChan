@@ -4,8 +4,13 @@ import os, sys
 import sqlite3
 import random
 import shutil
+import socket
 import tempfile
-from renderchan.utils import mkdirs
+import time
+from renderchan.utils import mkdirs, LockThread
+
+LOCK_STALE_TIMEOUT = 300      # seconds; lock not updated for this long is assumed stale
+LOCK_HEARTBEAT_INTERVAL = 60  # seconds between lockfile mtime updates
 
 class RenderChanCache():
     def __init__(self, path, readonly=False):
@@ -13,24 +18,25 @@ class RenderChanCache():
         self.connection=None
         self.closed = True
         self.readonly=readonly
+        self.path=path
+        self.lockfile=path+".lock"
+        self._lock_heartbeat=None
 
         if not os.path.exists(os.path.dirname(path)):
             mkdirs(os.path.dirname(path))
 
-        if self.readonly:
-            random_num = "%08d" % (random.randint(0,99999999))
-            tmp_path="renderchan-cache-"+random_num+".sqlite"
-            tmp_path=os.path.join(tempfile.gettempdir(),tmp_path)
-            if os.path.exists(path):
-                shutil.copy(path,tmp_path)
-            self.path=tmp_path
-        else:
-            self.path=path
+        if not self.readonly:
+            if not self._acquire_lock():
+                sys.exit(1)
 
-
+        random_num = "%08d" % (random.randint(0,99999999))
+        self.local_path="renderchan-cache-"+random_num+".sqlite"
+        self.local_path=os.path.join(tempfile.gettempdir(),self.local_path)
+        if os.path.exists(path):
+            shutil.copy(path,self.local_path)
 
         try:
-            self.connection=sqlite3.connect(self.path)
+            self.connection=sqlite3.connect(self.local_path)
             self.connection.text_factory = str
             cur=self.connection.cursor()
 
@@ -43,8 +49,51 @@ class RenderChanCache():
         except sqlite3.Error as e:
             print("ERROR: Cannot initialize cache database.")
             print("SQLite error: %s" % e.args[0])
-            print("Cache file path: %s" % self.path)
-            #sys.exit(1)
+            print("Cache file path: %s" % self.local_path)
+            if not self.readonly:
+                self._release_lock()
+
+    def _acquire_lock(self):
+        if os.path.exists(self.lockfile):
+            lock_mtime = os.path.getmtime(self.lockfile)
+            lock_age = time.time() - lock_mtime
+            if lock_age >= LOCK_STALE_TIMEOUT:
+                lock_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(lock_mtime))
+                print("WARNING: Cache lock is stale (last updated %s), removing: %s" % (lock_time_str, self.lockfile))
+                try:
+                    os.remove(self.lockfile)
+                except Exception:
+                    print("ERROR: Cannot remove stale lock file: %s" % self.lockfile)
+                    return False
+            else:
+                try:
+                    with open(self.lockfile, 'r') as f:
+                        locked_by = f.read().strip()
+                except Exception:
+                    locked_by = "(unknown)"
+                print("ERROR: Cache is locked by '%s' (%.0f s ago)." % (locked_by, lock_age))
+                print("If the lock is stale, delete the lock file:")
+                print("  %s" % self.lockfile)
+                return False
+        try:
+            with open(self.lockfile, 'w') as f:
+                f.write("%s:%d\n" % (socket.gethostname(), os.getpid()))
+        except Exception:
+            print("ERROR: Cannot create lock file: %s" % self.lockfile)
+            return False
+        self._lock_heartbeat = LockThread(self.lockfile, interval=LOCK_HEARTBEAT_INTERVAL)
+        self._lock_heartbeat.start()
+        return True
+
+    def _release_lock(self):
+        if self._lock_heartbeat is not None:
+            self._lock_heartbeat.unlock()
+            self._lock_heartbeat = None
+        try:
+            if os.path.exists(self.lockfile):
+                os.remove(self.lockfile)
+        except Exception as e:
+            print("WARNING: Cannot remove lock file '%s': %s" % (self.lockfile, e))
 
     def __del__(self):
         if not self.closed:
@@ -55,12 +104,18 @@ class RenderChanCache():
         self.connection.close()
         self.closed = True
 
-        if self.readonly:
+        if not self.readonly:
             try:
-                if os.path.exists(self.path):
-                    os.remove(self.path)
-            except:
-                pass
+                shutil.copy(self.local_path, self.path)
+            except Exception as e:
+                print("ERROR: Cannot save cache to '%s': %s" % (self.path, e))
+            self._release_lock()
+
+        try:
+            if os.path.exists(self.local_path):
+                os.remove(self.local_path)
+        except Exception:
+            pass
 
         print("Cache closed.")
 
