@@ -49,6 +49,31 @@ class RenderChanInkscapeModule(RenderChanModule):
         f.close()
 
         return info
+    
+    def replace(self, filename, oldPath, newPath):
+        oldPath = os.path.normpath(os.path.normcase(oldPath))
+        
+        if filename.endswith(".svgz"):
+            f=gzip.open(filename, 'rb')
+        else:
+            f=open(filename, 'rb')
+        
+        try:
+            tree = ElementTree.parse(f)
+        finally:
+            f.close()
+        
+        root = tree.getroot()
+        
+        for element in root.iter("{http://www.w3.org/2000/svg}image"):
+           if os.path.normpath(os.path.normcase(element.get("{http://www.w3.org/1999/xlink}href"))) == oldPath:
+               element.set("{http://www.w3.org/1999/xlink}href", newPath)
+           if os.path.normpath(os.path.normcase(element.get("{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}absref"))) == oldPath:
+               element.set("{http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd}absref", os.path.normpath(os.path.join(os.path.dirname(filename), newPath)))
+        
+        tree.write(filename)
+
+        return True
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
