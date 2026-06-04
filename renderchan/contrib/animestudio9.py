@@ -155,6 +155,12 @@ class RenderChanAnimestudio9Module(RenderChanModule):
 
     def _render_single(self, filename, outputPath, extraParams, fps_value, startFrame=None, endFrame=None):
 
+        existing_pngs = set()
+        if os.path.isdir(outputPath):
+            for f in os.listdir(outputPath):
+                if f.endswith(".png"):
+                    existing_pngs.add(f)
+
         try:
             os.makedirs(outputPath)
         except OSError as exc: # Python >2.5
@@ -229,16 +235,13 @@ class RenderChanAnimestudio9Module(RenderChanModule):
     
         for file in sorted(os.listdir(directory)):
              filename = os.fsdecode(file)
-             if filename.endswith(".png"):
+             if filename.endswith(".png") and filename not in existing_pngs:
                  lstfile=os.path.join(outputPath, filename[:-10]+".lst")
                  if not os.path.exists(lstfile):
                     with open(lstfile, "w") as text_file:
                         text_file.write(f"FPS {fps_value}\n")
                  with open(lstfile, "a") as text_file:
                     text_file.write(filename+"\n")
-                 continue
-             else:
-                 continue
 
     def _read_file_lines(self, filename):
         with open(filename, "r", encoding="utf-8", errors="ignore") as f:
