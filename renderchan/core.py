@@ -1161,7 +1161,11 @@ class RenderChan():
                                 ffmpeg_cmd.append("-r")
                                 ffmpeg_cmd.append(params["fps"])
                                 ffmpeg_cmd.append("-i")
-                                ffmpeg_cmd.append(segment)
+                                if os.path.isdir(segment):
+                                    digits = 4 if taskfile.project.version < 1 else 5
+                                    ffmpeg_cmd.append(os.path.join(segment, f"file.%0{digits}d.{profile_output_format}"))
+                                else:
+                                    ffmpeg_cmd.append(segment)
                                 ffmpeg_cmd.append("-c:v")
                                 ffmpeg_cmd.append("prores_ks")
                                 ffmpeg_cmd.append("-profile:v")
