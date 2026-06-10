@@ -39,6 +39,41 @@ def main():
 
     sce = bpy.context.scene
 
+    # Ensure active render engine is valid and registered
+    properties = sce.render.bl_rna.properties
+    engine_prop = properties.get("engine")
+    available_engines = list(engine_prop.enum_items.keys()) if engine_prop else []
+    print("Renderer: Active engine in file is '%s'" % sce.render.engine)
+    if sce.render.engine not in available_engines:
+        print("Renderer WARNING: Active engine '%s' is not registered/available in this Blender build!" % sce.render.engine)
+        print("Available engines: %s" % available_engines)
+
+        # Try to map to available alternatives
+        target_engine = None
+        if sce.render.engine == "BLENDER_EEVEE" and "BLENDER_EEVEE_NEXT" in available_engines:
+            target_engine = "BLENDER_EEVEE_NEXT"
+        elif sce.render.engine == "BLENDER_EEVEE_NEXT" and "BLENDER_EEVEE" in available_engines:
+            target_engine = "BLENDER_EEVEE"
+        else:
+            # Fallback to EEVEE, EEVEE Next, Workbench, or Cycles
+            for preferred in ["BLENDER_EEVEE", "BLENDER_EEVEE_NEXT", "BLENDER_WORKBENCH", "CYCLES"]:
+                if preferred in available_engines:
+                    target_engine = preferred
+                    break
+
+        if target_engine is None and available_engines:
+            target_engine = available_engines[0]
+
+        if target_engine:
+            print("Renderer: Switching engine from '%s' to '%s' to fix rendering." % (sce.render.engine, target_engine))
+            sce.render.engine = target_engine
+
+    # Log available formats for debugging
+    image_settings_properties = sce.render.image_settings.bl_rna.properties
+    format_prop = image_settings_properties.get("file_format")
+    current_formats = list(format_prop.enum_items.keys()) if format_prop else []
+    print("Available file formats: %s" % current_formats)
+
     sce.frame_current=sce.frame_current+1
     sce.frame_current=sce.frame_current-1
 
@@ -261,9 +296,13 @@ def main():
 
     # Force format here
     if params[FORMAT] == "png":
+        if hasattr(rend.image_settings, "media_type"):
+            rend.image_settings.media_type = "IMAGE"
         rend.image_settings.file_format = "PNG"
         rend.image_settings.color_mode = 'RGBA'
     elif params[FORMAT] == "avi" or params[FORMAT] == "mp4":
+        if hasattr(rend.image_settings, "media_type"):
+            rend.image_settings.media_type = "VIDEO"
         if bpy.app.version < (2, 79, 0):
             rend.image_settings.file_format = "H264"
             rend.ffmpeg.format = "H264"
