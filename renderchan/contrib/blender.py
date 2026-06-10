@@ -12,7 +12,7 @@ class RenderChanBlenderModule(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
         self.conf["binary"]=self.findBinary("blender")
-        self.conf["packetSize"]=40
+        self.conf["packetSize"]=0
         self.conf["gpu_device"]=""
         # Extra params
         self.extraParams["cycles_samples"]="0"
