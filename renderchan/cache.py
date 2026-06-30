@@ -21,13 +21,11 @@ class RenderChanCache():
         self.path=path
         self.lockfile=path+".lock"
         self._lock_heartbeat=None
+        # lazy lock — acquired on first write(), see write().
+        self._locked=False
 
         if not os.path.exists(os.path.dirname(path)):
             mkdirs(os.path.dirname(path))
-
-        if not self.readonly:
-            if not self._acquire_lock():
-                sys.exit(1)
 
         random_num = "%08d" % (random.randint(0,99999999))
         self.local_path="renderchan-cache-"+random_num+".sqlite"
@@ -50,8 +48,6 @@ class RenderChanCache():
             print("ERROR: Cannot initialize cache database.")
             print("SQLite error: %s" % e.args[0])
             print("Cache file path: %s" % self.local_path)
-            if not self.readonly:
-                self._release_lock()
 
     def _acquire_lock(self):
         if os.path.exists(self.lockfile):
@@ -104,7 +100,7 @@ class RenderChanCache():
         self.connection.close()
         self.closed = True
 
-        if not self.readonly:
+        if self._locked:
             try:
                 shutil.copy(self.local_path, self.path)
             except Exception as e:
@@ -166,7 +162,14 @@ class RenderChanCache():
         if self.closed:
             print("ERROR: Database is closed. Writing isn't possible.")
             return None
-        
+
+        if not self.readonly and not self._locked:
+            # exits on contention same as before; two concurrent writers
+            # of the SAME project cache still race.
+            if not self._acquire_lock():
+                sys.exit(1)
+            self._locked=True
+
         cur=self.connection.cursor()
 
         # First, delete all records for given path if present
