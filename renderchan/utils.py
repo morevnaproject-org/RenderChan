@@ -59,6 +59,7 @@ def run_ffmpeg_progress(cmd, progress, total_frames=None):
     time_re = re.compile(r"out_time_(?:ms|us)=(\d+)")
     duration_re = re.compile(r"Duration: (\d+):(\d+):(\d+\.\d+)")
     duration = None
+    last = None  # dedupe: ffmpeg emits both out_time_ms and out_time_us
     log = []
     for line in proc.stdout:
         line = line.decode("utf-8", errors="replace").strip()
@@ -75,8 +76,9 @@ def run_ffmpeg_progress(cmd, progress, total_frames=None):
                     duration = int((((h * 60) + mnt) * 60 + s) * 1000000)
             else:
                 m = time_re.match(line)
-                if m:
-                    progress(min(int(m.group(1)), duration), duration)
+                if m and m.group(1) != last:
+                    last = m.group(1)
+                    progress(min(int(last), duration), duration)
     rc = proc.wait()
     log = "\n".join(log)
     # image2 demuxer stops at the first unreadable frame but still exits 0,
