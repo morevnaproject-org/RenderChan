@@ -6,6 +6,7 @@ import time
 import threading
 import io
 import shutil
+import subprocess
 from renderchan import ui
 
 if os.name == 'nt':
@@ -30,6 +31,15 @@ def which(program):
             return os.path.realpath(path)
 
     return None
+
+def ffmpeg_has_soxr(binary):
+    """True if the given ffmpeg binary is built with libsoxr."""
+    try:
+        out = subprocess.check_output([binary, "-hide_banner", "-version"],
+                                      stderr=subprocess.STDOUT)
+        return b"enable-libsoxr" in out
+    except Exception:
+        return False
 
 _hardlinks_broken = False
 
