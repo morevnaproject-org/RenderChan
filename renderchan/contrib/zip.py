@@ -25,7 +25,10 @@ class RenderChanZipModule(RenderChanModule):
 
         os.mkdir(outputPath)
         with ZipFile(filename) as zip:
-            for member in zip.namelist():
+            members = zip.namelist()
+            total = len(members)
+            for i, member in enumerate(members):
                 zip.extract(member, outputPath)
+                updateCompletion(float(i+1)/total if total else 1.0)
 
         updateCompletion(1.0)

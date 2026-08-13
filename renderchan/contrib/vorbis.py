@@ -3,9 +3,8 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which, ffmpeg_has_soxr
+from renderchan.utils import which, ffmpeg_has_soxr, run_ffmpeg_progress
 from renderchan import ui
-import subprocess
 
 class RenderChanVorbisModule(RenderChanModule):
     def __init__(self):
@@ -33,12 +32,10 @@ class RenderChanVorbisModule(RenderChanModule):
 
         updateCompletion(0.0)
 
-        # TODO: Progress callback
-
         commandline=[self.conf['binary'], "-y", "-i", filename]
         if self.soxr:
             commandline+=["-af", "aresample=resampler=soxr"]
         commandline+=["-ar", extraParams["audio_rate"], outputPath]
-        subprocess.check_call(commandline, **ui.quiet_subprocess())
+        run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)))
 
         updateCompletion(1.0)

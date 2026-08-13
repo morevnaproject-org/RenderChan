@@ -3,11 +3,8 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which
-from renderchan import ui
-import subprocess
+from renderchan.utils import run_ffmpeg_progress
 import os
-import random
 
 class RenderChanFfmpegModule(RenderChanModule):
     def __init__(self):
@@ -28,9 +25,7 @@ class RenderChanFfmpegModule(RenderChanModule):
         if not os.path.exists(outputPath):
             os.mkdir(outputPath)
 
-        # TODO: Progress callback
-
         commandline=[self.conf['binary'], "-i", filename, os.path.join(outputPath,"output_%04d.png")]
-        subprocess.check_call(commandline, **ui.quiet_subprocess())
+        run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)), endFrame-startFrame+1)
 
         updateCompletion(1.0)
