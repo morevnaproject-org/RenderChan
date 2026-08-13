@@ -26,6 +26,7 @@ class RenderChanFfmpegModule(RenderChanModule):
             os.mkdir(outputPath)
 
         commandline=[self.conf['binary'], "-i", filename, os.path.join(outputPath,"output_%04d.png")]
-        run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)), endFrame-startFrame+1)
+        # whole-file decode, frame count unknown - report progress by time
+        run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)))
 
         updateCompletion(1.0)
