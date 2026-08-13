@@ -6,8 +6,8 @@ import re
 import time
 import threading
 import io
-import shutil
 import subprocess
+from collections import deque
 from renderchan import ui
 
 if os.name == 'nt':
@@ -60,10 +60,13 @@ def run_ffmpeg_progress(cmd, progress, total_frames=None):
     duration_re = re.compile(r"Duration: (\d+):(\d+):(\d+\.\d+)")
     duration = None
     last = None  # dedupe: ffmpeg emits both out_time_ms and out_time_us
-    log = []
+    # Bounded error context; "-progress" key=value spam is skipped, so the
+    # buffer keeps real ffmpeg diagnostics instead of progress lines.
+    log = deque(maxlen=100)
     for line in proc.stdout:
         line = line.decode("utf-8", errors="replace").strip()
-        log.append(line)
+        if "=" not in line:
+            log.append(line)
         if total_frames:
             m = frame_re.match(line)
             if m:
