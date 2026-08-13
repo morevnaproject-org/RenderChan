@@ -2,6 +2,7 @@ __author__ = 'Konstantin Dmitriev'
 
 import os, shutil, errno
 import random
+import re
 import time
 import threading
 import io
@@ -40,6 +41,51 @@ def ffmpeg_has_soxr(binary):
         return b"enable-libsoxr" in out
     except Exception:
         return False
+
+def run_ffmpeg_progress(cmd, progress, total_frames=None):
+    """Run ffmpeg, reporting progress(current, total) along the way.
+
+    total_frames > 0: progress counted by frames ("frame=" lines).
+    total_frames None: progress counted by time ("out_time_*" vs input
+    Duration), for audio-only jobs where frame count is meaningless.
+    Raises CalledProcessError on failure, like check_call.
+    """
+    if ui.is_verbose():
+        subprocess.check_call(cmd)
+        return
+    cmd = cmd[:1] + ["-nostats", "-progress", "pipe:1"] + cmd[1:]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    frame_re = re.compile(r"frame=\s*(\d+)")
+    time_re = re.compile(r"out_time_(?:ms|us)=(\d+)")
+    duration_re = re.compile(r"Duration: (\d+):(\d+):(\d+\.\d+)")
+    duration = None
+    log = []
+    for line in proc.stdout:
+        line = line.decode("utf-8", errors="replace").strip()
+        log.append(line)
+        if total_frames:
+            m = frame_re.match(line)
+            if m:
+                progress(min(int(m.group(1)), total_frames), total_frames)
+        else:
+            if duration is None:
+                m = duration_re.search(line)
+                if m:
+                    h, mnt, s = int(m.group(1)), int(m.group(2)), float(m.group(3))
+                    duration = int((((h * 60) + mnt) * 60 + s) * 1000000)
+            else:
+                m = time_re.match(line)
+                if m:
+                    progress(min(int(m.group(1)), duration), duration)
+    rc = proc.wait()
+    log = "\n".join(log)
+    # image2 demuxer stops at the first unreadable frame but still exits 0,
+    # silently producing a shorter video - treat that as a failure
+    if rc == 0 and "Could not open file" not in log and "Conversion failed" not in log:
+        return
+    for line in log.splitlines()[-10:]:
+        ui.error(line)
+    raise subprocess.CalledProcessError(rc or 1, cmd)
 
 _hardlinks_broken = False
 

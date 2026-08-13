@@ -13,11 +13,10 @@ from renderchan.utils import copytree
 from renderchan.utils import link_or_copy
 from renderchan.utils import copy_file
 from renderchan.utils import which
+from renderchan.utils import run_ffmpeg_progress as ffmpeg_progress
 from renderchan.utils import is_true_string
 from renderchan import ui
 import os, time
-import re
-import tempfile
 import shutil
 import subprocess
 import zipfile
@@ -1042,28 +1041,7 @@ class RenderChan():
         taskfile.pending=False
 
     def run_ffmpeg_progress(self, cmd, total_frames, phase="Encoding"):
-        if ui.is_verbose():
-            subprocess.check_call(cmd)
-            return
-        cmd = cmd[:1] + ["-nostats", "-progress", "pipe:1"] + cmd[1:]
-        errlog = tempfile.TemporaryFile()
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=errlog)
-        frame_re = re.compile(r"frame=\s*(\d+)")
-        for line in proc.stdout:
-            m = frame_re.match(line.decode("utf-8", errors="replace").strip())
-            if m and total_frames > 0:
-                ui.progress(phase, min(int(m.group(1)), total_frames), total_frames)
-        rc = proc.wait()
-        errlog.seek(0)
-        log = errlog.read().decode("utf-8", errors="replace")
-        errlog.close()
-        # image2 demuxer stops at the first unreadable frame but still exits 0,
-        # silently producing a shorter video - treat that as a failure
-        if rc == 0 and "Could not open file" not in log and "Conversion failed" not in log:
-            return
-        for line in log.splitlines()[-10:]:
-            ui.error(line)
-        raise subprocess.CalledProcessError(rc or 1, cmd)
+        ffmpeg_progress(cmd, lambda c, t: ui.progress(phase, c, t), total_frames)
 
     def job_render(self, taskfile, format, updateCompletion, start=None, end=None, compare_time=None):
         """
