@@ -13,7 +13,7 @@ from renderchan.utils import copytree
 from renderchan.utils import link_or_copy
 from renderchan.utils import copy_file
 from renderchan.utils import which
-from renderchan.utils import run_ffmpeg_progress as ffmpeg_progress
+from renderchan.utils import run_ffmpeg_progress
 from renderchan.utils import is_true_string
 from renderchan import ui
 import os, time
@@ -1041,7 +1041,7 @@ class RenderChan():
         taskfile.pending=False
 
     def run_ffmpeg_progress(self, cmd, total_frames, phase="Encoding"):
-        ffmpeg_progress(cmd, lambda c, t: ui.progress(phase, c, t), total_frames)
+        run_ffmpeg_progress(cmd, lambda c, t: ui.progress(phase, c, t), total_frames)
 
     def job_render(self, taskfile, format, updateCompletion, start=None, end=None, compare_time=None):
         """
