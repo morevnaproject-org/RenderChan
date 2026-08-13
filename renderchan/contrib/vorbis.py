@@ -11,7 +11,7 @@ class RenderChanVorbisModule(RenderChanModule):
         RenderChanModule.__init__(self)
         self.conf['binary']=self.findBinary("ffmpeg")
         self.conf["packetSize"]=0
-        self.soxr=ffmpeg_has_soxr(self.conf['binary'])
+        self.soxr=False
 
     def getInputFormats(self):
         return ["ogg"]
@@ -25,6 +25,7 @@ class RenderChanVorbisModule(RenderChanModule):
             ui.info("Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf['binary']))
             ui.info("    Please install ffmpeg package.")
             return False
+        self.soxr=ffmpeg_has_soxr(self.conf['binary'])
         self.active=True
         return True
 
@@ -35,6 +36,9 @@ class RenderChanVorbisModule(RenderChanModule):
         commandline=[self.conf['binary'], "-y", "-i", filename]
         if self.soxr:
             commandline+=["-af", "aresample=resampler=soxr"]
+        else:
+            # high-quality swresample fallback when ffmpeg lacks libsoxr
+            commandline+=["-af", "aresample=resampler=swr:filter_size=64:dither_method=triangular"]
         commandline+=["-ar", extraParams["audio_rate"], outputPath]
         run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)))
 
