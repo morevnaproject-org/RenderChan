@@ -1,11 +1,8 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which
-import subprocess
 import os
 from zipfile import ZipFile
-import random
 
 class RenderChanZipModule(RenderChanModule):
     def __init__(self):
