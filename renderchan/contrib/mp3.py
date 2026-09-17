@@ -3,19 +3,15 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
-from renderchan.utils import which
+from renderchan.utils import which, ffmpeg_has_soxr, run_ffmpeg_progress
 from renderchan import ui
-import subprocess
-import os
-import re
-import random
 
 class RenderChanMp3Module(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
-        self.conf['binary']=self.findBinary("mpg123")
-        self.conf['sox_binary']=self.findBinary("sox")
+        self.conf['binary']=self.findBinary("ffmpeg")
         self.conf["packetSize"]=0
+        self.soxr=False
 
     def getInputFormats(self):
         return ["mp3"]
@@ -27,32 +23,23 @@ class RenderChanMp3Module(RenderChanModule):
         if which(self.conf['binary']) == None:
             self.active=False
             ui.info("Module warning (%s): Cannot find '%s' executable." % (self.getName(), self.conf['binary']))
-            ui.info("    Please install mpg123 package.")
+            ui.info("    Please install ffmpeg package.")
             return False
-        if which(self.conf['sox_binary']) == None:
-            self.active=False
-            ui.info("Module warning (%s): Cannot find '%s' executable!" % (self.getName(), self.conf['sox_binary']))
-            ui.info("    Please install sox package.")
-            return False
+        self.soxr=ffmpeg_has_soxr(self.conf['binary'])
         self.active=True
         return True
 
     def render(self, filename, outputPath, startFrame, endFrame, format, updateCompletion, extraParams={}):
 
-        comp = 0.0
-        updateCompletion(comp)
+        updateCompletion(0.0)
 
-        random_string = "%08d" % (random.randint(0,99999999))
-        tmpfile=outputPath+"."+random_string
-
-        # TODO: Progress callback
-
-        commandline=[self.conf['binary'], "-w", tmpfile, filename]
-        subprocess.check_call(commandline, **ui.quiet_subprocess())
-
-        commandline=[self.conf['sox_binary'], tmpfile, outputPath, "rate", "-v", extraParams["audio_rate"]]
-        subprocess.check_call(commandline, **ui.quiet_subprocess())
-
-        os.remove(tmpfile)
+        commandline=[self.conf['binary'], "-y", "-i", filename]
+        if self.soxr:
+            commandline+=["-af", "aresample=resampler=soxr"]
+        else:
+            # high-quality swresample fallback when ffmpeg lacks libsoxr
+            commandline+=["-af", "aresample=resampler=swr:filter_size=64:dither_method=triangular"]
+        commandline+=["-ar", extraParams["audio_rate"], outputPath]
+        run_ffmpeg_progress(commandline, lambda c, t: updateCompletion(min(float(c)/t, 1.0)))
 
         updateCompletion(1.0)

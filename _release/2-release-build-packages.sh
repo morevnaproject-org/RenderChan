@@ -90,7 +90,7 @@ rm -rf renderchan-${VERSION}
 # Windows
 [ -f "renderchan-1.0-alpha1-win.zip" ] || wget https://github.com/morevnaproject-org/RenderChan/releases/download/v1.0-alpha1/renderchan-1.0-alpha1-win.zip
 [ ! -d renderchan-1.0-alpha1 ] || rm -rf renderchan-1.0-alpha1
-unzip renderchan-1.0-alpha1-win.zip
+python3 -m zipfile -e renderchan-1.0-alpha1-win.zip .
 [ ! -d renderchan-${VERSION} ] || rm -rf renderchan-${VERSION}
 mv renderchan-1.0-alpha1 renderchan-${VERSION}
 rm -rf renderchan-${VERSION}/renderchan
@@ -109,7 +109,7 @@ rm -rf renderchan-${VERSION}/python
 mkdir renderchan-${VERSION}/python
 [ -f "python-3.8.10-embed-win32.zip" ] || wget https://www.python.org/ftp/python/3.8.10/python-3.8.10-embed-win32.zip
 cd renderchan-${VERSION}/python
-unzip ../../python-3.8.10-embed-win32.zip
+python3 -m zipfile -e ../../python-3.8.10-embed-win32.zip .
 cd ../..
 [ -f renderchan-${VERSION}/renderchan/desktop/renderchan.ico ] || cp -f ../../desktop/renderchan.ico renderchan-${VERSION}/renderchan/desktop/renderchan.ico
 
@@ -157,6 +157,6 @@ rm renderchan.nsi
 cd ..
 
 [ ! -f ../files/renderchan-${VERSION}-win.zip ] || rm -f ../files/renderchan-${VERSION}-win.zip
-zip -r ../files/renderchan-${VERSION}-win.zip renderchan-${VERSION}/
+python3 -m zipfile -c ../files/renderchan-${VERSION}-win.zip renderchan-${VERSION}/
 
 rm -rf renderchan-${VERSION}
