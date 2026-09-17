@@ -5,7 +5,7 @@ import time
 import configparser
 import shutil
 import sys
-from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread, copytree
+from renderchan.utils import mkdirs, sync, file_is_older_than, ini_wrapper, LockThread, copytree, copy_file
 from renderchan.cache import RenderChanCache
 from renderchan import ui
 
@@ -142,7 +142,7 @@ class RenderChanProject():
             shutil.rmtree(os.path.join(self.path,'render',localedir))
             if os.path.exists(os.path.join(self.path,localedir)):
                 mkdirs(os.path.join(self.path,'render',localedir))
-                shutil.copy2(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
+                copy_file(os.path.join(self.path,localedir,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
 
         # Project configuration
 
@@ -417,7 +417,7 @@ class RenderChanProject():
         if os.path.exists(os.path.join(self.path,'render',localedir)):
             shutil.rmtree(os.path.join(self.path,'render',localedir))
             mkdirs(os.path.join(self.path,'render',localedir))
-            shutil.copy2(os.path.join(localedirpath,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
+            copy_file(os.path.join(localedirpath,'lang.conf'),os.path.join(self.path,'render',localedir,'lang.conf'))
 
         ui.notice("Done.")
         return True

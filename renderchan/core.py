@@ -11,6 +11,7 @@ from renderchan.utils import sync
 from renderchan.utils import touch
 from renderchan.utils import copytree
 from renderchan.utils import link_or_copy
+from renderchan.utils import copy_file
 from renderchan.utils import which
 from renderchan.utils import is_true_string
 from renderchan import ui
@@ -871,7 +872,7 @@ class RenderChan():
                             if os.path.exists(placeholder):
                                 ui.info("   Creating an empty placeholder for %s..." % path)
                                 mkdirs(os.path.dirname(path))
-                                shutil.copy(placeholder, path)
+                                copy_file(placeholder, path)
                                 t = time.mktime(time.strptime('01.01.1981 00:00:00', '%d.%m.%Y %H:%M:%S'))
                                 os.utime(path,(t,t))
                             else:
@@ -1469,7 +1470,7 @@ class RenderChan():
             try:
                 os.link(renderpath, snapshot_path)
             except:
-                shutil.copy2(renderpath, snapshot_path)
+                copy_file(renderpath, snapshot_path)
 
 
     def decompose(self, start, end, packetSize, framesList=""):

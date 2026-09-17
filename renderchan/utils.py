@@ -33,6 +33,14 @@ def which(program):
 
 _hardlinks_broken = False
 
+def copy_file(src, dst):
+    """shutil.copy2, tolerant to filesystems without chmod/utime (GVFS-FUSE, CIFS)."""
+    shutil.copyfile(src, dst)
+    try:
+        shutil.copystat(src, dst)
+    except OSError:
+        pass
+
 def link_or_copy(src, dst):
     """Hardlink src to dst, falling back to a real copy.
 
@@ -55,7 +63,7 @@ def link_or_copy(src, dst):
                     time.sleep(0.3)
             os.remove(dst)
             _hardlinks_broken = True
-    shutil.copy2(src, dst)
+    copy_file(src, dst)
 
 def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
     names = os.listdir(src)
@@ -81,7 +89,7 @@ def copytree(src, dst, symlinks=False, hardlinks=False, ignore=None):
             elif hardlinks:
                 link_or_copy(srcname, dstname)
             else:
-                shutil.copy2(srcname, dstname)
+                copy_file(srcname, dstname)
             # XXX What about devices, sockets etc.?
         except (IOError, os.error) as why:
             errors.append((srcname, dstname, str(why)))
