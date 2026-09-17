@@ -7,7 +7,7 @@ import shutil
 import socket
 import tempfile
 import time
-from renderchan.utils import mkdirs, LockThread
+from renderchan.utils import mkdirs, LockThread, copy_file
 from renderchan import ui
 
 LOCK_STALE_TIMEOUT = 300      # seconds; lock not updated for this long is assumed stale
@@ -32,7 +32,7 @@ class RenderChanCache():
         self.local_path="renderchan-cache-"+random_num+".sqlite"
         self.local_path=os.path.join(tempfile.gettempdir(),self.local_path)
         if os.path.exists(path):
-            shutil.copy(path,self.local_path)
+            copy_file(path,self.local_path)
 
         try:
             self.connection=sqlite3.connect(self.local_path)
@@ -103,7 +103,7 @@ class RenderChanCache():
 
         if self._locked:
             try:
-                shutil.copy(self.local_path, self.path)
+                copy_file(self.local_path, self.path)
             except Exception as e:
                 ui.error("Cannot save cache to '%s': %s" % (self.path, e))
             self._release_lock()
