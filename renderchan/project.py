@@ -235,8 +235,9 @@ class RenderChanProject():
             cp = configparser.ConfigParser()
             cp.read(filename)
 
-            for key in cp.options('main'):
-                oldconfig[key]=cp.get('main', key)
+            if cp.has_section('main'):
+                for key in cp.options('main'):
+                    oldconfig[key]=cp.get('main', key)
 
         newconfig=self.defaults.copy()
         for key in self.config.keys():
@@ -281,8 +282,9 @@ class RenderChanProject():
             cp = configparser.ConfigParser()
             cp.read(filename)
             
-            for key in cp.options('main'):
-                oldconfig[key]=cp.get('main', key)
+            if cp.has_section('main'):
+                for key in cp.options('main'):
+                    oldconfig[key]=cp.get('main', key)
 
         newconfig={}
         for key in module.extraParams:
