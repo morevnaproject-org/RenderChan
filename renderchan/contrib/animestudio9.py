@@ -11,6 +11,8 @@ import re
 import locale
 import platform
 
+FPS_PATTERN = re.compile(r"^fps\s+(\d+)")
+
 class RenderChanAnimestudio9Module(RenderChanModule):
     def __init__(self):
         RenderChanModule.__init__(self)
@@ -18,8 +20,6 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         self.conf["binary"]=self.findBinary("animestudio9")
         self.conf["packetSize"]=0
         self.conf["maxNbCores"]=1
-
-        self._last_fps = None
 
         # Extra params
         self.extraParams["layer_composition"]="1"
@@ -43,7 +43,6 @@ class RenderChanAnimestudio9Module(RenderChanModule):
             return info
 
         frame_pattern = re.compile(r"^frame_range\s+(\d+)\s+(\d+)")
-        fps_pattern = re.compile(r"^fps\s+(\d+)")
         dimensions_pattern = re.compile(r"^dimensions\s+(\d+)\s+(\d+)")
         dependency_pattern = re.compile(r"^(image|audio_file|soundtrack)\s+\"(.*)\"")
 
@@ -64,10 +63,9 @@ class RenderChanAnimestudio9Module(RenderChanModule):
                 # print("    AnimeStudio9 frame range: %d to %d" % (info["startFrame"], info["endFrame"]))
                 continue
 
-            match = fps_pattern.match(stripped)
+            match = FPS_PATTERN.match(stripped)
             if match:
                 info["fps"] = int(match.group(1))
-                self._last_fps = info["fps"]
                 ui.info("    AnimeStudio9 fps: %d" % info["fps"])
                 continue
 
@@ -85,9 +83,6 @@ class RenderChanAnimestudio9Module(RenderChanModule):
                     seen_dependencies.add(resolved)
                     dependencies.append(resolved)
 
-        if "fps" not in info and self._last_fps is None:
-            self._last_fps = None
-
         if len(dependencies) > 0:
             ui.info("    AnimeStudio9 dependencies: %d" % len(dependencies))
             info["dependencies"] = dependencies
@@ -102,8 +97,16 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         temp_files = []
         comp_names = []
 
-        fps_value = self._last_fps if self._last_fps is not None else 24
-        file_lines = None
+        try:
+            file_lines = self._read_file_lines(filename)
+        except IOError as e:
+            ui.error("Error reading AnimeStudio9 file %s: %s" % (filename, str(e)))
+            raise Exception("AnimeStudio9 render failed: unable to read %s" % filename)
+
+        fps_value = self._extract_fps(file_lines)
+        if fps_value is None:
+            ui.error("AnimeStudio9 fps not found in %s" % filename)
+            raise Exception("AnimeStudio9 render failed: fps not found in %s" % filename)
 
         layer_comp_value = extraParams.get("layer_composition", "1")
         layer_comp_enabled = is_true_string(layer_comp_value) or layer_comp_value.upper() == "ALL"
@@ -111,8 +114,6 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         if layer_comp_enabled:
             ui.info('====================================================')
             ui.info('  AnimeStudio9 layer_composition: enabled (%s)' % layer_comp_value)
-            if file_lines is None:
-                file_lines = self._read_file_lines(filename)
             compositions = self._parse_layer_compositions(file_lines)
             target_folder = outputPath
 
@@ -301,6 +302,13 @@ class RenderChanAnimestudio9Module(RenderChanModule):
     def _read_file_lines(self, filename):
         with open(filename, "r", encoding="utf-8", errors="ignore") as f:
             return f.readlines()
+
+    def _extract_fps(self, lines):
+        for line in lines:
+            match = FPS_PATTERN.match(line.strip())
+            if match:
+                return int(match.group(1))
+        return None
 
     def _resolve_dependency_path(self, base_dir, raw_path):
         cleaned = raw_path.strip()
