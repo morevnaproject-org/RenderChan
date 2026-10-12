@@ -128,16 +128,16 @@ class RenderChanAnimestudio9Module(RenderChanModule):
 
             if compositions:
                 for comp_name, layer_ids in compositions:
-                    temp_path = self._create_composition_file(filename, file_lines, comp_name, layer_ids)
+                    temp_path, output_base = self._create_composition_file(filename, file_lines, comp_name, layer_ids)
                     temp_files.append(temp_path)
-                    render_tasks.append((temp_path, target_folder))
+                    render_tasks.append((temp_path, target_folder, output_base))
             else:
-                render_tasks.append((filename, target_folder))
+                render_tasks.append((filename, target_folder, None))
         else:
             ui.info('====================================================')
             ui.info('  AnimeStudio9 layer_composition: DISABLED')
             ui.info('====================================================')
-            render_tasks.append((filename, outputPath))
+            render_tasks.append((filename, outputPath, None))
 
         total_tasks = float(len(render_tasks))
         completed = 0.0
@@ -145,19 +145,19 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         try:
             grand = 0.0
             task_frames = []
-            for target_file, target_output in render_tasks:
+            for target_file, target_output, _ in render_tasks:
                 frames = self._frame_range(target_file)
                 task_frames.append(frames)
                 grand += frames
             if grand <= 0:
                 grand = 1.0
             done_frames = 0.0
-            for i, (target_file, target_output) in enumerate(render_tasks):
+            for i, (target_file, target_output, output_base) in enumerate(render_tasks):
                 if i < len(comp_names):
                     ui.progress_label("Rendering " + comp_names[i])
                 cb = (lambda base=done_frames, tf=task_frames[i]: (
                     lambda produced: updateCompletion((base + produced) / grand)))()
-                self._render_single(target_file, target_output, extraParams, fps_value, startFrame, endFrame, progress_cb=cb)
+                self._render_single(target_file, target_output, extraParams, fps_value, startFrame, endFrame, progress_cb=cb, output_base=output_base)
                 done_frames += task_frames[i]
                 updateCompletion(done_frames / grand)
 
@@ -193,7 +193,7 @@ class RenderChanAnimestudio9Module(RenderChanModule):
                 progress_cb(min(count, total_frames))
             stop.wait(0.5)
 
-    def _render_single(self, filename, outputPath, extraParams, fps_value, startFrame=None, endFrame=None, progress_cb=None):
+    def _render_single(self, filename, outputPath, extraParams, fps_value, startFrame=None, endFrame=None, progress_cb=None, output_base=None):
 
         existing_pngs = set()
         if os.path.isdir(outputPath):
@@ -217,7 +217,16 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         filename_cli=filename
         outputPath_cli=outputPath
         
-        commandline=[self.conf['binary'], "-r", filename_cli, "-v", "-f", "png", "-outfolder", outputPath_cli]
+        # Full output path goes into -o: the CLI names sequence frames
+        # after it, keeping render results stable even when the temp .anme
+        # got a -N counter suffix (leftover file collision). Do NOT combine
+        # -o with -outfolder: that combination silently fails on non-ASCII
+        # (e.g. Cyrillic) -outfolder paths.
+        commandline=[self.conf['binary'], "-r", filename_cli, "-v", "-f", "png"]
+        if output_base:
+            commandline.extend(["-o", os.path.join(outputPath, output_base + ".png")])
+        else:
+            commandline.extend(["-outfolder", outputPath_cli])
 
         # Temporarily disabled: generating .lst files for compositions breaks
         # packet merging, and the .lst files themselves fail to merge properly.
@@ -286,18 +295,25 @@ class RenderChanAnimestudio9Module(RenderChanModule):
 
         if rc != 0:
             raise Exception('AnimeStudio9 render failed with exit code %d' % rc)
-        
+
         directory = os.fsencode(outputPath)
+        produced_any = False
     
         for file in sorted(os.listdir(directory)):
              filename = os.fsdecode(file)
              if filename.endswith(".png") and filename not in existing_pngs:
-                 lstfile=os.path.join(outputPath, filename[:-10]+".lst")
-                 if not os.path.exists(lstfile):
-                    with open(lstfile, "w") as text_file:
-                        text_file.write(f"FPS {fps_value}\n")
-                 with open(lstfile, "a") as text_file:
-                    text_file.write(filename+"\n")
+                  produced_any = True
+                  lstfile=os.path.join(outputPath, filename[:-10]+".lst")
+                  if not os.path.exists(lstfile):
+                     with open(lstfile, "w") as text_file:
+                         text_file.write(f"FPS {fps_value}\n")
+                  with open(lstfile, "a") as text_file:
+                     text_file.write(filename+"\n")
+
+        # AnimeStudio CLI exits 0 even when it fails silently (e.g. unusable
+        # output path); detect that instead of blessing an empty render.
+        if not produced_any and total_frames > 0:
+            raise Exception('AnimeStudio9 render produced no frames for %s' % filename)
 
     def _read_file_lines(self, filename):
         with open(filename, "r", encoding="utf-8", errors="ignore") as f:
@@ -372,16 +388,17 @@ class RenderChanAnimestudio9Module(RenderChanModule):
         dir_path = os.path.dirname(original_path)
         base_name = os.path.splitext(os.path.basename(original_path))[0]
         comp_suffix = self._sanitize_comp_name(comp_name)
+        output_base = f"{base_name}-{comp_suffix}"
 
-        candidate = os.path.join(dir_path, f"{base_name}-{comp_suffix}.anme")
+        candidate = os.path.join(dir_path, f"{output_base}.anme")
         counter = 1
         while os.path.exists(candidate):
-            candidate = os.path.join(dir_path, f"{base_name}-{comp_suffix}-{counter}.anme")
+            candidate = os.path.join(dir_path, f"{output_base}-{counter}.anme")
             counter += 1
 
         with open(candidate, "w", encoding="utf-8") as temp_file:
             temp_file.write(modified_content)
-        return candidate
+        return candidate, output_base
 
     def _apply_layer_visibility(self, lines, allowed_ids):
         new_lines = []
