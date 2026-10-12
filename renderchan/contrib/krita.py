@@ -1,16 +1,18 @@
 __author__ = 'Konstantin Dmitriev'
 
 from renderchan.module import RenderChanModule
+from renderchan.utils import which
+from renderchan.utils import is_true_string
+from renderchan import ui
 import subprocess
 import sys
 import os
+import re
 import tempfile
 import shutil
 import locale
 from zipfile import ZipFile
 from xml.etree import ElementTree
-from renderchan.utils import which
-from renderchan import ui
 
 class RenderChanKritaModule(RenderChanModule):
     def __init__(self):
@@ -23,8 +25,10 @@ class RenderChanKritaModule(RenderChanModule):
         self.extraParams['use_own_dimensions']='1'
         self.extraParams['proxy_scale']='1.0'
         self.extraParams["single"] = "None"
+        self.extraParams["layer_composition"] = "0"
 
         self.canRenderAnimation = False
+        self.canRenderCompositions = False
 
     def getInputFormats(self):
         return ["kra"]
@@ -65,6 +69,9 @@ class RenderChanKritaModule(RenderChanModule):
             if line.find("--export-sequence") != -1:
                 self.canRenderAnimation = True
 
+            if line.find("--export-compositions") != -1:
+                self.canRenderCompositions = True
+
             rc = out.poll()
 
 
@@ -98,6 +105,15 @@ class RenderChanKritaModule(RenderChanModule):
 
         comp = 0.0
         updateCompletion(comp)
+
+        if (is_true_string(extraParams.get("layer_composition", "0"))
+                and self.canRenderCompositions
+                and extraParams.get("single", "None") == "None"):
+            info = self._parse_kra_info(filename)
+            if any(enabled for _name, enabled in info["compositions"]):
+                self._render_compositions(filename, outputPath, extraParams, updateCompletion, info)
+                updateCompletion(1)
+                return
 
         deps_count=0
         for item in extraParams["dependencies"]:
@@ -177,3 +193,123 @@ class RenderChanKritaModule(RenderChanModule):
         if os.path.exists(os.path.dirname(outputPathTmp)):
             shutil.rmtree(os.path.dirname(outputPathTmp))
         updateCompletion(1)
+
+    def _local_name(self, tag):
+        return tag.rsplit('}', 1)[-1]
+
+    def _parse_kra_info(self, filename):
+        """Extract layer compositions and framerate from a .kra file (maindoc.xml)."""
+        info = {"compositions": [], "fps": None}
+        try:
+            with ZipFile(filename) as zip:
+                data = zip.read('maindoc.xml')
+        except (IOError, KeyError) as e:
+            ui.error("Error reading Krita file %s: %s" % (filename, str(e)))
+            return info
+
+        root = ElementTree.fromstring(data)
+
+        for element in root.iter():
+            name = self._local_name(element.tag)
+            if name == "composition":
+                info["compositions"].append((element.attrib.get("name", ""),
+                                              element.attrib.get("exportEnabled", "1") != "0"))
+            elif name == "framerate":
+                try:
+                    info["fps"] = int(float(element.attrib.get("value", "0")))
+                except ValueError:
+                    pass
+
+        return info
+
+    def _sanitize_comp_name(self, name):
+        safe = re.sub(r"[^\w-]+", "_", name, flags=re.UNICODE).strip("_")
+        return safe or "comp"
+
+    def _render_compositions(self, filename, outputPath, extraParams, updateCompletion, info):
+        """Render all export-enabled layer compositions of a .kra file
+        as PNG sequences + per-composition .lst files."""
+
+        fps = info["fps"]
+        if fps is None:
+            fps = 24
+            ui.warn("Krita file %s has no framerate info, assuming %d." % (filename, fps))
+
+        tmpDir = outputPath + ".comps.tmp"
+        if os.path.exists(tmpDir):
+            shutil.rmtree(tmpDir)
+        os.makedirs(tmpDir)
+
+        base = os.path.splitext(os.path.basename(filename))[0]
+
+        # Render all export-enabled compositions via Krita CLI.
+        # Krita creates one subdirectory per composition:
+        #   <tmpDir>/<base>-<Comp>/<base>-<Comp><NNNN>.png
+        commandline = [self.conf['binary'], "--export-compositions", filename,
+                       "--export-filename", os.path.join(tmpDir, base + ".png")]
+
+        ui.info('====================================================')
+        ui.info('  Krita Render Compositions Command:')
+        ui.info('  ' + ' '.join(commandline))
+        ui.info('====================================================')
+
+        out = subprocess.Popen(commandline, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        rc = None
+        while True:
+            line = out.stdout.readline()
+            if not line:
+                if rc is not None:
+                    break
+            line = line.decode(locale.getpreferredencoding(), errors='replace')
+            ui.info(line.rstrip())
+            sys.stdout.flush()
+            rc = out.poll()
+
+        if rc != 0:
+            shutil.rmtree(tmpDir, ignore_errors=True)
+            raise Exception('Krita compositions render failed with exit code %d' % rc)
+
+        compDirs = sorted(d for d in os.listdir(tmpDir) if os.path.isdir(os.path.join(tmpDir, d)))
+
+        if os.path.exists(outputPath):
+            if os.path.isdir(outputPath):
+                shutil.rmtree(outputPath)
+            else:
+                os.remove(outputPath)
+        os.makedirs(outputPath)
+
+        dimensions = extraParams["width"] + "x" + extraParams["height"]
+        usedPrefixes = set()
+
+        for i, dirName in enumerate(compDirs):
+            # dirName is "<base>-<Comp>"; frame filenames start with dirName
+            compLabel = dirName[len(base) + 1:] if dirName.startswith(base + "-") else dirName
+            prefix = base + "-" + self._sanitize_comp_name(compLabel)
+            counter = 1
+            while prefix in usedPrefixes:
+                counter += 1
+                prefix = base + "-" + self._sanitize_comp_name(compLabel) + str(counter)
+            usedPrefixes.add(prefix)
+
+            ui.progress_label("Rendering " + compLabel)
+
+            frames = sorted(f for f in os.listdir(os.path.join(tmpDir, dirName)) if f.endswith(".png"))
+            lstPath = os.path.join(outputPath, prefix + ".lst")
+            with open(lstPath, "w") as lstFile:
+                lstFile.write("FPS %d\n" % fps)
+                for frame in frames:
+                    dstName = prefix + "_" + frame[len(dirName):]
+                    commandline = [self.conf['convert_binary'],
+                                   os.path.join(tmpDir, dirName, frame),
+                                   "-resize", dimensions,
+                                   os.path.join(outputPath, dstName)]
+                    subprocess.check_call(commandline, **ui.quiet_subprocess())
+                    lstFile.write(dstName + "\n")
+
+            updateCompletion(float(i + 1) / len(compDirs))
+
+        shutil.rmtree(tmpDir)
+
+        if not usedPrefixes:
+            raise Exception('Krita compositions render produced no output for %s' % filename)
