@@ -213,6 +213,11 @@ class RenderChan():
                     ui.info("Zipping file: "+c)
                     myzip.write(c, c[len(commonpath)+1:])
 
+                # Marker file in the archive root - points to the packed (master) file
+                markername = "renderchan.pack"
+                if markername not in [c[len(commonpath)+1:] for c in list]:
+                    myzip.writestr(markername, "[main]\nmasterfile=%s\n" % taskfile.getPath()[len(commonpath)+1:])
+
 
             ui.notice("Written " + os.path.join(os.getcwd(), zipname) + ".")
             ui.blank()
