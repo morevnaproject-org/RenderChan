@@ -151,7 +151,7 @@ class RenderChan():
         taskfile = RenderChanFile(filename, self.modules, self.projects)
         self.trackFileBegin(taskfile)
 
-        if taskfile.project == None:
+        if taskfile.project == None and self.action != "pack":
             ui.error("Can't render a file which is not a part of renderchan project.", stderr=True)
             self.trackFileEnd()
             return 1
@@ -576,36 +576,42 @@ class RenderChan():
 
         # First, let's ensure, that we are in sync with profile data
 
-        t=taskfile.project.switchProfile(taskfile.project.getProfileDirName())
+        compareTime = None
+        if taskfile.project:
+            t=taskfile.project.switchProfile(taskfile.project.getProfileDirName())
 
-        checkTime=None
-        if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
-            checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
-            checkTime=float_trunc(os.path.getmtime(checkFile),1)
-        if os.path.exists(taskfile.getProfileRenderPath()):
+            checkTime=None
+            if os.path.exists(taskfile.getProfileRenderPath()+".sync"):
+                checkFile=os.path.join(taskfile.getProjectRoot(),"render","project.conf","profile.conf")
+                checkTime=float_trunc(os.path.getmtime(checkFile),1)
+            if os.path.exists(taskfile.getProfileRenderPath()):
 
-            source=taskfile.getProfileRenderPath()
-            dest=taskfile.getRenderPath()
-            sync(source,dest,checkTime)
+                source=taskfile.getProfileRenderPath()
+                dest=taskfile.getRenderPath()
+                sync(source,dest,checkTime)
 
-            source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
-            dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
-            sync(source,dest,checkTime)
+                source=os.path.splitext(taskfile.getProfileRenderPath())[0]+"-alpha."+taskfile.getFormat()
+                dest=os.path.splitext(taskfile.getRenderPath())[0]+"-alpha."+taskfile.getFormat()
+                sync(source,dest,checkTime)
 
+            else:
+                isDirty = True
+
+            t.unlock()
+
+            if not os.path.exists(taskfile.getProfileRenderPath()):
+                # If no rendering exists, then obviously rendering is required
+                isDirty = True
+                compareTime = None
+                if os.environ.get('DEBUG'):
+                    ui.debug("DEBUG: Dirty = 1 (no rendering exists)")
+            else:
+                # Otherwise we have to check against the time of the last rendering
+                compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
         else:
+            # The file doesn't belong to any project (i.e. --pack invoked on
+            # a standalone file). No profile data to sync with.
             isDirty = True
-
-        t.unlock()
-
-        if not os.path.exists(taskfile.getProfileRenderPath()):
-            # If no rendering exists, then obviously rendering is required
-            isDirty = True
-            compareTime = None
-            if os.environ.get('DEBUG'):
-                ui.debug("DEBUG: Dirty = 1 (no rendering exists)")
-        else:
-            # Otherwise we have to check against the time of the last rendering
-            compareTime = float_trunc(os.path.getmtime(taskfile.getProfileRenderPath()),1)
 
         # Get "dirty" status for the target file and all dependent tasks, submitted as dependencies
         (isDirtyValue, tasklist, maxTime)=self.parseDirectDependency(taskfile, compareTime, dryRun, force)
@@ -960,12 +966,11 @@ class RenderChan():
                     maxTime=timestamp
 
         # Parse pack.lst and FILENAME.pack.lst files
-        if taskfile.projectPath:
-
+        if self.action == "pack":
             deps = []
 
-            if self.action == "pack":
-                # pack.lst
+            # pack.lst
+            if taskfile.projectPath:
                 check_path = os.path.dirname(taskfile.getPath())
                 while len(check_path) >= len(taskfile.projectPath):
                     path = os.path.join(check_path,"pack.lst")
@@ -973,10 +978,10 @@ class RenderChan():
                         deps.append(path)
                     check_path = os.path.dirname(check_path)
 
-                # FILENAME.pack.lst
-                path = taskfile.getPath()+".pack.lst"
-                if os.path.exists(path) and not path in self.loadedFiles.keys():
-                    deps.append(path)
+            # FILENAME.pack.lst
+            path = taskfile.getPath()+".pack.lst"
+            if os.path.exists(path) and not path in self.loadedFiles.keys():
+                deps.append(path)
 
 
             for path in deps:
