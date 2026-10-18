@@ -1,7 +1,7 @@
 __author__ = 'Konstantin Dmitriev'
 
 from gettext import gettext as _
-from optparse import OptionParser
+from argparse import ArgumentParser
 import os
 from renderchan.core import RenderChan
 from renderchan.file import RenderChanFile
@@ -10,32 +10,34 @@ import sys
 
 
 def process_args():
-    parser = OptionParser(
-        usage=_("""
-    %prog [options] [FILE]               """))
+    parser = ArgumentParser(description=_("%prog [FILE] [options]"),
+            epilog=_("For more information about RenderChan, visit https://morevnaproject.org/renderchan/"))
 
-    parser.add_option("--action", dest="action",
+    parser.add_argument("file", metavar="FILE",
+            help=_("A path to the file you want to render."))
+    
+    parser.add_argument("--action", dest="action",
             action="store",
             help=_("Action: render|merge|snapshot."))
-    parser.add_option("--profile", dest="profile",
+    parser.add_argument("--profile", dest="profile",
             action="store",
             help=_("Profile."))
-    parser.add_option("--format", dest="format",
+    parser.add_argument("--format", dest="format",
             action="store",
             help=_("Format."))
-    parser.add_option("--start", dest="start",
+    parser.add_argument("--start", dest="start",
             action="store", default=None,
             help=_("Start frame."))
-    parser.add_option("--end", dest="end",
+    parser.add_argument("--end", dest="end",
             action="store", default=None,
             help=_("End frame."))
-    parser.add_option("--stereo", dest="stereo",
+    parser.add_argument("--stereo", dest="stereo",
             action="store", default="",
             help=_("Stereo configuration."))
-    parser.add_option("--compare-time", dest="compare_time",
+    parser.add_argument("--compare-time", dest="compare_time",
             action="store",
             help=_("Don't render if there is an existing file and it is newer than specified time."))
-    parser.add_option("--target-dir", dest="snapshot_target",
+    parser.add_argument("--target-dir", dest="snapshot_target",
             action="store", default=None,
             help=_("Target directory for snapshots."))
     # This is necessary for correct handling of multi-project rendering.
@@ -46,20 +48,20 @@ def process_args():
     # which lead to configuration file overwrite -> job will fail reporting that module
     # some files were changed (module configuration file).
     # So, this is why we need --active-project option.
-    parser.add_option("--active-project", dest="active_project",
+    parser.add_argument("--active-project", dest="active_project",
             action="store", default=None,
             help=_("Active project to inherit options from."))
 
-    options, args = parser.parse_args()
+    #options, args = parser.parse_args()
 
     # override defaults with settings from file
-    if args:
-        options.filename=os.path.abspath(args[0])
-    else:
-        ui.error("Please provide input filename", stderr=True)
-        exit(1)
+    #if args:
+    #    options.filename=os.path.abspath(args[0])
+    #else:
+    #    ui.error("Please provide input filename", stderr=True)
+    #    exit(1)
 
-    return options, args
+    return parser.parse_args()
 
 def updateCompletion(value):
     ui.info("Rendering: %s" % (value*100))
@@ -67,7 +69,10 @@ def updateCompletion(value):
 
 
 def main(argv):
-    options, args = process_args()
+    
+    print(argv)
+    
+    options = process_args()
 
     ui.set_verbose(True)
 
@@ -92,7 +97,7 @@ def main(argv):
         options.action = 'render'
 
     if options.action != 'snapshot':
-        taskfile = RenderChanFile(options.filename, renderchan.modules, renderchan.projects)
+        taskfile = RenderChanFile(options.file, renderchan.modules, renderchan.projects)
         taskfile.setFormat(options.format)
 
         if options.action == 'merge' and options.stereo and ( options.stereo[0:1]=="v" or options.stereo[0:1]=="h" ):
@@ -118,5 +123,5 @@ def main(argv):
     elif options.action == 'snapshot':
         if not options.snapshot_target:
             ui.error("Please specify output filename using --target-dir option.", stderr=True)
-        renderchan.job_snapshot(options.filename, os.path.abspath(options.snapshot_target))
+        renderchan.job_snapshot(options.file, os.path.abspath(options.snapshot_target))
 
