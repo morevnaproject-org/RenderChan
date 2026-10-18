@@ -667,14 +667,15 @@ class RenderChan():
             else:
                 compare_time=maxTime
 
+            # Check if module can render mov directly (like Nuke) or needs png+ffmpeg workaround
+            module_supports_direct_mov = "mov" in taskfile.module.getOutputFormats()
+
+            chunk_format = taskfile.getFormat()
+            if chunk_format=="mov" and not module_supports_direct_mov:
+                chunk_format = "png"
+
             if self.renderfarm_engine=="":
 
-                # Check if module can render mov directly (like Nuke) or needs png+ffmpeg workaround
-                module_supports_direct_mov = "mov" in taskfile.module.getOutputFormats()
-
-                chunk_format = taskfile.getFormat()
-                if chunk_format=="mov" and not module_supports_direct_mov:
-                    chunk_format = "png"
                 ui.progress_context("%s to .%s (%s)" % (os.path.basename(taskfile.getPath()), chunk_format, taskfile.module.getName()))
 
                 for i, range in enumerate(segments):
@@ -692,7 +693,7 @@ class RenderChan():
 
                 # Render block
 
-                command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s --active-project \"%s\"" % ( taskfile.getPath(), taskfile.getFormat(), self.projects.profile, compare_time, self.projects.active.path)
+                command = "renderchan-job-launcher \"%s\" --action render --format %s --profile %s --compare-time %s --active-project \"%s\"" % ( taskfile.getPath(), chunk_format, self.projects.profile, compare_time, self.projects.active.path)
                 if self.projects.stereo!="":
                     command += " --stereo %s" % (self.projects.stereo)
                 if taskfile.getPacketSize()>0:
