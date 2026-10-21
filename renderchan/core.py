@@ -893,12 +893,24 @@ class RenderChan():
                         if not os.path.exists(dependency.getPath()) and getattr(self, '_counting_deps', False):
                             self._missing_abspaths.add(path)
                         continue
-                    self.loadedFiles[dependency.getPath()]=dependency
-                    if dependency.project!=None and dependency.module!=None:
-                        self.loadedFiles[dependency.getRenderPath()]=dependency
-                        # Alpha
-                        renderpath_alpha=os.path.splitext(dependency.getRenderPath())[0]+"-alpha."+dependency.getFormat()
-                        self.loadedFiles[renderpath_alpha]=dependency
+                    # Image sequences reference many distinct frame paths
+                    # (i.e. "file.ext.png/frame-00001.png"), which all resolve
+                    # to the same source file. Reuse the already submitted
+                    # instance to avoid duplicate render tasks.
+                    existing = self.loadedFiles.get(dependency.getPath())
+                    if existing is not None:
+                        if existing.pending:
+                            # Avoid circular dependencies
+                            ui.warn("Circular dependency detected for %s. Skipping." % (path))
+                            continue
+                        dependency = existing
+                    else:
+                        self.loadedFiles[dependency.getPath()]=dependency
+                        if dependency.project!=None and dependency.module!=None:
+                            self.loadedFiles[dependency.getRenderPath()]=dependency
+                            # Alpha
+                            renderpath_alpha=os.path.splitext(dependency.getRenderPath())[0]+"-alpha."+dependency.getFormat()
+                            self.loadedFiles[renderpath_alpha]=dependency
 
                 # Check if this is a rendering dependency
                 if path != dependency.getPath():
