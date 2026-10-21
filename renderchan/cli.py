@@ -135,6 +135,10 @@ def process_args(datadir):
             action="store_true",
             default=False,
             help=_("Pack the file and all its dependencies into zip file (saved in the current working directory)."))
+    parser.add_argument("--pack-to-dir", dest="pack_to_dir",
+            metavar="PATH",
+            default=None,
+            help=_("Copy the file and all its dependencies into specified directory (instead of making zip file)."))
     parser.add_argument("--print", dest="print",
             action="store_true",
             default=False,
@@ -198,7 +202,13 @@ def main(datadir, argv):
     
     renderchan.force = args.force
 
-    if args.pack:
+    if args.pack_to_dir:
+        renderchan.dry_run = True
+        #renderchan.force = True
+        renderchan.track = True
+        renderchan.action = "pack"
+        renderchan.pack_to_dir = os.path.abspath(args.pack_to_dir)
+    elif args.pack:
         renderchan.dry_run = True
         #renderchan.force = True
         renderchan.track = True

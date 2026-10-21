@@ -48,6 +48,9 @@ class RenderChan():
         # Action. Possible values - render (default), print, pack, clean
         self.action = "render"
 
+        # Target directory for pack action (None = pack into zip file)
+        self.pack_to_dir = None
+
         # Option, which determines if RenderChan should create placeholders for missing files
         # TODO: This option is not possible to set via commandline at this moment.
         # TODO: Allow to configure how to deal with missing files: create empty placeholder (default), create warning placeholder, none or raise exception.
@@ -200,27 +203,52 @@ class RenderChan():
 
             ui.blank()
 
-            zipname = os.path.basename(taskfile.getPath())+'.zip'
+            markername = "renderchan.pack"
 
-            if os.path.exists(os.path.join(os.getcwd(),zipname)):
-                ui.error("File "+os.path.join(os.getcwd(),zipname)+" already exists.")
-                sys.exit()
+            if self.pack_to_dir:
 
+                if os.path.exists(self.pack_to_dir):
+                    ui.error("Directory "+self.pack_to_dir+" already exists.")
+                    sys.exit()
 
-            with zipfile.ZipFile(zipname, 'x') as myzip:
+                os.makedirs(self.pack_to_dir)
+
                 for i,c in enumerate(list):
                     ui.progress("Packing", i, len(list))
-                    ui.info("Zipping file: "+c)
-                    myzip.write(c, c[len(commonpath)+1:])
+                    ui.info("Copying file: "+c)
+                    dest = os.path.join(self.pack_to_dir, c[len(commonpath)+1:])
+                    os.makedirs(os.path.dirname(dest), exist_ok=True)
+                    shutil.copy2(c, dest)
 
-                # Marker file in the archive root - points to the packed (master) file
-                markername = "renderchan.pack"
+                # Marker file - points to the packed (master) file
                 if markername not in [c[len(commonpath)+1:] for c in list]:
-                    myzip.writestr(markername, "[main]\nmasterfile=%s\n" % taskfile.getPath()[len(commonpath)+1:])
+                    with open(os.path.join(self.pack_to_dir, markername), "w") as marker:
+                        marker.write("[main]\nmasterfile=%s\n" % taskfile.getPath()[len(commonpath)+1:])
+
+                ui.notice("Written files to " + self.pack_to_dir + ".")
+                ui.blank()
+
+            else:
+
+                zipname = os.path.basename(taskfile.getPath())+'.zip'
+
+                if os.path.exists(os.path.join(os.getcwd(),zipname)):
+                    ui.error("File "+os.path.join(os.getcwd(),zipname)+" already exists.")
+                    sys.exit()
 
 
-            ui.notice("Written " + os.path.join(os.getcwd(), zipname) + ".")
-            ui.blank()
+                with zipfile.ZipFile(zipname, 'x') as myzip:
+                    for i,c in enumerate(list):
+                        ui.progress("Packing", i, len(list))
+                        ui.info("Zipping file: "+c)
+                        myzip.write(c, c[len(commonpath)+1:])
+
+                    if markername not in [c[len(commonpath)+1:] for c in list]:
+                        myzip.writestr(markername, "[main]\nmasterfile=%s\n" % taskfile.getPath()[len(commonpath)+1:])
+
+
+                ui.notice("Written " + os.path.join(os.getcwd(), zipname) + ".")
+                ui.blank()
 
             # Close cache
             for path in self.projects.list.keys():
