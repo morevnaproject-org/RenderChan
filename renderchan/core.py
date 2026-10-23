@@ -197,6 +197,10 @@ class RenderChan():
                 list.append(file["source"])
 
             commonpath = os.path.commonpath(list)
+            # Degenerate case: a single tracked file (no project.conf, no
+            # dependencies) makes commonpath() return the file itself
+            if not os.path.isdir(commonpath):
+                commonpath = os.path.dirname(commonpath)
             #for i,c in enumerate(list):
             #    list[i]=c[len(commonpath)+1:]
             #    print(list[i])
